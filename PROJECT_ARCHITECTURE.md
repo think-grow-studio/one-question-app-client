@@ -145,6 +145,13 @@ Rules:
 - Lists: `@shopify/flash-list`
 - Bottom Sheet: `@gorhom/bottom-sheet`
 - Secure Storage: `expo-secure-store`
+- Gestures: `react-native-gesture-handler`
+- Animations: `react-native-reanimated` v3
+
+Optional animation libraries:
+
+- Moti: Declarative animations (built on Reanimated)
+- Lottie: Complex designer-made animations
 
 Platform notes:
 
@@ -545,6 +552,13 @@ Do NOT:
 - Call APIs directly in UI components
 - Store server data in Zustand
 - Introduce additional architectural patterns
+- Use React Native Animated API (use Reanimated instead)
+
+Rules:
+
+- All animations must use React Native Reanimated
+- Use Moti only for simple declarative animations (built on Reanimated)
+- Use Lottie only for decorative, non-interactive animations
 
 ---
 
@@ -1247,6 +1261,17 @@ module.exports = {
 - Use `fetch` directly (always use apiClient)
 - Put API logic in hooks (hooks compose, api.ts implements)
 - Skip error boundaries in app root
+- Use React Native Animated API (always use Reanimated)
+- Use Lottie for interactive UI elements (Reanimated only)
+
+### Animation Rules:
+
+- ✅ All animations must use React Native Reanimated
+- ✅ Use `useSharedValue` and `useAnimatedStyle` for all animated components
+- ✅ Prefer `entering`/`exiting` props for mount/unmount animations
+- ✅ Use Gesture Handler with Reanimated for gesture-based animations
+- ⚠️ Optional: Use Moti for simple declarative animations (built on Reanimated)
+- ⚠️ Optional: Use Lottie only for decorative, non-interactive animations
 
 ---
 
@@ -1904,6 +1929,624 @@ describe('QuestionCard', () => {
 - ❌ Forget fallback language
 - ❌ Mix languages in one component
 - ❌ Use `any` type for translation keys
+
+---
+
+## 24. Animation Strategy
+
+### 24.1 Recommended Stack
+
+**Primary: React Native Reanimated 3**
+
+Reasons:
+- ✅ Runs on UI thread (60fps guaranteed)
+- ✅ Best performance for mobile
+- ✅ Official Expo support
+- ✅ Industry standard in React Native
+- ✅ Works seamlessly with Gesture Handler
+- ✅ Tamagui compatible
+
+**Secondary: Moti (Optional)**
+
+Use cases:
+- Simple declarative animations
+- Framer Motion-like API
+- Quick prototyping
+- Built on top of Reanimated
+
+**Tertiary: Lottie (Optional)**
+
+Use cases:
+- Complex designer-made animations
+- After Effects exports
+- Splash screens, onboarding
+- Decorative animations
+
+---
+
+### 24.2 Installation
+
+**Required (always install):**
+
+```bash
+npx expo install react-native-reanimated react-native-gesture-handler
+```
+
+**Optional (install when needed):**
+
+```bash
+# Moti - for simple declarative animations
+npx expo install moti
+
+# Lottie - for complex JSON animations
+npx expo install lottie-react-native
+```
+
+**babel.config.js:**
+
+```javascript
+module.exports = {
+  presets: ['babel-preset-expo'],
+  plugins: [
+    'react-native-reanimated/plugin', // ✅ MUST be last
+  ],
+}
+```
+
+---
+
+### 24.3 Reanimated 3 Patterns
+
+**1. Shared Values (State)**
+
+```typescript
+import { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated'
+import Animated from 'react-native-reanimated'
+
+export function AnimatedBox() {
+  const offset = useSharedValue(0)
+
+  const animatedStyles = useAnimatedStyle(() => ({
+    transform: [{ translateX: offset.value }],
+  }))
+
+  const handlePress = () => {
+    offset.value = withSpring(offset.value + 50)
+  }
+
+  return (
+    <Animated.View style={animatedStyles}>
+      <Button onPress={handlePress}>Move</Button>
+    </Animated.View>
+  )
+}
+```
+
+**2. Entering/Exiting Animations**
+
+```typescript
+import Animated, { FadeIn, FadeOut, SlideInRight } from 'react-native-reanimated'
+
+export function QuestionCard() {
+  return (
+    <Animated.View
+      entering={SlideInRight.duration(300)}
+      exiting={FadeOut.duration(200)}
+    >
+      <Text>Today's Question</Text>
+    </Animated.View>
+  )
+}
+```
+
+**3. Layout Animations**
+
+```typescript
+import Animated, { Layout } from 'react-native-reanimated'
+
+export function AnimatedList({ items }) {
+  return (
+    <View>
+      {items.map((item) => (
+        <Animated.View key={item.id} layout={Layout.springify()}>
+          <Text>{item.name}</Text>
+        </Animated.View>
+      ))}
+    </View>
+  )
+}
+```
+
+**4. Gesture-based Animations**
+
+```typescript
+import { Gesture, GestureDetector } from 'react-native-gesture-handler'
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated'
+
+export function DraggableCard() {
+  const translateX = useSharedValue(0)
+  const translateY = useSharedValue(0)
+
+  const pan = Gesture.Pan()
+    .onChange((event) => {
+      translateX.value += event.changeX
+      translateY.value += event.changeY
+    })
+    .onEnd(() => {
+      translateX.value = withSpring(0)
+      translateY.value = withSpring(0)
+    })
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: translateX.value },
+      { translateY: translateY.value },
+    ],
+  }))
+
+  return (
+    <GestureDetector gesture={pan}>
+      <Animated.View style={animatedStyle}>
+        <Text>Drag me!</Text>
+      </Animated.View>
+    </GestureDetector>
+  )
+}
+```
+
+---
+
+### 24.4 Moti Patterns (Simple Animations)
+
+**When to use Moti:**
+- ✅ Simple fade/scale/translate animations
+- ✅ Prototyping quickly
+- ✅ Declarative API preference
+- ❌ NOT for complex gestures (use Reanimated directly)
+
+**Installation:**
+
+```bash
+npx expo install moti
+```
+
+**Examples:**
+
+```typescript
+import { MotiView } from 'moti'
+
+// Simple fade in
+export function FadeInBox() {
+  return (
+    <MotiView
+      from={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ type: 'timing', duration: 500 }}
+    >
+      <Text>Fading in...</Text>
+    </MotiView>
+  )
+}
+
+// Animated presence (mount/unmount)
+import { AnimatePresence } from 'moti'
+
+export function ConditionalBox({ visible }) {
+  return (
+    <AnimatePresence>
+      {visible && (
+        <MotiView
+          from={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.8 }}
+        >
+          <Text>I appear and disappear smoothly</Text>
+        </MotiView>
+      )}
+    </AnimatePresence>
+  )
+}
+
+// Loop animation
+export function PulsingDot() {
+  return (
+    <MotiView
+      from={{ scale: 1 }}
+      animate={{ scale: 1.2 }}
+      transition={{
+        type: 'timing',
+        duration: 1000,
+        loop: true,
+        repeatReverse: true,
+      }}
+      style={{ width: 10, height: 10, backgroundColor: 'red', borderRadius: 5 }}
+    />
+  )
+}
+```
+
+---
+
+### 24.5 Lottie Patterns (Complex Animations)
+
+**When to use Lottie:**
+- ✅ Splash screens
+- ✅ Onboarding animations
+- ✅ Empty states
+- ✅ Loading indicators (custom)
+- ❌ NOT for interactive UI elements (use Reanimated)
+
+**Installation:**
+
+```bash
+npx expo install lottie-react-native
+```
+
+**Examples:**
+
+```typescript
+import LottieView from 'lottie-react-native'
+
+// Simple playback
+export function LoadingAnimation() {
+  return (
+    <LottieView
+      source={require('@/assets/animations/loading.json')}
+      autoPlay
+      loop
+      style={{ width: 200, height: 200 }}
+    />
+  )
+}
+
+// Controlled playback
+import { useRef, useEffect } from 'react'
+
+export function OnboardingAnimation({ isActive }) {
+  const animationRef = useRef<LottieView>(null)
+
+  useEffect(() => {
+    if (isActive) {
+      animationRef.current?.play()
+    } else {
+      animationRef.current?.pause()
+    }
+  }, [isActive])
+
+  return (
+    <LottieView
+      ref={animationRef}
+      source={require('@/assets/animations/onboarding.json')}
+      loop={false}
+    />
+  )
+}
+```
+
+**Where to get Lottie files:**
+- LottieFiles.com (free and paid)
+- Export from After Effects (with Bodymovin plugin)
+
+---
+
+### 24.6 Animation Guidelines by Use Case
+
+**UI Feedback (buttons, interactions):**
+```typescript
+// ✅ Good: Reanimated for 60fps
+const scale = useSharedValue(1)
+
+const handlePressIn = () => {
+  scale.value = withSpring(0.95)
+}
+
+const handlePressOut = () => {
+  scale.value = withSpring(1)
+}
+
+<Animated.Pressable style={animatedStyle} onPressIn={handlePressIn} onPressOut={handlePressOut}>
+  <Text>Press me</Text>
+</Animated.Pressable>
+```
+
+**List items appearing:**
+```typescript
+// ✅ Good: Entering animations
+<Animated.View entering={FadeInDown.delay(index * 100)}>
+  <QuestionCard question={question} />
+</Animated.View>
+```
+
+**Modals/Sheets:**
+```typescript
+// ✅ Good: Slide + Fade
+<Animated.View
+  entering={SlideInUp.springify()}
+  exiting={SlideOutDown.springify()}
+>
+  <BottomSheet />
+</Animated.View>
+```
+
+**Page transitions:**
+```typescript
+// ✅ Good: Use Expo Router built-in animations
+// expo-router handles this automatically with screen options
+```
+
+**Loading states:**
+```typescript
+// ✅ Good: Simple Moti loop OR Lottie
+<MotiView
+  from={{ rotate: '0deg' }}
+  animate={{ rotate: '360deg' }}
+  transition={{ type: 'timing', duration: 1000, loop: true }}
+>
+  <Spinner />
+</MotiView>
+```
+
+---
+
+### 24.7 Performance Best Practices
+
+**Do:**
+- ✅ Use `useAnimatedStyle` for all animated styles
+- ✅ Use `withSpring` or `withTiming` for smooth animations
+- ✅ Keep animations on UI thread (Reanimated does this automatically)
+- ✅ Use `entering`/`exiting` props for mount/unmount animations
+- ✅ Memoize gesture handlers with `useMemo`
+
+**Do NOT:**
+- ❌ Use React Native Animated API for complex animations
+- ❌ Animate during heavy renders
+- ❌ Create new animated values on every render
+- ❌ Use inline functions in `useAnimatedStyle`
+- ❌ Overuse Lottie (bundle size impact)
+
+**Example - Bad vs Good:**
+
+```typescript
+// ❌ Bad: Creates new value every render
+export function BadAnimation() {
+  const offset = useSharedValue(0) // ❌ Created on every render
+  return <Animated.View />
+}
+
+// ✅ Good: Stable reference
+export function GoodAnimation() {
+  const offset = useSharedValue(0) // ✅ Only created once
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: offset.value }],
+  }))
+
+  return <Animated.View style={animatedStyle} />
+}
+```
+
+---
+
+### 24.8 Common Animation Recipes
+
+**1. Fade in on mount:**
+```typescript
+<Animated.View entering={FadeIn.duration(300)}>
+  <Content />
+</Animated.View>
+```
+
+**2. Staggered list:**
+```typescript
+{items.map((item, index) => (
+  <Animated.View
+    key={item.id}
+    entering={FadeInDown.delay(index * 100)}
+  >
+    <ListItem item={item} />
+  </Animated.View>
+))}
+```
+
+**3. Button press feedback:**
+```typescript
+const scale = useSharedValue(1)
+
+const animatedStyle = useAnimatedStyle(() => ({
+  transform: [{ scale: scale.value }],
+}))
+
+<Animated.Pressable
+  style={animatedStyle}
+  onPressIn={() => scale.value = withSpring(0.95)}
+  onPressOut={() => scale.value = withSpring(1)}
+>
+  <Text>Press me</Text>
+</Animated.Pressable>
+```
+
+**4. Swipe to dismiss:**
+```typescript
+const translateX = useSharedValue(0)
+
+const pan = Gesture.Pan()
+  .onChange((e) => translateX.value += e.changeX)
+  .onEnd(() => {
+    if (Math.abs(translateX.value) > 100) {
+      translateX.value = withTiming(translateX.value > 0 ? 500 : -500)
+      runOnJS(onDismiss)()
+    } else {
+      translateX.value = withSpring(0)
+    }
+  })
+
+<GestureDetector gesture={pan}>
+  <Animated.View style={animatedStyle}>
+    <Card />
+  </Animated.View>
+</GestureDetector>
+```
+
+**5. Skeleton loading:**
+```typescript
+<MotiView
+  from={{ opacity: 0.3 }}
+  animate={{ opacity: 1 }}
+  transition={{
+    type: 'timing',
+    duration: 1000,
+    loop: true,
+    repeatReverse: true,
+  }}
+  style={{ width: '100%', height: 100, backgroundColor: '#e0e0e0' }}
+/>
+```
+
+---
+
+### 24.9 Folder Organization
+
+**Small projects:**
+
+```
+src/
+├─ shared/
+│  └─ animations/
+│     ├─ transitions.ts    # Reusable transition configs
+│     └─ gestures.ts       # Reusable gesture handlers
+└─ assets/
+   └─ animations/          # Lottie JSON files
+      ├─ loading.json
+      └─ success.json
+```
+
+**Example - transitions.ts:**
+
+```typescript
+// shared/animations/transitions.ts
+import { FadeIn, FadeOut, SlideInRight, SlideOutLeft } from 'react-native-reanimated'
+
+export const transitions = {
+  fadeIn: FadeIn.duration(300),
+  fadeOut: FadeOut.duration(200),
+  slideInRight: SlideInRight.springify(),
+  slideOutLeft: SlideOutLeft.springify(),
+}
+
+// Usage
+import { transitions } from '@/shared/animations/transitions'
+
+<Animated.View entering={transitions.fadeIn}>
+  <Content />
+</Animated.View>
+```
+
+---
+
+### 24.10 Testing Animated Components
+
+**Mocking Reanimated in tests:**
+
+```typescript
+// __tests__/setup.ts
+jest.mock('react-native-reanimated', () => {
+  const Reanimated = require('react-native-reanimated/mock')
+  Reanimated.default.call = () => {}
+  return Reanimated
+})
+```
+
+**Testing animation behavior:**
+
+```typescript
+import { render, fireEvent } from '@testing-library/react-native'
+import { AnimatedButton } from './AnimatedButton'
+
+describe('AnimatedButton', () => {
+  it('handles press interactions', () => {
+    const onPress = jest.fn()
+    const { getByText } = render(<AnimatedButton onPress={onPress} />)
+
+    fireEvent.press(getByText('Press me'))
+    expect(onPress).toHaveBeenCalled()
+  })
+})
+```
+
+---
+
+### 24.11 Decision Tree
+
+**Choose your animation library:**
+
+```
+Is it a complex gesture interaction?
+├─ Yes → React Native Reanimated
+└─ No
+   └─ Is it a simple fade/scale/translate?
+      ├─ Yes → Moti (easier API) OR Reanimated (better performance)
+      └─ No
+         └─ Is it a designer-made animation from After Effects?
+            ├─ Yes → Lottie
+            └─ No → React Native Reanimated
+```
+
+**Performance requirement:**
+- **Critical** (60fps required): Reanimated
+- **Important** (smooth enough): Moti or Reanimated
+- **Decorative** (can drop frames): Lottie
+
+---
+
+### 24.12 Rules Summary
+
+**Do:**
+- ✅ Default to Reanimated for all interactive animations
+- ✅ Use Moti for quick prototypes or simple declarative needs
+- ✅ Use Lottie only for decorative, non-interactive animations
+- ✅ Keep animations subtle and purposeful
+- ✅ Test animations on low-end devices
+- ✅ Provide reduced motion alternatives (accessibility)
+
+**Do NOT:**
+- ❌ Mix Animated API with Reanimated
+- ❌ Overuse animations (less is more)
+- ❌ Animate during data fetching or heavy computation
+- ❌ Use Lottie for interactive UI elements
+- ❌ Create animations without clear purpose
+- ❌ Ignore animation performance on Android
+
+---
+
+### 24.13 Accessibility Considerations
+
+**Respect reduced motion preference:**
+
+```typescript
+import { useReducedMotion } from 'react-native-reanimated'
+
+export function AnimatedCard() {
+  const reducedMotion = useReducedMotion()
+
+  return (
+    <Animated.View
+      entering={reducedMotion ? undefined : FadeIn.duration(300)}
+    >
+      <Content />
+    </Animated.View>
+  )
+}
+```
+
+**Alternative for reduced motion:**
+
+```typescript
+const shouldAnimate = !useReducedMotion()
+
+const animatedStyle = useAnimatedStyle(() => ({
+  opacity: shouldAnimate ? withTiming(1) : 1,
+}))
+```
 
 ---
 
