@@ -11,6 +11,7 @@ This document is written to guide **AI-assisted frontend implementation**.
 ## ⚡ Quick Start - Choose Your Scale
 
 **🟢 Small Project (< 10 features, 1-2 devs) → Recommended for "오늘의 질문"**
+- **Tech Stack**: Expo SDK 54 + React Native 0.81 + New Architecture
 - **Feature structure**: api/, hooks/, components/, types/ (Section 5.1)
 - **간단한 feature**: api.ts, hooks.ts만 (Section 5.2)
 - Skip: Barrel exports, Slices, request/response 분리, Extensive testing
@@ -24,6 +25,10 @@ This document is written to guide **AI-assisted frontend implementation**.
 - Full architecture with slices and comprehensive testing (Section 22.3)
 
 **This project's estimated scale: 🟢 Small (5-6 features, ~10 screens)**
+
+**Required Setup:**
+- New Architecture enabled (see Section 1.8)
+- All libraries use latest stable versions (2025)
 
 ### 핵심 차이점 (vs 단일 파일 구조)
 
@@ -60,8 +65,9 @@ features/question/
 ### 1.1 Platform
 
 - React Native + Expo
-- Expo SDK 52
+- Expo SDK 54 (React Native 0.81)
 - Managed Workflow
+- **New Architecture Enabled** (required for modern libraries)
 - Mobile-first (iOS / Android)
 - Web support via Expo Web (`react-native-web`)
 
@@ -76,9 +82,9 @@ features/question/
 
 ### 1.3 Navigation
 
-- Expo Router (v6)
+- Expo Router (v4+)
 - File-based routing
-- Internally based on React Navigation v7
+- Internally based on React Navigation v7.1+
 
 Rules:
 
@@ -91,7 +97,7 @@ Rules:
 
 #### Server State
 
-- TanStack Query v5
+- TanStack Query v5.84+
 
 Usage:
 
@@ -107,7 +113,7 @@ Rules:
 
 #### Client / UI State
 
-- Zustand v5
+- Zustand v5.0.8+
 
 Usage:
 
@@ -142,27 +148,29 @@ Rules:
 
 ### 1.6 Performance & Interaction
 
-- Lists: `@shopify/flash-list`
-- Bottom Sheet: `@gorhom/bottom-sheet`
+- Lists: `@shopify/flash-list` v2.2+ (New Architecture required)
+- Bottom Sheet: `@gorhom/bottom-sheet` v5.2+
 - Secure Storage: `expo-secure-store`
-- Gestures: `react-native-gesture-handler`
-- Animations: `react-native-reanimated` v3
+- Gestures: `react-native-gesture-handler` v2.20+
+- Animations: `react-native-reanimated` v4.1+ (New Architecture required)
 
 Optional animation libraries:
 
-- Moti: Declarative animations (built on Reanimated)
-- Lottie: Complex designer-made animations
+- Moti v0.30+: Declarative animations (built on Reanimated)
+- Lottie `lottie-react-native` v7+: Complex designer-made animations
 
 Platform notes:
 
 - Web may replace FlashList / BottomSheet with simpler UI
 - Platform branching must be minimal and isolated
+- **All performance libraries require New Architecture**
 
 ---
 
 ### 1.7 Internationalization (i18n)
 
-- i18next + react-i18next
+- i18next v25.7+
+- react-i18next v16.0+
 - expo-localization
 
 Supported languages:
@@ -182,6 +190,61 @@ Rules:
 - Never hardcode user-facing strings in components
 - All translations must be stored in `src/locales/`
 - Use TypeScript for type-safe translation keys
+
+---
+
+### 1.8 React Native New Architecture
+
+**Status: ENABLED (Required for this project)**
+
+The React Native New Architecture is enabled by default in this project. This provides:
+
+Benefits:
+- ✅ Better performance (UI thread animations, faster bridge)
+- ✅ Access to modern libraries (Reanimated 4, FlashList 2.x)
+- ✅ Future-proof codebase
+- ✅ Improved type safety with TurboModules
+- ✅ Concurrent rendering support
+
+Requirements:
+- Expo SDK 54+
+- React Native 0.81+
+- All native dependencies must support New Architecture
+
+Libraries that require New Architecture:
+- `react-native-reanimated` v4+
+- `@shopify/flash-list` v2+
+- Modern gesture handling features
+
+**Configuration:**
+
+```javascript
+// app.config.js
+export default {
+  expo: {
+    // ...
+    plugins: [
+      [
+        'expo-build-properties',
+        {
+          ios: {
+            newArchEnabled: true,
+          },
+          android: {
+            newArchEnabled: true,
+          },
+        },
+      ],
+    ],
+  },
+}
+```
+
+**Installation:**
+
+```bash
+npx expo install expo-build-properties
+```
 
 ---
 
@@ -1936,17 +1999,19 @@ describe('QuestionCard', () => {
 
 ### 24.1 Recommended Stack
 
-**Primary: React Native Reanimated 3**
+**Primary: React Native Reanimated 4.1+**
 
 Reasons:
 - ✅ Runs on UI thread (60fps guaranteed)
 - ✅ Best performance for mobile
 - ✅ Official Expo support
 - ✅ Industry standard in React Native
-- ✅ Works seamlessly with Gesture Handler
+- ✅ Works seamlessly with Gesture Handler v2.20+
 - ✅ Tamagui compatible
+- ✅ New declarative, CSS-compatible animation API
+- ⚠️ **Requires React Native New Architecture**
 
-**Secondary: Moti (Optional)**
+**Secondary: Moti v0.30+ (Optional)**
 
 Use cases:
 - Simple declarative animations
@@ -1954,7 +2019,7 @@ Use cases:
 - Quick prototyping
 - Built on top of Reanimated
 
-**Tertiary: Lottie (Optional)**
+**Tertiary: Lottie v7+ (Optional)**
 
 Use cases:
 - Complex designer-made animations
@@ -1969,17 +2034,18 @@ Use cases:
 **Required (always install):**
 
 ```bash
-npx expo install react-native-reanimated react-native-gesture-handler
+# Animation and gesture libraries (Reanimated 4 requires New Architecture)
+npx expo install react-native-reanimated@~4.1.5 react-native-gesture-handler@~2.20.0
 ```
 
 **Optional (install when needed):**
 
 ```bash
 # Moti - for simple declarative animations
-npx expo install moti
+npx expo install moti@~0.30.0
 
 # Lottie - for complex JSON animations
-npx expo install lottie-react-native
+npx expo install lottie-react-native@~7.0.0
 ```
 
 **babel.config.js:**
@@ -1993,9 +2059,27 @@ module.exports = {
 }
 ```
 
+**app.config.js (New Architecture):**
+
+```javascript
+export default {
+  expo: {
+    plugins: [
+      [
+        'expo-build-properties',
+        {
+          ios: { newArchEnabled: true },
+          android: { newArchEnabled: true },
+        },
+      ],
+    ],
+  },
+}
+```
+
 ---
 
-### 24.3 Reanimated 3 Patterns
+### 24.3 Reanimated 4 Patterns
 
 **1. Shared Values (State)**
 
