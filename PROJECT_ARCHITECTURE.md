@@ -1,0 +1,1910 @@
+# 📐 Frontend Architecture Specification
+
+This document defines the **frontend technical stack**,
+**project architecture**, and **implementation rules**.
+
+Product / business planning is intentionally excluded.
+This document is written to guide **AI-assisted frontend implementation**.
+
+---
+
+## ⚡ Quick Start - Choose Your Scale
+
+**🟢 Small Project (< 10 features, 1-2 devs) → Recommended for "오늘의 질문"**
+- **Feature structure**: api/, hooks/, components/, types/ (Section 5.1)
+- **간단한 feature**: api.ts, hooks.ts만 (Section 5.2)
+- Skip: Barrel exports, Slices, request/response 분리, Extensive testing
+- Focus: MVP 속도 + 확장 가능성
+
+**🟡 Medium Project (10-20 features, 3-5 devs)**
+- Add: Barrel exports, request/response/store 타입 분리 (Section 22.2)
+- Upgrade when: 100+ users or 3+ developers
+
+**🔴 Large Project (20+ features, 5+ devs)**
+- Full architecture with slices and comprehensive testing (Section 22.3)
+
+**This project's estimated scale: 🟢 Small (5-6 features, ~10 screens)**
+
+### 핵심 차이점 (vs 단일 파일 구조)
+
+```
+❌ Old (모든 게 한 파일):
+features/question/
+├─ api.ts        # 모든 API 함수
+├─ hooks.ts      # 모든 훅
+└─ types.ts      # 모든 타입
+
+✅ New (확장 가능한 구조):
+features/question/
+├─ api/
+│  └─ questionApi.ts
+├─ hooks/
+│  ├─ queries/
+│  └─ mutations/
+├─ types/
+│  ├─ api.ts
+│  └─ store.ts
+└─ components/
+```
+
+**Why?**
+- ✅ 나중에 request/response 분리하기 쉬움
+- ✅ 파일 찾기 쉬움 (queries vs mutations 명확)
+- ✅ Medium으로 확장 시 리팩토링 최소화
+- ❌ 복잡도는 거의 동일 (파일 개수만 늘어남)
+
+---
+
+## 1. Technical Stack (Final – Stable, 2025)
+
+### 1.1 Platform
+
+- React Native + Expo
+- Expo SDK 52
+- Managed Workflow
+- Mobile-first (iOS / Android)
+- Web support via Expo Web (`react-native-web`)
+
+---
+
+### 1.2 Language
+
+- TypeScript
+- `strict: true`
+
+---
+
+### 1.3 Navigation
+
+- Expo Router (v6)
+- File-based routing
+- Internally based on React Navigation v7
+
+Rules:
+
+- Navigation must be defined **only** via the `app/` directory
+- Do not manually configure React Navigation unless unavoidable
+
+---
+
+### 1.4 State Management
+
+#### Server State
+
+- TanStack Query v5
+
+Usage:
+
+- Remote API data
+- Caching / refetching / pagination
+
+Rules:
+
+- All server data must be handled by TanStack Query
+- Do NOT store server responses in Zustand
+
+---
+
+#### Client / UI State
+
+- Zustand v5
+
+Usage:
+
+- UI state (modals, flags)
+- Local selections
+- Minimal auth/session state
+
+Rules:
+
+- Client-only state only
+- No API response objects
+
+---
+
+### 1.5 UI System
+
+- Tamagui (latest stable)
+
+Usage scope:
+
+- Layout
+- Spacing
+- Typography
+- Theme / tokens
+
+Rules:
+
+- Prefer Tamagui for shared UI
+- Heavy gestures or lists should use native RN components
+
+---
+
+### 1.6 Performance & Interaction
+
+- Lists: `@shopify/flash-list`
+- Bottom Sheet: `@gorhom/bottom-sheet`
+- Secure Storage: `expo-secure-store`
+
+Platform notes:
+
+- Web may replace FlashList / BottomSheet with simpler UI
+- Platform branching must be minimal and isolated
+
+---
+
+### 1.7 Internationalization (i18n)
+
+- i18next + react-i18next
+- expo-localization
+
+Supported languages:
+
+- English (en) – Primary development language
+- Korean (ko)
+- Japanese (ja)
+
+Usage:
+
+- All user-facing text must be externalized
+- Default language: English
+- Device language detection via `expo-localization`
+
+Rules:
+
+- Never hardcode user-facing strings in components
+- All translations must be stored in `src/locales/`
+- Use TypeScript for type-safe translation keys
+
+---
+
+## 2. HTTP / API Layer
+
+### 2.1 HTTP Client
+
+- **Axios (standard choice)**
+
+Reasons:
+
+- Request / response interceptors
+- Token injection
+- Unified error handling
+- Excellent compatibility with TanStack Query
+- Works identically across Mobile and Web
+
+---
+
+### 2.2 API Client Rules
+
+- All HTTP requests must go through a centralized client
+- Direct `fetch` usage is NOT allowed
+- Token handling must be done via interceptors
+
+---
+
+### 2.3 Example Structure
+
+services/
+├─ apiClient.ts # Axios instance
+├─ authService.ts # Token refresh / auth helpers
+└─ interceptors.ts # Axios interceptors
+
+yaml
+코드 복사
+
+---
+
+## 3. Project Folder Architecture
+
+### 3.1 Root Structure
+
+src/
+├─ app/ # Routing & screens (Expo Router only)
+├─ features/ # Domain-based logic
+├─ services/ # API & infrastructure
+├─ stores/ # Zustand stores
+├─ shared/ # Shared UI & theme
+├─ hooks/ # Global reusable hooks
+├─ types/ # Global TypeScript types
+├─ constants/ # App-wide constants
+├─ utils/ # Pure utility functions
+└─ assets/ # Images, icons, fonts
+
+yaml
+코드 복사
+
+---
+
+## 4. Routing Layer (`app/`)
+
+Purpose:
+
+- Screen composition
+- Navigation structure
+
+Rules:
+
+- No business logic
+- No direct API calls
+- No state management logic
+- Use hooks from `features/`
+
+Example:
+app/
+├─ \_layout.tsx
+├─ (auth)/
+│ └─ login.tsx
+├─ (tabs)/
+│ ├─ today.tsx
+│ ├─ collection.tsx
+│ └─ profile.tsx
+├─ question/
+│ └─ [id].tsx
+└─ modal/
+└─ category.tsx
+
+yaml
+코드 복사
+
+---
+
+## 5. Feature Layer (`features/`)
+
+Purpose:
+
+- Encapsulate domain-specific frontend logic
+
+### 5.1 Recommended Structure (Scalable Small)
+
+**Purpose**: 처음부터 파일을 분리해두면 나중에 Medium/Large로 확장하기 쉽습니다.
+
+```
+features/<feature-name>/
+├─ api/
+│  └─ <feature>Api.ts           # API 호출 함수들
+├─ hooks/
+│  ├─ queries/
+│  │  └─ use<Feature>Queries.ts # useQuery 훅
+│  └─ mutations/
+│     └─ use<Feature>Mutations.ts # useMutation 훅
+├─ stores/
+│  └─ use<Feature>Store.ts      # Zustand store (필요시)
+├─ components/
+│  ├─ <Feature>List.tsx         # 리스트 컴포넌트
+│  ├─ <Feature>Item.tsx         # 아이템 컴포넌트
+│  └─ <Feature>Form.tsx         # 폼 컴포넌트
+├─ types/
+│  ├─ api.ts                    # API request/response 타입
+│  └─ store.ts                  # Store 타입 (필요시)
+└─ utils/                       # (optional)
+   └─ <feature>Utils.ts         # 유틸리티 함수
+```
+
+**Example: Question Feature**
+```
+features/question/
+├─ api/
+│  └─ questionApi.ts
+│     export const questionApi = {
+│       fetchDaily: async () => {...},
+│       fetchById: async (id: string) => {...},
+│       create: async (data: CreateQuestionRequest) => {...},
+│     }
+├─ hooks/
+│  ├─ queries/
+│  │  └─ useQuestionQueries.ts
+│  │     export const useDailyQuestionQuery = () => useQuery(...)
+│  └─ mutations/
+│     └─ useQuestionMutations.ts
+│        export const useCreateQuestionMutation = () => useMutation(...)
+├─ stores/
+│  └─ useQuestionFormStore.ts
+│     export const useQuestionFormStore = create<QuestionFormStore>(...)
+├─ components/
+│  ├─ QuestionCard.tsx
+│  ├─ QuestionList.tsx
+│  └─ QuestionAnswerForm.tsx
+├─ types/
+│  ├─ api.ts
+│  │  export interface QuestionResponse {...}
+│  │  export interface CreateQuestionRequest {...}
+│  └─ store.ts
+│     export interface QuestionFormState {...}
+└─ utils/
+   └─ questionUtils.ts
+      export const formatQuestionDate = (date: Date) => {...}
+```
+
+---
+
+### 5.2 Alternative: Minimal Structure (단순한 Feature용)
+
+**When to use**: 매우 간단한 기능 (3개 이하의 파일)
+
+```
+features/<feature-name>/
+├─ api.ts           # 모든 API 함수
+├─ hooks.ts         # 모든 Query/Mutation 훅
+└─ components/      # UI 컴포넌트만
+```
+
+**Example: Settings Feature**
+```
+features/settings/
+├─ api.ts           # 2-3개 API 함수만
+├─ hooks.ts         # 2-3개 훅만
+└─ components/
+   └─ SettingsList.tsx
+```
+
+---
+
+### 5.3 Migration Path (확장 시나리오)
+
+**Phase 1: Small → Medium (10+ features 도달 시)**
+
+Before:
+```
+types/
+├─ api.ts           # 모든 도메인의 타입
+└─ index.ts
+```
+
+After:
+```
+features/question/
+└─ types/
+   ├─ request.ts    # API 요청 타입만
+   ├─ response.ts   # API 응답 타입만
+   └─ store.ts
+```
+
+**Phase 2: Medium → Large (20+ features 도달 시)**
+
+Before:
+```
+features/question/
+└─ api/
+   └─ questionApi.ts  # 모든 API 함수
+```
+
+After:
+```
+features/question/
+└─ api/
+   ├─ dailyApi.ts     # 일별 질문 API
+   ├─ collectionApi.ts # 도감 API
+   └─ communityApi.ts  # 커뮤니티 API
+```
+
+---
+
+### 5.4 Rules
+
+1. **API Layer** (`api/`):
+   - HTTP 호출만
+   - 타입 명시 필수
+   - 비즈니스 로직 금지
+
+2. **Hooks Layer** (`hooks/`):
+   - Queries: 데이터 조회 (GET)
+   - Mutations: 데이터 변경 (POST/PUT/DELETE)
+   - 캐시 무효화 처리
+
+3. **Stores Layer** (`stores/`):
+   - 클라이언트 상태만
+   - 서버 데이터 저장 금지
+   - 필요한 feature만 생성
+
+4. **Components Layer** (`components/`):
+   - Feature 전용 UI
+   - 공통 컴포넌트는 `shared/ui/`에
+
+5. **Types Layer** (`types/`):
+   - Small: api.ts + store.ts
+   - Medium: request.ts + response.ts + store.ts
+   - Large: params.ts 추가
+
+6. **Utils Layer** (`utils/`):
+   - 순수 함수만
+   - Feature 전용 헬퍼
+   - 공통 유틸은 `utils/`에
+
+---
+
+## 6. Service Layer (`services/`)
+
+Purpose:
+
+- Infrastructure-level concerns
+
+**Minimal Structure (Small projects):**
+```
+services/
+├─ apiClient.ts    # Axios + interceptors
+├─ queryClient.ts  # TanStack Query config
+└─ storage.ts      # Secure + AsyncStorage wrapper
+```
+
+**Extended Structure (Larger projects):**
+```
+services/
+├─ apiClient.ts
+├─ queryClient.ts
+├─ storage.ts
+├─ authService.ts  # Complex auth logic
+└─ pushService.ts  # Push notifications
+```
+
+Responsibilities:
+
+- Base URL configuration
+- Auth headers
+- Token refresh handling
+- Axios interceptors
+
+Rules:
+
+- Features must use `apiClient`
+- No direct `fetch` usage outside this layer
+- Keep services focused (< 100 lines each)
+
+---
+
+## 7. State Stores (`stores/`)
+
+Structure:
+stores/
+├─ authStore.ts
+├─ categoryStore.ts
+└─ uiStore.ts
+
+yaml
+코드 복사
+
+Rules:
+
+- Client/UI state only
+- No server data
+- Keep stores small and focused
+
+---
+
+## 8. Shared UI & Theme (`shared/`)
+
+Structure:
+shared/
+├─ ui/
+│ ├─ Button.tsx
+│ ├─ Text.tsx
+│ └─ Modal.tsx
+├─ layout/
+│ └─ Screen.tsx
+└─ theme/
+├─ tamagui.config.ts
+└─ tokens.ts
+
+yaml
+코드 복사
+
+Rules:
+
+- Shared components must be platform-agnostic
+- Feature-specific UI belongs in `features/*/components`
+
+---
+
+## 9. Hooks (`hooks/`)
+
+Purpose:
+
+- Cross-feature reusable logic
+
+Rules:
+
+- No domain-specific logic
+- No direct API calls
+
+---
+
+## 10. Platform Compatibility Rules
+
+- Mobile-first design
+- Avoid `Platform.OS` branching unless unavoidable
+- Platform-specific code must be isolated
+- Web compatibility should not break mobile behavior
+
+---
+
+## 11. Implementation Constraints
+
+Do NOT:
+
+- Add Redux / MobX
+- Put business logic in `app/`
+- Call APIs directly in UI components
+- Store server data in Zustand
+- Introduce additional architectural patterns
+
+---
+
+## 12. Guiding Principles
+
+1. Clear separation of concerns
+2. Feature-based architecture
+3. Predictable folder structure
+4. AI-readable and enforceable rules
+5. Long-term maintainability
+
+---
+
+## 13. React Native Specific Configuration
+
+### 13.1 TanStack Query Setup
+
+**Required packages:**
+- `@react-native-community/netinfo` OR `expo-network`
+
+**AppState Focus Manager:**
+
+```typescript
+// services/queryClient.ts
+import { QueryClient, focusManager, onlineManager } from '@tanstack/react-query'
+import { AppState } from 'react-native'
+import NetInfo from '@react-native-community/netinfo'
+
+// Refetch on app focus
+AppState.addEventListener('change', (status) => {
+  focusManager.setFocused(status === 'active')
+})
+
+// Refetch on network reconnect
+onlineManager.setEventListener((setOnline) => {
+  return NetInfo.addEventListener((state) => {
+    setOnline(!!state.isConnected)
+  })
+})
+
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      refetchOnWindowFocus: true,
+      refetchOnReconnect: true,
+    },
+  },
+})
+```
+
+**Screen Focus Refetch:**
+
+```typescript
+// hooks/useRefreshOnFocus.ts
+import { useCallback } from 'react'
+import { useFocusEffect } from 'expo-router'
+
+export function useRefreshOnFocus(refetch: () => void) {
+  useFocusEffect(
+    useCallback(() => {
+      refetch()
+      return undefined
+    }, [refetch])
+  )
+}
+```
+
+**Usage in screens:**
+```typescript
+const { data, refetch } = useQuery(...)
+useRefreshOnFocus(refetch)
+```
+
+---
+
+### 13.2 Zustand with Persistence
+
+**Required package:**
+- `@react-native-async-storage/async-storage`
+
+**Persist Middleware Pattern:**
+
+```typescript
+// stores/authStore.ts
+import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+
+interface AuthState {
+  token: string | null
+  userId: string | null
+  setAuth: (token: string, userId: string) => void
+  clearAuth: () => void
+}
+
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      token: null,
+      userId: null,
+      setAuth: (token, userId) => set({ token, userId }),
+      clearAuth: () => set({ token: null, userId: null }),
+    }),
+    {
+      name: 'auth-storage',
+      storage: createJSONStorage(() => AsyncStorage),
+    }
+  )
+)
+```
+
+**Slices Pattern (ONLY for very large stores):**
+
+⚠️ **Warning**: Only use slices if a single store exceeds 200+ lines.
+For most projects, simple stores are sufficient.
+
+```typescript
+// ❌ Overkill for small projects (< 10 features)
+stores/slices/userSlice.ts
+stores/slices/settingsSlice.ts
+
+// ✅ Better: Keep stores simple and focused
+stores/authStore.ts      // ~50-100 lines
+stores/uiStore.ts        // ~30-50 lines
+stores/categoryStore.ts  // ~20-30 lines
+```
+
+**When you really need slices (>200 lines):**
+```typescript
+// stores/slices/userSlice.ts
+export const createUserSlice = (set) => ({
+  user: null,
+  setUser: (user) => set({ user }),
+})
+
+// stores/appStore.ts
+import { create } from 'zustand'
+import { createUserSlice } from './slices/userSlice'
+import { createSettingsSlice } from './slices/settingsSlice'
+
+export const useAppStore = create((...args) => ({
+  ...createUserSlice(...args),
+  ...createSettingsSlice(...args),
+}))
+```
+
+---
+
+## 14. Environment Variables
+
+### 14.1 Structure
+
+```
+constants/
+├─ config.ts      # Runtime config from app.config.js
+└─ env.ts         # Type-safe env wrapper
+```
+
+### 14.2 Implementation
+
+**app.config.js:**
+```javascript
+export default {
+  expo: {
+    // ...
+    extra: {
+      apiUrl: process.env.API_URL || 'https://api.example.com',
+      environment: process.env.NODE_ENV || 'development',
+    },
+  },
+}
+```
+
+**constants/config.ts:**
+```typescript
+import Constants from 'expo-constants'
+
+export const config = {
+  apiUrl: Constants.expoConfig?.extra?.apiUrl as string,
+  environment: Constants.expoConfig?.extra?.environment as string,
+  isDev: __DEV__,
+}
+```
+
+**Rules:**
+- Never commit `.env` files with secrets
+- Use `expo-constants` for runtime access
+- Type-safe wrappers in `constants/`
+
+---
+
+## 15. Error Handling
+
+### 15.1 Error Boundary
+
+**Option 1: Simple (Recommended for MVP)**
+
+Use a library:
+```bash
+npx expo install expo-error-boundary
+```
+
+```tsx
+// app/_layout.tsx
+import { ErrorBoundary } from 'expo-error-boundary'
+
+export default function RootLayout() {
+  return (
+    <ErrorBoundary>
+      <Stack />
+    </ErrorBoundary>
+  )
+}
+```
+
+---
+
+**Option 2: Custom (When you need more control)**
+
+```typescript
+// shared/error/ErrorBoundary.tsx
+import React from 'react'
+import { View, Text, Button } from 'react-native'
+
+export class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false }
+
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error: Error) {
+    console.error('Error:', error)
+    // TODO: Log to Sentry/Firebase when ready
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text>Something went wrong</Text>
+          <Button title="Restart" onPress={() => this.setState({ hasError: false })} />
+        </View>
+      )
+    }
+    return this.props.children
+  }
+}
+```
+
+---
+
+### 15.2 API Error Handling
+
+**services/interceptors.ts:**
+```typescript
+import { AxiosError } from 'axios'
+
+export function setupInterceptors(axiosInstance) {
+  axiosInstance.interceptors.response.use(
+    (response) => response,
+    async (error: AxiosError) => {
+      // Token refresh logic
+      if (error.response?.status === 401) {
+        // Handle token refresh
+      }
+
+      // Normalize error format
+      const normalizedError = {
+        message: error.response?.data?.message || 'Network error',
+        status: error.response?.status,
+        code: error.code,
+      }
+
+      return Promise.reject(normalizedError)
+    }
+  )
+}
+```
+
+---
+
+## 16. Type System Organization
+
+### 16.1 Type Structure
+
+**For small-to-medium projects (5-10 features):**
+
+```
+types/
+├─ api.ts         # All API response types
+├─ index.ts       # Domain models (transformed from API)
+└─ navigation.ts  # Navigation params
+```
+
+**For larger projects (10+ features):**
+
+```
+types/
+├─ api/           # API contract types
+│  ├─ auth.ts
+│  ├─ question.ts
+│  └─ user.ts
+├─ models/        # Domain models (transformed from API)
+│  ├─ Question.ts
+│  └─ User.ts
+└─ ui/            # UI-specific types
+   └─ navigation.ts
+```
+
+**Simple Example (Recommended for most projects):**
+```typescript
+// types/api.ts
+export interface QuestionResponse {
+  id: string
+  question_text: string
+  created_at: string
+}
+
+// types/index.ts
+export interface Question {
+  id: string
+  text: string
+  createdAt: Date  // transformed
+}
+
+// features/question/api.ts
+import { QuestionResponse } from '@/types/api'
+import { Question } from '@/types'
+
+function transformQuestion(raw: QuestionResponse): Question {
+  return {
+    id: raw.id,
+    text: raw.question_text,
+    createdAt: new Date(raw.created_at),
+  }
+}
+```
+
+**Rule of thumb:**
+- < 10 features → Simple structure (3 files)
+- \> 10 features → Nested structure (folders)
+
+---
+
+## 17. Security Guidelines
+
+### 17.1 Token Storage
+
+**Rules:**
+1. **Sensitive data** (auth tokens, API keys): `expo-secure-store` ONLY
+2. **Non-sensitive data** (UI preferences): Zustand + AsyncStorage OK
+3. **Never** store tokens in unencrypted Zustand without persist
+
+**Implementation:**
+
+```typescript
+// services/secureStorage.ts
+import * as SecureStore from 'expo-secure-store'
+
+export const secureStorage = {
+  async setToken(key: string, value: string) {
+    await SecureStore.setItemAsync(key, value)
+  },
+
+  async getToken(key: string) {
+    return await SecureStore.getItemAsync(key)
+  },
+
+  async deleteToken(key: string) {
+    await SecureStore.deleteItemAsync(key)
+  },
+}
+```
+
+```typescript
+// services/authService.ts
+import { secureStorage } from './secureStorage'
+
+export const authService = {
+  async saveTokens(accessToken: string, refreshToken: string) {
+    await secureStorage.setToken('accessToken', accessToken)
+    await secureStorage.setToken('refreshToken', refreshToken)
+  },
+
+  async getAccessToken() {
+    return await secureStorage.getToken('accessToken')
+  },
+
+  async clearTokens() {
+    await secureStorage.deleteToken('accessToken')
+    await secureStorage.deleteToken('refreshToken')
+  },
+}
+```
+
+---
+
+### 17.2 API Client Security
+
+**Token injection via interceptor:**
+
+```typescript
+// services/apiClient.ts
+import axios from 'axios'
+import { authService } from './authService'
+
+export const apiClient = axios.create({
+  baseURL: config.apiUrl,
+})
+
+apiClient.interceptors.request.use(async (config) => {
+  const token = await authService.getAccessToken()
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+```
+
+---
+
+## 18. Performance Optimization
+
+### 18.1 Component Optimization
+
+**Rules:**
+1. Use `React.memo` for components that render frequently with same props
+2. `useCallback` for functions passed to child components
+3. `useMemo` for expensive computations only
+
+**When to use:**
+```typescript
+// ✅ Good: Memoize expensive list items
+const ListItem = React.memo(({ item }) => {
+  return <View>...</View>
+})
+
+// ✅ Good: Callback passed to children
+const handlePress = useCallback(() => {
+  navigation.navigate('Details')
+}, [navigation])
+
+// ❌ Bad: Premature optimization
+const simpleValue = useMemo(() => a + b, [a, b]) // Just use a + b
+```
+
+---
+
+### 18.2 FlashList Best Practices
+
+**Required props:**
+```tsx
+import { FlashList } from '@shopify/flash-list'
+
+<FlashList
+  data={items}
+  renderItem={renderItem}
+  estimatedItemSize={100}  // ✅ REQUIRED for good performance
+  keyExtractor={(item) => item.id}  // ✅ REQUIRED
+/>
+```
+
+**Common mistakes:**
+```tsx
+// ❌ Bad: Inline function recreation
+<FlashList
+  renderItem={({ item }) => <ItemComponent item={item} onPress={() => {}} />}
+/>
+
+// ✅ Good: Stable function reference
+const renderItem = useCallback(({ item }) => (
+  <ItemComponent item={item} onPress={handlePress} />
+), [handlePress])
+
+<FlashList renderItem={renderItem} ... />
+```
+
+---
+
+### 18.3 Image Optimization
+
+**Use Expo Image:**
+- Faster than RN Image
+- Built-in caching
+- Blurhash support
+
+```tsx
+import { Image } from 'expo-image'
+
+<Image
+  source={{ uri: imageUrl }}
+  placeholder={blurhash}
+  contentFit="cover"
+  transition={200}
+/>
+```
+
+---
+
+## 19. Testing Strategy
+
+⚠️ **Progressive Testing Approach**: Start minimal, add tests as needed.
+
+### 19.1 Initial Phase (MVP)
+
+**Priorities:**
+1. ✅ Critical API functions only
+2. ❌ Skip UI component tests initially
+3. ❌ Skip hook tests initially
+4. ❌ Skip MSW setup initially
+
+```
+__tests__/
+└─ features/
+   ├─ question/
+   │  └─ api.test.ts    # Only critical API
+   └─ auth/
+      └─ api.test.ts
+```
+
+---
+
+### 19.2 Mature Phase (Post-MVP)
+
+**When to expand:**
+- After reaching 100+ users
+- When bugs become frequent
+- When refactoring is needed
+
+```
+__tests__/
+├─ features/      # Feature integration tests
+│  └─ question/
+│     ├─ api.test.ts
+│     └─ hooks.test.ts
+├─ services/      # Service layer tests
+│  └─ apiClient.test.ts
+└─ shared/        # Component tests
+   └─ ui/
+      └─ Button.test.tsx
+```
+
+**Testing Stack:**
+- `jest` (included in Expo)
+- `@testing-library/react-native`
+- `msw` (add when needed)
+
+---
+
+### 19.3 Testing Patterns (When You Need Them)
+
+**API Tests:**
+```typescript
+// __tests__/features/question/api.test.ts
+import { server } from '../../mocks/server'
+import { rest } from 'msw'
+import { fetchQuestions } from '@/features/question/api'
+
+describe('Question API', () => {
+  it('fetches questions successfully', async () => {
+    const questions = await fetchQuestions()
+    expect(questions).toHaveLength(10)
+  })
+})
+```
+
+**Hook Tests:**
+```typescript
+// __tests__/features/question/hooks.test.ts
+import { renderHook, waitFor } from '@testing-library/react-native'
+import { useQuestions } from '@/features/question/hooks'
+import { wrapper } from '../../utils/testWrapper'
+
+describe('useQuestions', () => {
+  it('loads questions', async () => {
+    const { result } = renderHook(() => useQuestions(), { wrapper })
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(result.current.data).toBeDefined()
+  })
+})
+```
+
+**Component Tests:**
+```typescript
+// __tests__/shared/ui/Button.test.tsx
+import { render, fireEvent } from '@testing-library/react-native'
+import { Button } from '@/shared/ui/Button'
+
+describe('Button', () => {
+  it('calls onPress when pressed', () => {
+    const onPress = jest.fn()
+    const { getByText } = render(<Button onPress={onPress}>Click</Button>)
+    fireEvent.press(getByText('Click'))
+    expect(onPress).toHaveBeenCalledTimes(1)
+  })
+})
+```
+
+---
+
+## 20. Code Organization Patterns
+
+### 20.1 Barrel Exports (Optional)
+
+⚠️ **Only add if you have 10+ features or large team**
+
+**For small projects (< 10 features):**
+```typescript
+// ✅ Simple: Direct imports are fine
+import { useQuestions } from '@/features/question/hooks'
+import { QuestionCard } from '@/features/question/components/QuestionCard'
+```
+
+**For larger projects:**
+
+```typescript
+// features/question/index.ts
+// Public API only
+export { useQuestions, useQuestion } from './hooks'
+export { QuestionCard, QuestionList } from './components'
+export type { Question } from './types'
+
+// ❌ Do NOT export:
+// - api.ts functions (internal implementation)
+// - Internal component details
+```
+
+**Usage:**
+```typescript
+// Clean imports
+import { useQuestions, QuestionCard } from '@/features/question'
+```
+
+**Trade-offs:**
+- ✅ Cleaner imports
+- ✅ Better encapsulation
+- ❌ Extra maintenance
+- ❌ Harder to navigate in small projects
+
+---
+
+### 20.2 Path Aliases
+
+**tsconfig.json:**
+```json
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@/features/*": ["src/features/*"],
+      "@/shared/*": ["src/shared/*"],
+      "@/services/*": ["src/services/*"],
+      "@/hooks/*": ["src/hooks/*"],
+      "@/types/*": ["src/types/*"]
+    }
+  }
+}
+```
+
+**babel.config.js:**
+```javascript
+module.exports = {
+  plugins: [
+    [
+      'module-resolver',
+      {
+        root: ['./src'],
+        alias: {
+          '@': './src',
+          '@/features': './src/features',
+          '@/shared': './src/shared',
+          '@/services': './src/services',
+          '@/hooks': './src/hooks',
+          '@/types': './src/types',
+        },
+      },
+    ],
+  ],
+}
+```
+
+---
+
+## 21. Updated Constraints
+
+### Additional "Do NOT" Rules:
+
+- Use inline styles in components (use Tamagui or StyleSheet)
+- Store sensitive data in AsyncStorage
+- Use `any` type in TypeScript
+- Create barrel exports for internal implementation details
+- Skip `keyExtractor` or `estimatedItemSize` in FlashList
+- Use `fetch` directly (always use apiClient)
+- Put API logic in hooks (hooks compose, api.ts implements)
+- Skip error boundaries in app root
+
+---
+
+## 22. Project Structure by Scale
+
+### 22.1 Small Project (< 10 features, 1-2 developers)
+
+**Recommended for "오늘의 질문" scale:**
+
+```
+src/
+├─ app/                      # Routing (~10 screens)
+│  ├─ _layout.tsx
+│  ├─ (auth)/
+│  ├─ (tabs)/
+│  └─ +not-found.tsx
+├─ features/                 # 5-6 features
+│  ├─ question/              # 예: 질문 도메인
+│  │  ├─ api/
+│  │  │  └─ questionApi.ts
+│  │  ├─ hooks/
+│  │  │  ├─ queries/
+│  │  │  │  └─ useQuestionQueries.ts
+│  │  │  └─ mutations/
+│  │  │     └─ useQuestionMutations.ts
+│  │  ├─ stores/
+│  │  │  └─ useQuestionFormStore.ts  # (필요시만)
+│  │  ├─ components/
+│  │  │  ├─ QuestionCard.tsx
+│  │  │  └─ QuestionList.tsx
+│  │  ├─ types/
+│  │  │  ├─ api.ts           # Request/Response 타입
+│  │  │  └─ store.ts         # Store 타입 (필요시)
+│  │  └─ utils/              # (optional)
+│  │     └─ questionUtils.ts
+│  ├─ collection/            # 예: 도감 도메인
+│  │  ├─ api/
+│  │  │  └─ collectionApi.ts
+│  │  ├─ hooks/
+│  │  │  └─ queries/
+│  │  │     └─ useCollectionQueries.ts
+│  │  └─ components/
+│  │     └─ CollectionGrid.tsx
+│  ├─ community/             # 예: 커뮤니티 도메인
+│  │  ├─ api/
+│  │  ├─ hooks/
+│  │  └─ components/
+│  ├─ auth/                  # 간단한 feature는 minimal 구조
+│  │  ├─ api.ts
+│  │  ├─ hooks.ts
+│  │  └─ components/
+│  └─ settings/              # 간단한 feature
+│     ├─ api.ts              # (필요시만)
+│     └─ components/
+├─ services/                 # Minimal
+│  ├─ apiClient.ts
+│  ├─ queryClient.ts
+│  └─ storage.ts
+├─ stores/                   # 전역 stores만
+│  ├─ authStore.ts
+│  ├─ uiStore.ts
+│  └─ categoryStore.ts       # 카테고리 선택 상태
+├─ shared/
+│  ├─ ui/                    # 공통 UI 컴포넌트
+│  └─ theme/                 # 테마 설정
+├─ types/                    # 전역 타입만
+│  ├─ api.ts                 # 공통 API 타입
+│  ├─ index.ts               # 공통 도메인 모델
+│  └─ navigation.ts          # 네비게이션 타입
+├─ constants/
+│  └─ config.ts
+├─ utils/                    # 전역 유틸리티
+└─ assets/
+```
+
+**Key Points:**
+1. ✅ **Feature 내부는 세분화**: api/, hooks/, components/, types/
+2. ✅ **간단한 feature는 minimal**: auth, settings는 파일 구조
+3. ✅ **전역 vs Feature**: 전역 stores + types는 root에, feature별은 내부에
+4. ✅ **확장 가능**: 나중에 Medium으로 전환 쉬움
+
+**What to skip initially:**
+- ❌ Barrel exports (`index.ts`)
+- ❌ Slices pattern
+- ❌ Comprehensive testing
+- ❌ Nested type folders (request/response/params 분리)
+- ❌ Custom ErrorBoundary
+
+---
+
+### 22.2 Medium Project (10-20 features, 3-5 developers)
+
+```
+src/
+├─ app/
+├─ features/         # 10-20 features
+│  └─ <feature>/
+│     ├─ api.ts
+│     ├─ hooks.ts
+│     ├─ components/
+│     ├─ types.ts
+│     └─ index.ts   # Add barrel exports
+├─ services/
+│  ├─ apiClient.ts
+│  ├─ queryClient.ts
+│  ├─ storage.ts
+│  ├─ authService.ts
+│  └─ pushService.ts
+├─ stores/
+│  ├─ authStore.ts
+│  ├─ uiStore.ts
+│  └─ dataStore.ts
+├─ shared/
+│  ├─ ui/
+│  ├─ layout/
+│  ├─ error/        # Custom ErrorBoundary
+│  └─ theme/
+├─ types/            # Nested structure
+│  ├─ api/
+│  ├─ models/
+│  └─ ui/
+├─ constants/
+├─ utils/
+├─ assets/
+└─ __tests__/        # Comprehensive tests
+```
+
+**When to upgrade:**
+- ✅ 100+ active users
+- ✅ Team grows to 3+ developers
+- ✅ Feature count exceeds 10
+- ✅ Bug rate increases
+
+---
+
+### 22.3 Large Project (20+ features, 5+ developers)
+
+```
+src/
+├─ app/
+├─ features/         # 20+ features
+│  └─ <feature>/
+│     ├─ api.ts
+│     ├─ hooks.ts
+│     ├─ components/
+│     ├─ types.ts
+│     └─ index.ts
+├─ services/
+│  ├─ api/
+│  │  ├─ client.ts
+│  │  └─ interceptors.ts
+│  ├─ storage/
+│  │  ├─ secure.ts
+│  │  └─ async.ts
+│  ├─ auth/
+│  └─ analytics/
+├─ stores/
+│  ├─ slices/       # Now justified
+│  ├─ authStore.ts
+│  └─ appStore.ts
+├─ shared/
+│  ├─ ui/
+│  ├─ layout/
+│  ├─ error/
+│  ├─ hooks/
+│  └─ theme/
+├─ types/
+│  ├─ api/
+│  ├─ models/
+│  ├─ ui/
+│  └─ utils/
+├─ constants/
+├─ utils/
+├─ assets/
+└─ __tests__/
+```
+
+---
+
+## 23. Internationalization (i18n) Implementation
+
+### 23.1 Folder Structure
+
+**Small to Medium projects:**
+
+```
+src/
+├─ locales/
+│  ├─ en/
+│  │  ├─ common.json
+│  │  ├─ question.json
+│  │  ├─ collection.json
+│  │  └─ auth.json
+│  ├─ ko/
+│  │  ├─ common.json
+│  │  ├─ question.json
+│  │  ├─ collection.json
+│  │  └─ auth.json
+│  ├─ ja/
+│  │  └─ (same structure)
+│  ├─ index.ts          # i18n configuration
+│  └─ resources.ts      # Type-safe translation keys
+├─ constants/
+│  └─ languages.ts      # Supported languages config
+```
+
+**Organization by feature:**
+- Each feature gets its own translation namespace
+- Common UI strings go in `common.json`
+- Feature-specific strings go in feature namespaces (e.g., `question.json`)
+
+---
+
+### 23.2 Setup & Configuration
+
+**Install dependencies:**
+
+```bash
+npx expo install i18next react-i18next expo-localization
+```
+
+**locales/index.ts:**
+
+```typescript
+import i18n from 'i18next'
+import { initReactI18next } from 'react-i18next'
+import * as Localization from 'expo-localization'
+
+// Import translations
+import enCommon from './en/common.json'
+import enQuestion from './en/question.json'
+import koCommon from './ko/common.json'
+import koQuestion from './ko/question.json'
+import jaCommon from './ja/common.json'
+import jaQuestion from './ja/question.json'
+
+const resources = {
+  en: {
+    common: enCommon,
+    question: enQuestion,
+  },
+  ko: {
+    common: koCommon,
+    question: koQuestion,
+  },
+  ja: {
+    common: jaCommon,
+    question: jaQuestion,
+  },
+}
+
+i18n
+  .use(initReactI18next)
+  .init({
+    resources,
+    lng: Localization.locale.split('-')[0], // 'en-US' → 'en'
+    fallbackLng: 'en',
+    defaultNS: 'common',
+    interpolation: {
+      escapeValue: false, // React already escapes
+    },
+    compatibilityJSON: 'v3', // Important for Android
+  })
+
+export default i18n
+```
+
+**app/_layout.tsx (Root):**
+
+```typescript
+import '../locales' // Import i18n config
+
+export default function RootLayout() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <Stack />
+    </QueryClientProvider>
+  )
+}
+```
+
+---
+
+### 23.3 Translation Files
+
+**locales/en/common.json:**
+
+```json
+{
+  "app": {
+    "name": "Daily Question"
+  },
+  "buttons": {
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete"
+  },
+  "errors": {
+    "network": "Network error. Please try again.",
+    "unknown": "Something went wrong."
+  }
+}
+```
+
+**locales/en/question.json:**
+
+```json
+{
+  "title": "Today's Question",
+  "placeholder": "Write your answer...",
+  "submit": "Submit Answer",
+  "stats": {
+    "answered": "{{count}} answered",
+    "views": "{{count}} views"
+  }
+}
+```
+
+**locales/ko/question.json:**
+
+```json
+{
+  "title": "오늘의 질문",
+  "placeholder": "답변을 작성하세요...",
+  "submit": "답변 제출",
+  "stats": {
+    "answered": "{{count}}명 답변",
+    "views": "조회 {{count}}회"
+  }
+}
+```
+
+---
+
+### 23.4 Usage in Components
+
+**Basic usage:**
+
+```typescript
+import { useTranslation } from 'react-i18next'
+
+export function QuestionCard() {
+  const { t } = useTranslation('question')
+
+  return (
+    <View>
+      <Text>{t('title')}</Text>
+      <TextInput placeholder={t('placeholder')} />
+      <Button>{t('submit')}</Button>
+    </View>
+  )
+}
+```
+
+**With interpolation:**
+
+```typescript
+const { t } = useTranslation('question')
+
+// Translation: "{{count}} answered"
+<Text>{t('stats.answered', { count: 42 })}</Text>
+// Output: "42 answered" (en) or "42명 답변" (ko)
+```
+
+**Multiple namespaces:**
+
+```typescript
+const { t } = useTranslation(['question', 'common'])
+
+<Text>{t('question:title')}</Text>
+<Button>{t('common:buttons.confirm')}</Button>
+```
+
+**Date/Number formatting:**
+
+```typescript
+import { useTranslation } from 'react-i18next'
+
+const { t, i18n } = useTranslation()
+
+// Date formatting
+const date = new Date()
+const formattedDate = new Intl.DateTimeFormat(i18n.language).format(date)
+
+// Number formatting
+const number = 1234567.89
+const formattedNumber = new Intl.NumberFormat(i18n.language).format(number)
+```
+
+---
+
+### 23.5 Language Switching
+
+**Create a language store:**
+
+```typescript
+// stores/languageStore.ts
+import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import i18n from '@/locales'
+
+type Language = 'en' | 'ko' | 'ja'
+
+interface LanguageState {
+  language: Language
+  setLanguage: (lang: Language) => Promise<void>
+}
+
+export const useLanguageStore = create<LanguageState>()(
+  persist(
+    (set) => ({
+      language: 'en',
+      setLanguage: async (lang) => {
+        await i18n.changeLanguage(lang)
+        set({ language: lang })
+      },
+    }),
+    {
+      name: 'language-storage',
+      storage: createJSONStorage(() => AsyncStorage),
+    }
+  )
+)
+```
+
+**Language picker component:**
+
+```typescript
+// features/settings/components/LanguagePicker.tsx
+import { useLanguageStore } from '@/stores/languageStore'
+import { useTranslation } from 'react-i18next'
+
+const LANGUAGES = [
+  { code: 'en', name: 'English' },
+  { code: 'ko', name: '한국어' },
+  { code: 'ja', name: '日本語' },
+] as const
+
+export function LanguagePicker() {
+  const { language, setLanguage } = useLanguageStore()
+  const { t } = useTranslation('common')
+
+  return (
+    <View>
+      {LANGUAGES.map((lang) => (
+        <Button
+          key={lang.code}
+          onPress={() => setLanguage(lang.code)}
+          variant={language === lang.code ? 'primary' : 'outline'}
+        >
+          {lang.name}
+        </Button>
+      ))}
+    </View>
+  )
+}
+```
+
+---
+
+### 23.6 Type Safety (Advanced)
+
+**Generate type-safe translation keys:**
+
+```typescript
+// locales/resources.ts
+import enCommon from './en/common.json'
+import enQuestion from './en/question.json'
+
+const resources = {
+  en: {
+    common: enCommon,
+    question: enQuestion,
+  },
+} as const
+
+export default resources
+```
+
+**Extend i18next types:**
+
+```typescript
+// types/i18next.d.ts
+import resources from '@/locales/resources'
+
+declare module 'i18next' {
+  interface CustomTypeOptions {
+    defaultNS: 'common'
+    resources: typeof resources['en']
+  }
+}
+```
+
+**Now you get autocomplete:**
+
+```typescript
+const { t } = useTranslation('question')
+
+t('title') // ✅ Autocomplete works
+t('invalid.key') // ❌ TypeScript error
+```
+
+---
+
+### 23.7 Best Practices
+
+**1. Namespace Organization:**
+```
+✅ Good: Feature-based namespaces
+locales/en/
+├─ common.json       # Shared UI strings
+├─ question.json     # Question feature
+├─ collection.json   # Collection feature
+└─ auth.json         # Auth feature
+
+❌ Bad: Page-based namespaces
+locales/en/
+├─ home.json
+├─ profile.json
+└─ settings.json
+```
+
+**2. Key Naming:**
+```typescript
+// ✅ Good: Hierarchical and descriptive
+{
+  "question": {
+    "form": {
+      "title": "Ask a Question",
+      "placeholder": "Type your question..."
+    }
+  }
+}
+
+// ❌ Bad: Flat and unclear
+{
+  "questionFormTitle": "Ask a Question",
+  "questionFormPlaceholder": "Type your question..."
+}
+```
+
+**3. Pluralization:**
+```json
+// English
+{
+  "items": "{{count}} item",
+  "items_other": "{{count}} items"
+}
+
+// Korean (no plural form)
+{
+  "items": "{{count}}개 항목"
+}
+```
+
+Usage:
+```typescript
+t('items', { count: 1 })  // "1 item" (en) / "1개 항목" (ko)
+t('items', { count: 5 })  // "5 items" (en) / "5개 항목" (ko)
+```
+
+**4. Never Hardcode Strings:**
+```typescript
+// ❌ Bad
+<Text>Today's Question</Text>
+
+// ✅ Good
+<Text>{t('question:title')}</Text>
+```
+
+**5. Context for Ambiguous Words:**
+```json
+{
+  "actions": {
+    "close_button": "Close",
+    "close_verb": "Close the window"
+  }
+}
+```
+
+---
+
+### 23.8 Testing with i18n
+
+**Mock i18next in tests:**
+
+```typescript
+// __tests__/utils/i18nMock.ts
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+    i18n: {
+      language: 'en',
+      changeLanguage: jest.fn(),
+    },
+  }),
+}))
+```
+
+**Test with real translations:**
+
+```typescript
+import i18n from '@/locales'
+import { render } from '@testing-library/react-native'
+
+describe('QuestionCard', () => {
+  beforeAll(async () => {
+    await i18n.changeLanguage('en')
+  })
+
+  it('renders title in English', () => {
+    const { getByText } = render(<QuestionCard />)
+    expect(getByText("Today's Question")).toBeTruthy()
+  })
+})
+```
+
+---
+
+### 23.9 Migration Strategy
+
+**Phase 1: Setup (MVP)**
+1. Install dependencies
+2. Configure i18n with English only
+3. Create basic translation structure
+4. Update 2-3 critical screens
+
+**Phase 2: Expand (Post-MVP)**
+1. Add Korean translations
+2. Add Japanese translations
+3. Migrate all screens
+4. Add language picker in settings
+
+**Phase 3: Polish**
+1. Add type safety
+2. Add missing translations checker (CI/CD)
+3. Optimize bundle size (lazy loading)
+
+---
+
+### 23.10 Rules Summary
+
+**Do:**
+- ✅ Use feature-based namespaces
+- ✅ Externalize ALL user-facing strings
+- ✅ Test in all supported languages
+- ✅ Use hierarchical keys
+- ✅ Provide context for translators
+
+**Do NOT:**
+- ❌ Hardcode strings in components
+- ❌ Use page-based namespaces
+- ❌ Forget fallback language
+- ❌ Mix languages in one component
+- ❌ Use `any` type for translation keys
+
+---
+
+## End of Document
