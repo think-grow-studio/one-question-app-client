@@ -1,0 +1,29 @@
+diff --git a/node_modules/react-native-reanimated/android/build.gradle b/node_modules/react-native-reanimated/android/build.gradle
+index 6b73a69..1f1fe7b 100644
+--- a/node_modules/react-native-reanimated/android/build.gradle
++++ b/node_modules/react-native-reanimated/android/build.gradle
+@@ -346,6 +346,13 @@ dependencies {
+     if (project == rootProject) {
+         // This is needed for linting in Reanimated's repo.
+     } else {
++        def gestureHandlerProject = rootProject.subprojects.find { it.name == "react-native-gesture-handler" }
++        if (gestureHandlerProject) {
++            implementation project(":react-native-gesture-handler")
++        } else {
++            throw new GradleException("[Reanimated] `react-native-gesture-handler` library not found. Please install it as a dependency in your project.")
++        }
++
+         if (rootProject.subprojects.find { it.name == "react-native-worklets" }) {
+             implementation project(":react-native-worklets")
+         } else {
+diff --git a/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/common/GestureHandlerStateManager.java b/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/common/GestureHandlerStateManager.java
+deleted file mode 100644
+index e34e906..0000000
+--- a/node_modules/react-native-reanimated/android/src/main/java/com/swmansion/common/GestureHandlerStateManager.java
++++ /dev/null
+@@ -1,5 +0,0 @@
+-package com.swmansion.common;
+-
+-public interface GestureHandlerStateManager {
+-  void setGestureHandlerState(int handlerTag, int newState);
+-}

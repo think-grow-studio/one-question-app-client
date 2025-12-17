@@ -1,0 +1,48 @@
+diff --git a/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt b/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt
+index e3ad6a6..a0b6171 100644
+--- a/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt
++++ b/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/RNGestureHandlerPackage.kt
+@@ -37,16 +37,17 @@ class RNGestureHandlerPackage : TurboReactPackage(), ViewManagerOnDemandReactPac
+       RNGestureHandlerButtonViewManager()
+     )
+ 
+-  override fun getViewManagerNames(reactContext: ReactApplicationContext?) =
++  override fun getViewManagerNames(reactContext: ReactApplicationContext) =
+     viewManagers.keys.toList()
+ 
+-  override fun getViewManagers(reactContext: ReactApplicationContext?): MutableList<ModuleSpec> =
+-    viewManagers.values.toMutableList()
++  override fun getViewManagers(reactContext: ReactApplicationContext): List<ModuleSpec> =
++    viewManagers.values.toList()
+ 
+   override fun createViewManager(
+-    reactContext: ReactApplicationContext?,
+-    viewManagerName: String?
+-  ) = viewManagers[viewManagerName]?.provider?.get() as? ViewManager<*, *>
++    reactContext: ReactApplicationContext,
++    viewManagerName: String
++  ): ViewManager<in Nothing, in Nothing>? =
++    viewManagers[viewManagerName]?.provider?.get() as? ViewManager<in Nothing, in Nothing>
+ 
+   override fun getModule(name: String, reactContext: ReactApplicationContext): NativeModule? {
+     return if (name == RNGestureHandlerModule.NAME) {
+diff --git a/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp b/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp
+index 9fc5766..e89326d 100644
+--- a/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp
++++ b/node_modules/react-native-gesture-handler/android/src/main/jni/cpp-adapter.cpp
+@@ -6,6 +6,15 @@
+ using namespace facebook;
+ using namespace react;
+ 
++#if !defined(REACT_NATIVE_MINOR_VERSION) || REACT_NATIVE_MINOR_VERSION >= 81
++static inline std::shared_ptr<const ShadowNode> shadowNodeFromValue(
++        jsi::Runtime &runtime,
++        const jsi::Value &shadowNodeWrapper) {
++    return Bridging<std::shared_ptr<const ShadowNode>>::fromJs(
++            runtime, shadowNodeWrapper);
++}
++#endif
++
+ void decorateRuntime(jsi::Runtime &runtime) {
+     auto isFormsStackingContext = jsi::Function::createFromHostFunction(
+             runtime,
