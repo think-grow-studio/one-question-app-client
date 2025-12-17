@@ -4,7 +4,7 @@
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
-    "android": "npx expo run:android",
+    "android": "rm -rf ./android && npx expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
     "postinstall": "patch-package"
@@ -12,6 +12,8 @@
   "dependencies": {
     "@gorhom/bottom-sheet": "^5.2.8",
     "@shopify/flash-list": "^2.0.2",
+    "@tamagui/config": "^1.141.4",
+    "@tamagui/metro-plugin": "^1.141.4",
     "@tanstack/react-query": "^5.90.12",
     "axios": "^1.13.2",
     "expo": "~54.0.29",
@@ -26,12 +28,15 @@
     "react-native-reanimated": "~4.1.5",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
+    "react-native-svg": "^15.15.1",
+    "tamagui": "^1.141.4",
     "zustand": "^5.0.9"
   },
   "overrides": {
     "react-dom": "19.1.0"
   },
   "devDependencies": {
+    "@tamagui/babel-plugin": "^1.141.4",
     "@types/react": "~19.1.0",
     "babel-plugin-module-resolver": "^5.0.2",
     "babel-preset-expo": "^54.0.8",

@@ -69,6 +69,8 @@ features/question/
 - Managed Workflow
 - **New Architecture Enabled** (required for modern libraries)
 - Mobile-first (iOS / Android)
+- **Android baseline**: Development / QA는 Android (Pixel 7/8, API 34 기준)에서 먼저 검증하고, 동일 기능을 iOS 시뮬레이터에서도 반드시 확인한다.
+- **Responsive layouts**: 모든 화면은 360–420 dp 폭에서 깨지지 않아야 하며, `Dimensions`/`useWindowDimensions` 또는 Tamagui responsive props로 패딩·그리드를 조절한다.
 - Web support via Expo Web (`react-native-web`)
 
 ---

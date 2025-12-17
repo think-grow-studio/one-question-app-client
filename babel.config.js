@@ -22,6 +22,14 @@ module.exports = function (api) {
           },
         },
       ],
+      [
+        '@tamagui/babel-plugin',
+        {
+          components: ['tamagui'],
+          config: './tamagui.config.ts',
+          disableExtraction: process.env.NODE_ENV === 'development',
+        },
+      ],
       'react-native-reanimated/plugin', // ✅ MUST be last
     ],
   };

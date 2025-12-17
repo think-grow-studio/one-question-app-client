@@ -3,6 +3,7 @@
   "compilerOptions": {
     "strict": true,
     "baseUrl": ".",
+    "types": ["tamagui"],
     "paths": {
       "@/*": ["src/*"],
       "@/app/*": ["src/app/*"],
@@ -17,5 +18,5 @@
       "@/assets/*": ["src/assets/*"]
     }
   },
-  "include": ["src/**/*", "index.ts"]
+  "include": ["src/**/*", "index.ts", "tamagui.config.ts"]
 }

@@ -1,52 +1,53 @@
-import { Pressable, Text, StyleSheet, PressableProps } from 'react-native';
-import { colors } from '@/constants/colors';
+import { Button, ButtonProps, styled } from 'tamagui';
 
-interface ChipProps extends Omit<PressableProps, 'style'> {
+interface ChipProps extends Omit<ButtonProps, 'children'> {
   label: string;
   selected?: boolean;
   onPress: () => void;
 }
 
-export function Chip({ label, selected = false, onPress, ...props }: ChipProps) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.chip,
-        selected ? styles.chipSelected : styles.chipUnselected,
-        pressed && !selected && styles.chipPressed,
-      ]}
-      {...props}
-    >
-      <Text style={[styles.label, selected && styles.labelSelected]}>
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
+const CHIP_BLUE = '#007AFF';
+const CHIP_BLUE_PRESSED = '#0051D5';
 
-const styles = StyleSheet.create({
-  chip: {
-    height: 48,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
+const ChipButton = styled(Button, {
+  name: 'QuestionChip',
+  unstyled: true,
+  width: '100%',
+  height: 48,
+  borderRadius: 12,
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontWeight: '600',
+  fontSize: 15,
+  backgroundColor: '$gray5',
+  color: '$color',
+  borderWidth: 1,
+  borderColor: '$gray6',
+  pressStyle: {
+    backgroundColor: '$gray4',
   },
-  chipUnselected: {
-    backgroundColor: colors.systemGray6,
+  variants: {
+    selected: {
+      true: {
+        backgroundColor: CHIP_BLUE,
+        borderColor: CHIP_BLUE,
+        color: '#FFFFFF',
+        pressStyle: {
+          backgroundColor: CHIP_BLUE_PRESSED,
+        },
+      },
+      false: {},
+    },
   },
-  chipSelected: {
-    backgroundColor: colors.systemBlue,
-  },
-  chipPressed: {
-    backgroundColor: colors.systemGray5,
-  },
-  label: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: colors.textPrimary,
-  },
-  labelSelected: {
-    color: colors.white,
+  defaultVariants: {
+    selected: false,
   },
 });
+
+export function Chip({ label, selected = false, onPress, ...props }: ChipProps) {
+  return (
+    <ChipButton selected={selected} onPress={onPress} {...props}>
+      {label}
+    </ChipButton>
+  );
+}

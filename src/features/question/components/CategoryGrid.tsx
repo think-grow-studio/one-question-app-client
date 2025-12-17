@@ -1,40 +1,41 @@
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { Paragraph, Spinner, XStack, YStack } from 'tamagui';
 import { Chip } from '@/shared/ui/Chip';
-import { CATEGORIES, Category } from '@/constants/categories';
+import { useQuestionCategories } from '@/features/question/hooks/queries/useQuestionCategories';
 import { useCategoryStore } from '../stores/useCategoryStore';
 
-const HORIZONTAL_PADDING = 24;
-const GAP = 16;
-const COLUMNS = 3;
+const GAP = '$4';
 
 export function CategoryGrid() {
+  const { data: categories = [], isPending } = useQuestionCategories();
   const { selectedCategories, toggleCategory } = useCategoryStore();
 
-  const screenWidth = Dimensions.get('window').width;
-  const chipWidth = (screenWidth - HORIZONTAL_PADDING * 2 - GAP * (COLUMNS - 1)) / COLUMNS;
+  if (isPending) {
+    return (
+      <YStack ai="center" py="$4">
+        <Spinner size="large" />
+      </YStack>
+    );
+  }
+
+  if (!categories.length) {
+    return (
+      <Paragraph color="$gray10">
+        표시할 카테고리가 없습니다. 잠시 후 다시 시도해 주세요.
+      </Paragraph>
+    );
+  }
 
   return (
-    <View style={styles.container}>
-      {CATEGORIES.map((category) => (
-        <View key={category} style={[styles.chipWrapper, { width: chipWidth }]}>
+    <XStack flexWrap="wrap" rowGap={GAP} justifyContent="space-between">
+      {categories.map((category) => (
+        <YStack key={category} width="30%">
           <Chip
             label={category}
             selected={selectedCategories.has(category)}
-            onPress={() => toggleCategory(category as Category)}
+            onPress={() => toggleCategory(category)}
           />
-        </View>
+        </YStack>
       ))}
-    </View>
+    </XStack>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: GAP,
-  },
-  chipWrapper: {
-    // Width set dynamically
-  },
-});

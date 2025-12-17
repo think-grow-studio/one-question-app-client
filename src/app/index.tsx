@@ -1,65 +1,23 @@
-import { View, StyleSheet, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button } from '@/shared/ui/Button';
-import { HomeHeader } from '@/features/question/components/HomeHeader';
-import { CategoryGrid } from '@/features/question/components/CategoryGrid';
-import { useCategoryStore } from '@/features/question/stores/useCategoryStore';
-import { colors } from '@/constants/colors';
+import { StatusBar } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Button, H2, Paragraph, YStack } from 'tamagui';
 
-export default function HomeScreen() {
-  const hasSelection = useCategoryStore((state) => state.hasSelection());
-  const selectedCategories = useCategoryStore((state) => state.selectedCategories);
-
-  const handleDrawQuestion = () => {
-    console.log('Selected categories:', Array.from(selectedCategories));
-    // TODO: Navigate to question screen
-  };
+export default function LandingScreen() {
+  const router = useRouter();
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
       <StatusBar barStyle="dark-content" />
-      <View style={styles.container}>
-        {/* Header */}
-        <HomeHeader />
-
-        {/* Category Grid */}
-        <View style={styles.categorySection}>
-          <CategoryGrid />
-        </View>
-
-        {/* Spacer */}
-        <View style={styles.spacer} />
-
-        {/* Action Button */}
-        <View style={styles.actionSection}>
-          <Button
-            label="질문 뽑기"
-            enabled={hasSelection}
-            onPress={handleDrawQuestion}
-          />
-        </View>
-      </View>
+      <YStack flex={1} bg="$background" px="$4" ai="center" jc="center" gap="$4">
+        <H2 ta="center">오늘의 질문</H2>
+        <Paragraph ta="center" color="$gray10">
+          하루에 하나씩, 스스로에게 묻고 싶은 질문을 만나보세요.
+        </Paragraph>
+        <Button size="$5" onPress={() => router.push('/question')}>
+          오늘의 질문 시작하기
+        </Button>
+      </YStack>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.backgroundPrimary,
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingBottom: 34,
-  },
-  categorySection: {
-    paddingBottom: 32,
-  },
-  spacer: {
-    flex: 1,
-  },
-  actionSection: {
-    paddingTop: 16,
-  },
-});

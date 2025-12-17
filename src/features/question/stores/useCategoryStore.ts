@@ -1,9 +1,9 @@
 import { create } from 'zustand';
-import { Category } from '@/constants/categories';
+import { QuestionCategory } from '@/features/question/types/category';
 
 interface CategoryState {
-  selectedCategories: Set<string>;
-  toggleCategory: (category: Category) => void;
+  selectedCategories: Set<QuestionCategory>;
+  toggleCategory: (category: QuestionCategory) => void;
   clearCategories: () => void;
   hasSelection: () => boolean;
 }
