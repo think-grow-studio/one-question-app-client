@@ -17,6 +17,13 @@ export default function LandingScreen() {
         <Button size="$5" onPress={() => router.push('/question')}>
           오늘의 질문 시작하기
         </Button>
+        <Button
+          size="$5"
+          variant="outlined"
+          onPress={() => router.push('/answer')}
+        >
+          질문 작성하기
+        </Button>
       </YStack>
     </SafeAreaView>
   );
