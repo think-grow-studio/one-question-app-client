@@ -24,6 +24,13 @@ export default function LandingScreen() {
         >
           질문 작성하기
         </Button>
+        <Button
+          size="$5"
+          variant="outlined"
+          onPress={() => router.push('/collection')}
+        >
+          내 답변 모음
+        </Button>
       </YStack>
     </SafeAreaView>
   );
