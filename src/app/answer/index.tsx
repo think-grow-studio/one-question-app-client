@@ -6,7 +6,7 @@ import { DailyQuestionAnswer } from '@/features/answer/components/DailyQuestionA
 export default function AnswerScreen() {
   return (
     <SafeAreaView
-      style={{ flex: 1, backgroundColor: colors.white }}
+      style={{ flex: 1, backgroundColor: '#F0F7FF' }}
       edges={['top', 'bottom']}
     >
       <StatusBar barStyle="dark-content" />
