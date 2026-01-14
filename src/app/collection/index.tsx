@@ -2,16 +2,20 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar, Pressable, View } from 'react-native';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
-import { YStack, Text } from 'tamagui';
+import { YStack, useTheme } from 'tamagui';
+import { Text } from '@/shared/ui/Text';
 import { useCollectionStore } from '@/features/collection/stores/useCollectionStore';
 import { FilterFAB } from '@/features/collection/components/FilterFAB';
 import { FilterModal } from '@/features/collection/components/FilterModal';
 import { LetterArchiveView } from '@/features/collection/components/LetterArchiveView';
 import { fetchLetters } from '@/features/collection/api/collectionApi';
 import { Letter } from '@/features/collection/types/api';
+import { useThemeStore } from '@/stores/useThemeStore';
 
 export default function CollectionScreen() {
   const router = useRouter();
+  const theme = useTheme();
+  const { mode } = useThemeStore();
   const {
     viewMode,
     expandedLetterId,
@@ -45,10 +49,10 @@ export default function CollectionScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.background?.val }} edges={['top', 'bottom']}>
+      <StatusBar barStyle={mode === 'dark' ? 'light-content' : 'dark-content'} />
 
-      <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+      <View style={{ flex: 1, backgroundColor: theme.background?.val }}>
         {/* Header */}
         <View
           style={{
@@ -57,14 +61,14 @@ export default function CollectionScreen() {
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
-            borderBottomColor: '#E5E5EA',
+            borderBottomColor: theme.borderColor?.val,
             borderBottomWidth: 1,
           }}
         >
           <Pressable onPress={() => router.back()} hitSlop={8}>
-            <Text size="$5">←</Text>
+            <Text variant="body" fontSize={18}>←</Text>
           </Pressable>
-          <Text size="$6" weight="600">
+          <Text variant="subheading" fontWeight="600">
             Letter Archive
           </Text>
           <View style={{ width: 24 }} />
@@ -78,7 +82,7 @@ export default function CollectionScreen() {
             jc="center"
             gap="$2"
           >
-            <Text color="$gray9">로딩 중...</Text>
+            <Text variant="body" muted>로딩 중...</Text>
           </YStack>
         ) : letters.length === 0 ? (
           <YStack
@@ -87,10 +91,10 @@ export default function CollectionScreen() {
             jc="center"
             gap="$2"
           >
-            <Text size="$5" weight="600" color="$color">
+            <Text variant="body" fontWeight="600">
               아직 답변이 없어요
             </Text>
-            <Text color="$gray9">
+            <Text variant="body" muted>
               질문에 답변하면 여기에 나타납니다
             </Text>
           </YStack>

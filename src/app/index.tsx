@@ -1,24 +1,47 @@
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'react-native';
+import { Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
-import { H2, Paragraph, YStack } from 'tamagui';
+import { YStack, XStack } from 'tamagui';
+import { Screen } from '@/shared/layout/Screen';
+import { Text } from '@/shared/ui/Text';
 import { Button } from '@/shared/ui/Button';
-import { colors } from '@/constants/colors';
 
 export default function LandingScreen() {
   const router = useRouter();
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#F0F7FF' }} edges={['top', 'bottom']}>
-      <StatusBar barStyle="dark-content" />
-      <YStack flex={1} bg="#F0F7FF" px="$6" ai="center" jc="center" gap="$8">
+    <Screen bg="$cardBlue">
+      {/* Settings Button */}
+      <XStack position="absolute" top="$4" right="$4" zIndex={10}>
+        <Pressable
+          onPress={() => router.push('/settings')}
+          hitSlop={8}
+          accessibilityLabel="설정 화면으로 이동"
+        >
+          <Text fontSize={24}>⚙️</Text>
+        </Pressable>
+      </XStack>
+
+      <YStack flex={1} px="$6" ai="center" jc="center" gap="$8">
         <YStack gap="$4" ai="center" mb="$2">
-          <H2 ta="center" fontSize={38} fontWeight="800" letterSpacing={-0.5}>
+          <Text
+            variant="heading"
+            center
+            fontSize={38}
+            fontWeight="800"
+            letterSpacing={-0.5}
+          >
             오늘의 질문
-          </H2>
-          <Paragraph ta="center" color="$gray11" fontSize={17} lineHeight={26} letterSpacing={-0.2}>
+          </Text>
+          <Text
+            variant="body"
+            center
+            muted
+            fontSize={17}
+            lineHeight={26}
+            letterSpacing={-0.2}
+          >
             하루에 하나씩, 스스로에게 묻고{'\n'}답해보는 시간
-          </Paragraph>
+          </Text>
         </YStack>
 
         <YStack width="100%" maxWidth={500} gap="$3">
@@ -35,6 +58,6 @@ export default function LandingScreen() {
           />
         </YStack>
       </YStack>
-    </SafeAreaView>
+    </Screen>
   );
 }

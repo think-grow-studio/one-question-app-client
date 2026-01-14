@@ -1,14 +1,17 @@
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'react-native';
-import { YStack } from 'tamagui';
+import { YStack, useTheme } from 'tamagui';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { TodayQuestionCard } from '@/features/question/components/TodayQuestionCard';
-import { colors } from '@/constants/colors';
+import { useThemeStore } from '@/stores/useThemeStore';
 
 export default function TodayQuestionScreen() {
+  const theme = useTheme();
+  const mode = useThemeStore((s) => s.mode);
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#F0F7FF' }} edges={['top']}>
-      <StatusBar barStyle="dark-content" />
-      <YStack flex={1} bg="#F0F7FF">
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.cardBlue?.val }} edges={['top']}>
+      <StatusBar barStyle={mode === 'dark' ? 'light-content' : 'dark-content'} />
+      <YStack flex={1} bg="$cardBlue">
         <TodayQuestionCard />
       </YStack>
     </SafeAreaView>

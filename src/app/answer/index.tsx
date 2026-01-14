@@ -1,15 +1,19 @@
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'react-native';
-import { colors } from '@/constants/colors';
+import { useTheme } from 'tamagui';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { DailyQuestionAnswer } from '@/features/answer/components/DailyQuestionAnswer';
+import { useThemeStore } from '@/stores/useThemeStore';
 
 export default function AnswerScreen() {
+  const theme = useTheme();
+  const mode = useThemeStore((s) => s.mode);
+
   return (
     <SafeAreaView
-      style={{ flex: 1, backgroundColor: '#F0F7FF' }}
+      style={{ flex: 1, backgroundColor: theme.cardBlue?.val }}
       edges={['top', 'bottom']}
     >
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={mode === 'dark' ? 'light-content' : 'dark-content'} />
       <DailyQuestionAnswer />
     </SafeAreaView>
   );
