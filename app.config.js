@@ -9,7 +9,7 @@ export default {
     userInterfaceStyle: 'light',
     newArchEnabled: true,
     splash: {
-      image: './assets/splash-icon.png',
+      image: './assets/one-question-light.png',
       resizeMode: 'contain',
       backgroundColor: '#ffffff',
     },
