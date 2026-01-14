@@ -1836,49 +1836,135 @@ Expected a subset of: ${expected.join(", ")}
 // tamagui.config.ts
 var config3 = createTamagui({
   ...config2,
-  // Customize Letter Archive color palette
+  media: {
+    // Mobile first breakpoints
+    xs: { maxWidth: 660 },
+    sm: { maxWidth: 800 },
+    md: { maxWidth: 1020 },
+    lg: { maxWidth: 1280 },
+    xl: { maxWidth: 1420 },
+    xxl: { maxWidth: 1600 },
+    // Device type shortcuts
+    gtXs: { minWidth: 660 + 1 },
+    gtSm: { minWidth: 800 + 1 },
+    gtMd: { minWidth: 1020 + 1 },
+    gtLg: { minWidth: 1280 + 1 },
+    // Orientation
+    short: { maxHeight: 820 },
+    tall: { minHeight: 820 },
+    // Handheld device detection
+    hoverNone: { hover: "none" },
+    pointerCoarse: { pointer: "coarse" }
+  },
   tokens: {
     ...config2.tokens,
     color: {
       ...config2.tokens?.color,
-      // Letter Archive colors
-      "gray1": "#FAFAFA",
-      // Light background
-      "gray2": "#F2F2F7",
-      // Segment background
-      "gray3": "#F0F0F0",
-      // Separator
-      "gray4": "#E5E5EA",
-      // Border
-      "gray5": "#D1D1D6",
-      // Medium border
-      "gray6": "#C7C7CC",
-      // Light text
-      "gray7": "#A9A9B0",
-      // Muted text
-      "gray8": "#666666",
-      // Answer text
-      "gray9": "#8E8E93",
-      // Secondary text
-      "gray10": "#8E8E93",
-      // Subtitle
-      "black": "#191919",
-      // Primary text
-      "blue10": "#007AFF"
-      // Link/Action
+      // Primary - Pastel Blue
+      primary: "#7BA7D7",
+      primaryPressed: "#6B97C7",
+      // Grayscale - Pastel (light to dark)
+      gray1: "#F7F9FB",
+      // backgroundSecondary
+      gray2: "#EEF2F6",
+      // systemGray5
+      gray3: "#E0E6EC",
+      // systemGray4
+      gray4: "#D0D8E0",
+      // systemGray3
+      gray5: "#B8C4D0",
+      // systemGray2
+      gray6: "#A8B4C0",
+      // systemGray
+      gray7: "#7F8C8D",
+      // textSecondary
+      gray8: "#666666",
+      // answer text
+      gray9: "#2D3436",
+      // textPrimary
+      // Card pastels
+      cardBlue: "#F0F7FF",
+      cardPink: "#FFF5F8",
+      cardMint: "#F0FFF8",
+      cardLavender: "#F8F5FF",
+      cardPeach: "#FFF8F0",
+      cardYellow: "#FFF9C4",
+      // Legacy compatibility (will be removed)
+      black: "#2D3436",
+      blue10: "#007AFF"
     }
   },
   themes: {
     ...config2.themes,
     light: {
       ...config2.themes?.light,
+      // Backgrounds
       background: "#FFFFFF",
-      backgroundHover: "#FAFAFA",
-      color: "#191919",
+      backgroundHover: "#F7F9FB",
+      backgroundSoft: "#F7F9FB",
+      backgroundStrong: "#FFFFFF",
+      // Card/Surface - elevated surfaces (cards, modals, etc.)
+      surface: "#FFFFFF",
+      surfaceHover: "#F7F9FB",
+      // Text colors
+      color: "#2D3436",
       colorHover: "#000000",
-      borderColor: "#E5E5EA",
-      borderColorHover: "#D1D1D6",
-      placeholderColor: "#A9A9B0"
+      colorMuted: "#7F8C8D",
+      colorSubtle: "#A8B4C0",
+      // Primary action colors
+      primary: "#7BA7D7",
+      primaryHover: "#6B97C7",
+      // Border colors
+      borderColor: "#E0E6EC",
+      borderColorHover: "#D0D8E0",
+      borderColorFocus: "#7BA7D7",
+      // Input colors
+      placeholderColor: "#A8B4C0",
+      inputBackground: "#F7F9FB",
+      // Screen backgrounds (colored pastels)
+      cardBlue: "#F0F7FF",
+      cardPink: "#FFF5F8",
+      cardMint: "#F0FFF8",
+      cardLavender: "#F8F5FF",
+      cardPeach: "#FFF8F0",
+      // Semantic colors
+      error: "#FF6B6B",
+      errorMuted: "#FFE5E5"
+    },
+    dark: {
+      ...config2.themes?.dark,
+      // Backgrounds
+      background: "#1C1C1E",
+      backgroundHover: "#2C2C2E",
+      backgroundSoft: "#2C2C2E",
+      backgroundStrong: "#000000",
+      // Card/Surface - elevated surfaces (cards, modals, etc.)
+      surface: "#2C2C2E",
+      surfaceHover: "#3C3C3E",
+      // Text colors
+      color: "#FFFFFF",
+      colorHover: "#FFFFFF",
+      colorMuted: "#ABABAB",
+      colorSubtle: "#8E8E93",
+      // Primary action colors
+      primary: "#8BB8E8",
+      primaryHover: "#7BA7D7",
+      // Border colors
+      borderColor: "#38383A",
+      borderColorHover: "#48484A",
+      borderColorFocus: "#8BB8E8",
+      // Input colors
+      placeholderColor: "#8E8E93",
+      inputBackground: "#2C2C2E",
+      // Screen backgrounds (same as background in dark - no pastel tints)
+      cardBlue: "#1C1C1E",
+      cardPink: "#1C1C1E",
+      cardMint: "#1C1C1E",
+      cardLavender: "#1C1C1E",
+      cardPeach: "#1C1C1E",
+      // Semantic colors
+      error: "#FF8A8A",
+      errorMuted: "#3A2020"
     }
   }
 });
