@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, View } from 'react-native';
-import { colors } from '@/constants/colors';
+import { useTheme } from 'tamagui';
 
 interface AnonymousToggleProps {
   value: boolean;
@@ -7,6 +7,8 @@ interface AnonymousToggleProps {
 }
 
 export function AnonymousToggle({ value, onToggle }: AnonymousToggleProps) {
+  const theme = useTheme();
+
   const handleToggle = () => {
     onToggle(!value);
   };
@@ -18,12 +20,14 @@ export function AnonymousToggle({ value, onToggle }: AnonymousToggleProps) {
       onPress={handleToggle}
       style={({ pressed }) => [
         styles.track,
-        value ? styles.trackOn : styles.trackOff,
-        value ? styles.justifyEnd : styles.justifyStart,
+        {
+          backgroundColor: value ? theme.primary?.val : theme.borderColor?.val,
+          justifyContent: value ? 'flex-end' : 'flex-start',
+        },
         pressed && styles.trackPressed,
       ]}
     >
-      <View style={styles.thumb} />
+      <View style={[styles.thumb, { backgroundColor: '#FFFFFF' }]} />
     </Pressable>
   );
 }
@@ -37,26 +41,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  trackOn: {
-    backgroundColor: colors.systemBlue,
-  },
-  trackOff: {
-    backgroundColor: colors.systemGray4,
-  },
   trackPressed: {
     opacity: 0.85,
-  },
-  justifyStart: {
-    justifyContent: 'flex-start',
-  },
-  justifyEnd: {
-    justifyContent: 'flex-end',
   },
   thumb: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: colors.white,
     shadowColor: '#000000',
     shadowOpacity: 0.12,
     shadowOffset: { width: 0, height: 2 },

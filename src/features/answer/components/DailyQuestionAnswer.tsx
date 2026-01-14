@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Alert, StyleSheet, TextInput } from 'react-native';
-import { Paragraph, ScrollView, XStack, YStack } from 'tamagui';
-import { colors } from '@/constants/colors';
+import { Alert, TextInput, StyleSheet } from 'react-native';
+import { ScrollView, XStack, YStack, useTheme } from 'tamagui';
 import { Button } from '@/shared/ui/Button';
+import { Text } from '@/shared/ui/Text';
+import { Card } from '@/shared/ui/Card';
 import { AnonymousToggle } from './AnonymousToggle';
 
 const MOCK_QUESTION =
@@ -11,6 +12,7 @@ const MOCK_QUESTION =
 export function DailyQuestionAnswer() {
   const [answer, setAnswer] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const theme = useTheme();
 
   const isSubmitEnabled = answer.trim().length > 0;
 
@@ -24,43 +26,45 @@ export function DailyQuestionAnswer() {
   };
 
   return (
-    <YStack
-      flex={1}
-      pt="$4"
-      pb="$5"
-      px="$4"
-      gap="$4"
-      style={styles.container}
-    >
+    <YStack flex={1} pt="$4" pb="$5" px="$4" gap="$4" bg="$background">
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
         <YStack gap="$4">
-          <Paragraph color="$gray10">오늘의 질문</Paragraph>
+          <Text variant="caption" muted>
+            오늘의 질문
+          </Text>
 
-          <YStack style={styles.questionCard} gap="$3">
-            <Paragraph fontSize="$5" lineHeight={24}>
+          <Card elevated radius="large" padding="large">
+            <Text variant="body" fontSize={17} lineHeight={26}>
               {MOCK_QUESTION}
-            </Paragraph>
-          </YStack>
+            </Text>
+          </Card>
 
           <YStack gap="$2">
             <TextInput
-              style={styles.answerInput}
+              style={[
+                styles.answerInput,
+                {
+                  borderColor: theme.borderColor?.val,
+                  backgroundColor: theme.background?.val,
+                  color: theme.color?.val,
+                },
+              ]}
               multiline
               value={answer}
               onChangeText={setAnswer}
               placeholder="나의 답변을 자유롭게 적어보세요…"
-              placeholderTextColor={colors.textTertiary}
+              placeholderTextColor={theme.placeholderColor?.val}
               textAlignVertical="top"
             />
           </YStack>
 
           <XStack ai="center" jc="space-between" gap="$4">
-            <Paragraph fontWeight="600" flex={1}>
+            <Text variant="body" fontWeight="600" flex={1}>
               내 답변을 익명으로 커뮤니티에 공개할게요
-            </Paragraph>
+            </Text>
             <AnonymousToggle value={isAnonymous} onToggle={setIsAnonymous} />
           </XStack>
         </YStack>
@@ -77,33 +81,15 @@ export function DailyQuestionAnswer() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: colors.white,
-  },
   scrollContent: {
     paddingBottom: 32,
   },
-  questionCard: {
-    borderRadius: 24,
-    padding: 20,
-    backgroundColor: colors.backgroundPrimary,
-    borderWidth: 1,
-    borderColor: colors.systemGray5,
-    shadowColor: '#000000',
-    shadowOpacity: 0.06,
-    shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 12,
-    elevation: 2,
-  },
   answerInput: {
     borderWidth: 1,
-    borderColor: colors.systemGray5,
     borderRadius: 20,
     padding: 16,
     minHeight: 160,
     fontSize: 16,
     lineHeight: 24,
-    backgroundColor: colors.white,
-    color: colors.textPrimary,
   },
 });
