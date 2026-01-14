@@ -18,7 +18,16 @@ export default function RootLayout() {
             barStyle={mode === 'dark' ? 'light-content' : 'dark-content'}
           />
           <QueryClientProvider client={queryClient}>
-            <Stack screenOptions={{ headerShown: false }} />
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen
+                name="answer"
+                options={{
+                  presentation: 'modal',
+                  animation: 'slide_from_bottom',
+                }}
+              />
+            </Stack>
           </QueryClientProvider>
         </Theme>
       </TamaguiProvider>

@@ -1,0 +1,64 @@
+import { View } from 'react-native';
+import { YStack, useTheme } from 'tamagui';
+import { Screen } from '@/shared/layout/Screen';
+import { Text } from '@/shared/ui/Text';
+import { ThemeToggle } from '@/features/settings/components/ThemeToggle';
+
+export default function SettingsScreen() {
+  const theme = useTheme();
+
+  return (
+    <Screen>
+      <YStack flex={1} bg="$background">
+        {/* Header */}
+        <View
+          style={{
+            paddingHorizontal: 16,
+            paddingVertical: 16,
+            alignItems: 'center',
+            borderBottomColor: theme.borderColor?.val,
+            borderBottomWidth: 1,
+          }}
+        >
+          <Text variant="subheading" fontWeight="600">
+            설정
+          </Text>
+        </View>
+
+        {/* Content */}
+        <YStack flex={1} px="$4" py="$4" gap="$4">
+          {/* Appearance Section */}
+          <YStack gap="$2">
+            <Text variant="caption" muted px="$1">
+              화면 설정
+            </Text>
+            <ThemeToggle />
+          </YStack>
+
+          {/* App Info Section */}
+          <YStack gap="$2" mt="$4">
+            <Text variant="caption" muted px="$1">
+              앱 정보
+            </Text>
+            <YStack
+              py="$3"
+              px="$4"
+              bg="$backgroundSoft"
+              borderRadius={12}
+              gap="$2"
+            >
+              <View
+                style={{ flexDirection: 'row', justifyContent: 'space-between' }}
+              >
+                <Text variant="body" muted>
+                  버전
+                </Text>
+                <Text variant="body">1.0.0</Text>
+              </View>
+            </YStack>
+          </YStack>
+        </YStack>
+      </YStack>
+    </Screen>
+  );
+}
