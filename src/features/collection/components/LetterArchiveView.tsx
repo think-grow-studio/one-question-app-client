@@ -1,5 +1,6 @@
 import { ScrollView, View } from 'react-native';
-import { Text, YStack } from 'tamagui';
+import { YStack, useTheme } from 'tamagui';
+import { Text } from '@/shared/ui/Text';
 import { Letter } from '../types/api';
 import { ViewMode } from '../types/store';
 import { LetterRow } from './LetterRow';
@@ -7,11 +8,8 @@ import { CategoryFilter } from './CategoryFilter';
 import { DateFilter } from './DateFilter';
 import {
   groupLettersByCategory,
-  groupLettersByDate,
+  sortLettersByDate,
   getUniqueCategories,
-} from '../api/collectionApi';
-import {
-  filterLettersByCategory,
   filterLettersByDateRange,
 } from '../utils/collectionUtils';
 
@@ -33,9 +31,11 @@ interface SectionHeaderProps {
 }
 
 function SectionHeader({ title }: SectionHeaderProps) {
+  const theme = useTheme();
+
   return (
-    <View style={{ paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#FAFAFA' }}>
-      <Text size="$4" numberOfLines={2}>
+    <View style={{ paddingHorizontal: 16, paddingVertical: 12, backgroundColor: theme.backgroundSoft?.val }}>
+      <Text variant="body" numberOfLines={2}>
         {title}
       </Text>
     </View>
@@ -54,10 +54,11 @@ export function LetterArchiveView({
   onStartDateChange,
   onEndDateChange,
 }: LetterArchiveViewProps) {
+  const theme = useTheme();
 
   const renderByCategoryView = () => {
-    const categories = getUniqueCategories();
-    const grouped = groupLettersByCategory();
+    const categories = getUniqueCategories(letters);
+    const grouped = groupLettersByCategory(letters);
 
     // Filter by selected category
     const filteredEntries = selectedCategory
@@ -76,7 +77,7 @@ export function LetterArchiveView({
         {/* Items */}
         {filteredEntries.length === 0 ? (
           <View style={{ paddingHorizontal: 16, paddingVertical: 32, alignItems: 'center' }}>
-            <Text size="$4" color="$gray9">
+            <Text variant="body" muted>
               해당 카테고리의 답변이 없어요
             </Text>
           </View>
@@ -93,17 +94,17 @@ export function LetterArchiveView({
                   style={{
                     paddingHorizontal: 16,
                     paddingVertical: 12,
-                    borderBottomColor: '#F0F0F0',
+                    borderBottomColor: theme.borderColor?.val,
                     borderBottomWidth: 1,
                   }}
                 >
-                  <Text size="$4" weight="600" style={{ marginBottom: 4 }}>
+                  <Text variant="body" fontWeight="600" mb="$1">
                     {letter.question}
                   </Text>
-                  <Text size="$2" color="$gray10" style={{ marginBottom: 4 }}>
+                  <Text variant="caption" muted mb="$1">
                     {letter.date}
                   </Text>
-                  <Text size="$4" color="$gray8" numberOfLines={2}>
+                  <Text variant="body" muted numberOfLines={2}>
                     {letter.answer}
                   </Text>
                 </View>
@@ -116,7 +117,7 @@ export function LetterArchiveView({
   };
 
   const renderByDateView = () => {
-    let sorted = groupLettersByDate();
+    let sorted = sortLettersByDate(letters);
 
     // Filter by date range
     sorted = filterLettersByDateRange(sorted, selectedStartDate, selectedEndDate);
@@ -134,7 +135,7 @@ export function LetterArchiveView({
         {/* Items */}
         {sorted.length === 0 ? (
           <View style={{ paddingHorizontal: 16, paddingVertical: 32, alignItems: 'center' }}>
-            <Text size="$4" color="$gray9">
+            <Text variant="body" muted>
               해당 기간의 답변이 없어요
             </Text>
           </View>
@@ -149,14 +150,14 @@ export function LetterArchiveView({
                 style={{
                   paddingHorizontal: 16,
                   paddingVertical: 12,
-                  borderBottomColor: '#F0F0F0',
+                  borderBottomColor: theme.borderColor?.val,
                   borderBottomWidth: 1,
                 }}
               >
-                <Text size="$4" weight="600" style={{ marginBottom: 8 }}>
+                <Text variant="body" fontWeight="600" mb="$2">
                   {letter.question}
                 </Text>
-                <Text size="$4" color="$gray8" numberOfLines={2}>
+                <Text variant="body" muted numberOfLines={2}>
                   {letter.answer}
                 </Text>
               </View>

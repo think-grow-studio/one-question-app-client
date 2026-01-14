@@ -42,6 +42,57 @@ export function filterLettersByCategory(
 }
 
 /**
+ * Get unique categories from letters
+ */
+export function getUniqueCategories(letters: Letter[]): string[] {
+  const categories = new Set(letters.map((letter) => letter.category));
+  return Array.from(categories).sort();
+}
+
+/**
+ * Group letters by question
+ */
+export function groupLettersByQuestion(letters: Letter[]): Record<string, Letter[]> {
+  return letters.reduce(
+    (acc, letter) => {
+      if (!acc[letter.question]) {
+        acc[letter.question] = [];
+      }
+      acc[letter.question].push(letter);
+      return acc;
+    },
+    {} as Record<string, Letter[]>
+  );
+}
+
+/**
+ * Group letters by category
+ */
+export function groupLettersByCategory(letters: Letter[]): Record<string, Letter[]> {
+  return letters.reduce(
+    (acc, letter) => {
+      if (!acc[letter.category]) {
+        acc[letter.category] = [];
+      }
+      acc[letter.category].push(letter);
+      return acc;
+    },
+    {} as Record<string, Letter[]>
+  );
+}
+
+/**
+ * Sort letters by date (newest first)
+ */
+export function sortLettersByDate(letters: Letter[]): Letter[] {
+  return [...letters].sort((a, b) => {
+    const dateA = new Date(a.date.replace(/\./g, '-'));
+    const dateB = new Date(b.date.replace(/\./g, '-'));
+    return dateB.getTime() - dateA.getTime();
+  });
+}
+
+/**
  * Convert date format from YYYY.MM.DD to YYYY-MM-DD
  */
 export function convertDateFormat(dateStr: string): string {

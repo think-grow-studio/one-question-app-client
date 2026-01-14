@@ -1,10 +1,10 @@
 import { Letter, LettersResponse } from '../types/api';
 
 /**
- * Mock data for Letter Archive
+ * Mock data - simulates API response
  * In production, this will be replaced with actual API calls
  */
-const mockLetters: Letter[] = [
+const MOCK_LETTERS: Letter[] = [
   {
     id: '1',
     date: '2024.12.20',
@@ -70,8 +70,8 @@ export async function fetchLetters(): Promise<LettersResponse> {
   await new Promise((resolve) => setTimeout(resolve, 300));
 
   return {
-    letters: mockLetters,
-    total: mockLetters.length,
+    letters: MOCK_LETTERS,
+    total: MOCK_LETTERS.length,
   };
 }
 
@@ -84,60 +84,5 @@ export async function fetchLetterById(id: string): Promise<Letter | undefined> {
   // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 200));
 
-  return mockLetters.find((letter) => letter.id === id);
-}
-
-/**
- * Get unique categories from all letters
- * @returns Array of unique category strings
- */
-export function getUniqueCategories(): string[] {
-  const categories = new Set(mockLetters.map((letter) => letter.category));
-  return Array.from(categories).sort();
-}
-
-/**
- * Group letters by question
- * @returns Object with questions as keys and letter arrays as values
- */
-export function groupLettersByQuestion(): Record<string, Letter[]> {
-  return mockLetters.reduce(
-    (acc, letter) => {
-      if (!acc[letter.question]) {
-        acc[letter.question] = [];
-      }
-      acc[letter.question].push(letter);
-      return acc;
-    },
-    {} as Record<string, Letter[]>
-  );
-}
-
-/**
- * Group letters by category
- * @returns Object with categories as keys and letter arrays as values
- */
-export function groupLettersByCategory(): Record<string, Letter[]> {
-  return mockLetters.reduce(
-    (acc, letter) => {
-      if (!acc[letter.category]) {
-        acc[letter.category] = [];
-      }
-      acc[letter.category].push(letter);
-      return acc;
-    },
-    {} as Record<string, Letter[]>
-  );
-}
-
-/**
- * Group letters by date
- * @returns Array of letters sorted by date (newest first)
- */
-export function groupLettersByDate(): Letter[] {
-  return [...mockLetters].sort((a, b) => {
-    const dateA = new Date(a.date.replace(/\./g, '-'));
-    const dateB = new Date(b.date.replace(/\./g, '-'));
-    return dateB.getTime() - dateA.getTime();
-  });
+  return MOCK_LETTERS.find((letter) => letter.id === id);
 }

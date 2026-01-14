@@ -1,11 +1,14 @@
-import { Pressable, View } from 'react-native';
-import { Text } from 'tamagui';
+import { Pressable } from 'react-native';
+import { useTheme } from 'tamagui';
+import { Text } from '@/shared/ui/Text';
 
 interface FilterFABProps {
   onPress: () => void;
 }
 
 export function FilterFAB({ onPress }: FilterFABProps) {
+  const theme = useTheme();
+
   return (
     <Pressable
       onPress={onPress}
@@ -16,7 +19,7 @@ export function FilterFAB({ onPress }: FilterFABProps) {
         width: 56,
         height: 56,
         borderRadius: 28,
-        backgroundColor: pressed ? '#0A66D1' : '#007AFF',
+        backgroundColor: pressed ? theme.primaryHover?.val : theme.primary?.val,
         alignItems: 'center',
         justifyContent: 'center',
         shadowColor: '#000',
@@ -26,7 +29,7 @@ export function FilterFAB({ onPress }: FilterFABProps) {
         elevation: 8,
       })}
     >
-      <Text size="$5" weight="600" color="$white">
+      <Text variant="body" fontWeight="600" color="#FFFFFF" fontSize={18}>
         ⚙️
       </Text>
     </Pressable>

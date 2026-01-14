@@ -1,5 +1,6 @@
 import { View, Pressable } from 'react-native';
-import { Text } from 'tamagui';
+import { useTheme } from 'tamagui';
+import { Text } from '@/shared/ui/Text';
 import { ViewMode } from '../types/store';
 
 interface ArchiveFilterProps {
@@ -7,16 +8,18 @@ interface ArchiveFilterProps {
   onModeChange: (mode: ViewMode) => void;
 }
 
-const MODES: ViewMode[] = ['전체', '질문별', '카테고리', '날짜'];
+const MODES: ViewMode[] = ['카테고리', '날짜'];
 
 export function ArchiveFilter({ selectedMode, onModeChange }: ArchiveFilterProps) {
+  const theme = useTheme();
+
   return (
     <View
       style={{
         paddingHorizontal: 16,
         paddingVertical: 12,
-        backgroundColor: '#FFFFFF',
-        borderBottomColor: '#F0F0F0',
+        backgroundColor: theme.background?.val,
+        borderBottomColor: theme.borderColor?.val,
         borderBottomWidth: 1,
       }}
     >
@@ -24,7 +27,7 @@ export function ArchiveFilter({ selectedMode, onModeChange }: ArchiveFilterProps
         style={{
           flexDirection: 'row',
           gap: 8,
-          backgroundColor: '#F2F2F7',
+          backgroundColor: theme.backgroundSoft?.val,
           borderRadius: 8,
           padding: 4,
         }}
@@ -38,14 +41,14 @@ export function ArchiveFilter({ selectedMode, onModeChange }: ArchiveFilterProps
               paddingVertical: 8,
               paddingHorizontal: 12,
               borderRadius: 6,
-              backgroundColor: selectedMode === mode ? '#FFFFFF' : 'transparent',
+              backgroundColor: selectedMode === mode ? theme.background?.val : 'transparent',
               alignItems: 'center',
             }}
           >
             <Text
-              size="$3"
-              color={selectedMode === mode ? '$color' : '$gray9'}
-              weight={selectedMode === mode ? '600' : '400'}
+              variant="bodySmall"
+              fontWeight={selectedMode === mode ? '600' : '400'}
+              muted={selectedMode !== mode}
             >
               {mode}
             </Text>

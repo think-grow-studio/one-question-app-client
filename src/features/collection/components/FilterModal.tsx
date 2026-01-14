@@ -1,5 +1,6 @@
 import { Modal, View, Pressable } from 'react-native';
-import { Text, YStack } from 'tamagui';
+import { YStack, useTheme } from 'tamagui';
+import { Text } from '@/shared/ui/Text';
 import { ViewMode } from '../types/store';
 
 interface FilterModalProps {
@@ -17,6 +18,8 @@ export function FilterModal({
   onModeChange,
   onClose,
 }: FilterModalProps) {
+  const theme = useTheme();
+
   const handleModeSelect = (mode: ViewMode) => {
     onModeChange(mode);
     onClose();
@@ -42,7 +45,7 @@ export function FilterModal({
         <Pressable
           onPress={(e) => e.stopPropagation()}
           style={{
-            backgroundColor: '#FFFFFF',
+            backgroundColor: theme.background?.val,
             borderTopLeftRadius: 16,
             borderTopRightRadius: 16,
             paddingHorizontal: 16,
@@ -55,7 +58,7 @@ export function FilterModal({
             style={{
               width: 36,
               height: 4,
-              backgroundColor: '#D1D1D6',
+              backgroundColor: theme.borderColor?.val,
               borderRadius: 2,
               alignSelf: 'center',
               marginBottom: 20,
@@ -63,7 +66,7 @@ export function FilterModal({
           />
 
           {/* Title */}
-          <Text size="$5" weight="600" mb="$4">
+          <Text variant="body" fontWeight="600" fontSize={18} mb="$4">
             보기 방식 선택
           </Text>
 
@@ -78,7 +81,7 @@ export function FilterModal({
                   paddingVertical: 14,
                   borderRadius: 10,
                   backgroundColor:
-                    selectedMode === mode ? '#F2F2F7' : 'transparent',
+                    selectedMode === mode ? theme.backgroundSoft?.val : 'transparent',
                 }}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -90,7 +93,7 @@ export function FilterModal({
                       borderRadius: 10,
                       borderWidth: 2,
                       borderColor:
-                        selectedMode === mode ? '#007AFF' : '#E5E5EA',
+                        selectedMode === mode ? theme.primary?.val : theme.borderColor?.val,
                       alignItems: 'center',
                       justifyContent: 'center',
                       marginRight: 12,
@@ -102,7 +105,7 @@ export function FilterModal({
                           width: 8,
                           height: 8,
                           borderRadius: 4,
-                          backgroundColor: '#007AFF',
+                          backgroundColor: theme.primary?.val,
                         }}
                       />
                     )}
@@ -110,13 +113,9 @@ export function FilterModal({
 
                   {/* Label */}
                   <Text
-                    size="$4"
-                    color={
-                      selectedMode === mode
-                        ? '$color'
-                        : '$gray9'
-                    }
-                    weight={selectedMode === mode ? '600' : '400'}
+                    variant="body"
+                    fontWeight={selectedMode === mode ? '600' : '400'}
+                    muted={selectedMode !== mode}
                   >
                     {mode}
                   </Text>

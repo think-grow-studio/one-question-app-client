@@ -1,5 +1,6 @@
 import { ScrollView, View, Pressable } from 'react-native';
-import { Text } from 'tamagui';
+import { useTheme } from 'tamagui';
+import { Text } from '@/shared/ui/Text';
 
 interface CategoryFilterProps {
   categories: string[];
@@ -12,14 +13,16 @@ export function CategoryFilter({
   selectedCategory,
   onSelectCategory,
 }: CategoryFilterProps) {
+  const theme = useTheme();
+
   return (
     <View
       style={{
         paddingHorizontal: 16,
         paddingVertical: 12,
-        borderBottomColor: '#F0F0F0',
+        borderBottomColor: theme.borderColor?.val,
         borderBottomWidth: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: theme.background?.val,
       }}
     >
       <ScrollView
@@ -38,16 +41,16 @@ export function CategoryFilter({
             paddingHorizontal: 14,
             paddingVertical: 8,
             borderRadius: 8,
-            backgroundColor: selectedCategory === null ? '#007AFF' : '#E5E5EA',
+            backgroundColor: selectedCategory === null ? theme.primary?.val : theme.backgroundSoft?.val,
             justifyContent: 'center',
             alignItems: 'center',
             minWidth: 70,
           }}
         >
           <Text
-            size="$3"
-            weight="600"
-            color={selectedCategory === null ? '$white' : '$gray10'}
+            variant="bodySmall"
+            fontWeight="600"
+            color={selectedCategory === null ? '#FFFFFF' : '$colorMuted'}
           >
             전체
           </Text>
@@ -63,18 +66,16 @@ export function CategoryFilter({
               paddingVertical: 8,
               borderRadius: 8,
               backgroundColor:
-                selectedCategory === category ? '#007AFF' : '#E5E5EA',
+                selectedCategory === category ? theme.primary?.val : theme.backgroundSoft?.val,
               justifyContent: 'center',
               alignItems: 'center',
               minWidth: 70,
             }}
           >
             <Text
-              size="$3"
-              weight="600"
-              color={
-                selectedCategory === category ? '$white' : '$gray10'
-              }
+              variant="bodySmall"
+              fontWeight="600"
+              color={selectedCategory === category ? '#FFFFFF' : '$colorMuted'}
               numberOfLines={1}
             >
               {category}
