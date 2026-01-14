@@ -1,0 +1,21 @@
+{
+  "app": {
+    "name": "오늘의 질문"
+  },
+  "buttons": {
+    "cancel": "취소",
+    "confirm": "확인",
+    "save": "저장",
+    "delete": "삭제",
+    "edit": "수정"
+  },
+  "status": {
+    "loading": "로딩 중...",
+    "error": "오류가 발생했어요",
+    "preparing": "준비 중"
+  },
+  "tabs": {
+    "home": "홈",
+    "settings": "설정"
+  }
+}

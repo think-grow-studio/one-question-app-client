@@ -2,52 +2,46 @@ import { useState, useEffect } from 'react';
 import { Alert, TextInput, StyleSheet, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
 import { ScrollView, XStack, YStack, useTheme } from 'tamagui';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
 
-const RANDOM_QUESTIONS = [
-  '당신이 가장 행복했던 순간은 언제였나요?',
-  '오늘 하루 중 가장 감사했던 일은 무엇인가요?',
-  '최근에 새롭게 배운 것이 있나요?',
-  '당신의 삶에서 가장 중요한 가치는 무엇인가요?',
-  '지금 가장 하고 싶은 일은 무엇인가요?',
-  '최근에 누군가에게 받은 친절은 무엇인가요?',
-  '오늘 자신에게 해주고 싶은 말이 있나요?',
-];
-
-function getRandomQuestion() {
-  return RANDOM_QUESTIONS[Math.floor(Math.random() * RANDOM_QUESTIONS.length)];
+function getRandomQuestion(questions: string[]) {
+  return questions[Math.floor(Math.random() * questions.length)];
 }
 
 export function DailyQuestionAnswer() {
   const router = useRouter();
   const theme = useTheme();
+  const { t } = useTranslation(['answer', 'question', 'common']);
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
 
+  const randomQuestions = t('question:random', { returnObjects: true }) as string[];
+
   useEffect(() => {
-    setQuestion(getRandomQuestion());
+    setQuestion(getRandomQuestion(randomQuestions));
   }, []);
 
   const isSubmitEnabled = answer.trim().length > 0;
 
   const handleReloadPress = () => {
     Alert.alert(
-      '질문 다시 받기',
-      '어떤 질문을 받으시겠어요?',
+      t('answer:reload.title'),
+      t('answer:reload.message'),
       [
         {
-          text: '랜덤 질문',
-          onPress: () => setQuestion(getRandomQuestion()),
+          text: t('answer:reload.randomQuestion'),
+          onPress: () => setQuestion(getRandomQuestion(randomQuestions)),
         },
         {
-          text: '과거 질문',
+          text: t('answer:reload.pastQuestion'),
           onPress: () => {
-            Alert.alert('준비 중', '과거 질문은 아직 준비 중이에요');
+            Alert.alert(t('common:status.preparing'), t('answer:reload.pastQuestionNotReady'));
           },
           style: 'default',
         },
         {
-          text: '취소',
+          text: t('common:buttons.cancel'),
           style: 'cancel',
         },
       ]
@@ -57,8 +51,8 @@ export function DailyQuestionAnswer() {
   const handleSubmit = () => {
     if (!isSubmitEnabled) return;
 
-    Alert.alert('작성 완료', '답변이 저장되었어요', [
-      { text: '확인', onPress: () => router.back() },
+    Alert.alert(t('answer:submit'), t('answer:submitSuccess'), [
+      { text: t('common:buttons.confirm'), onPress: () => router.back() },
     ]);
   };
 
@@ -114,13 +108,13 @@ export function DailyQuestionAnswer() {
                 multiline
                 value={answer}
                 onChangeText={setAnswer}
-                placeholder="여기에 답변을 작성해주세요"
+                placeholder={t('answer:placeholder')}
                 placeholderTextColor={theme.colorMuted?.val}
                 textAlignVertical="top"
               />
               <XStack jc="flex-end">
                 <Text fontSize={13} color="$colorMuted">
-                  {answer.length}자
+                  {t('answer:charCount', { count: answer.length })}
                 </Text>
               </XStack>
             </YStack>
@@ -146,7 +140,7 @@ export function DailyQuestionAnswer() {
               fontWeight="600"
               color={isSubmitEnabled ? '$background' : '$colorMuted'}
             >
-              작성 완료
+              {t('answer:submit')}
             </Text>
           </Pressable>
         </YStack>

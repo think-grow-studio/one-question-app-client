@@ -1,9 +1,11 @@
 import { Tabs } from 'expo-router';
 import { useTheme } from 'tamagui';
+import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
 
 export default function TabLayout() {
   const theme = useTheme();
+  const { t } = useTranslation();
 
   return (
     <Tabs
@@ -21,7 +23,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: '홈',
+          title: t('tabs.home'),
           tabBarIcon: ({ color }) => (
             <Text fontSize={24} color={color}>
               🏠
@@ -32,7 +34,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: '설정',
+          title: t('tabs.settings'),
           tabBarIcon: ({ color }) => (
             <Text fontSize={24} color={color}>
               ⚙️

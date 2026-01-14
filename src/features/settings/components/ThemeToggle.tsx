@@ -1,7 +1,8 @@
 import { Switch, View } from 'react-native';
 import { XStack, useTheme } from 'tamagui';
+import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
-import { useThemeStore, ThemeMode } from '@/stores/useThemeStore';
+import { useThemeStore } from '@/stores/useThemeStore';
 
 interface ThemeToggleProps {
   showLabel?: boolean;
@@ -10,6 +11,7 @@ interface ThemeToggleProps {
 export function ThemeToggle({ showLabel = true }: ThemeToggleProps) {
   const { mode, toggleMode } = useThemeStore();
   const theme = useTheme();
+  const { t } = useTranslation('settings');
   const isDark = mode === 'dark';
 
   return (
@@ -26,10 +28,10 @@ export function ThemeToggle({ showLabel = true }: ThemeToggleProps) {
         {showLabel && (
           <View style={{ flex: 1 }}>
             <Text variant="body" fontWeight="600">
-              {isDark ? '다크 모드' : '라이트 모드'}
+              {isDark ? t('appearance.darkMode') : t('appearance.lightMode')}
             </Text>
             <Text variant="caption" muted>
-              {isDark ? '어두운 배경으로 눈의 피로를 줄여요' : '밝은 배경으로 가독성을 높여요'}
+              {isDark ? t('appearance.darkModeDescription') : t('appearance.lightModeDescription')}
             </Text>
           </View>
         )}

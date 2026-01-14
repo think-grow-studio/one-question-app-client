@@ -2,6 +2,7 @@ import { useRef, useEffect, useMemo } from 'react';
 import { StyleSheet, Pressable, View, Text, PanResponder, Dimensions, Animated } from 'react-native';
 import { Paragraph, YStack, XStack, useTheme } from 'tamagui';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
 import { MailIcon } from '@/shared/icons/MailIcon';
 import { CalendarIcon } from '@/shared/icons/CalendarIcon';
@@ -11,20 +12,14 @@ import { DatePickerSheet } from './DatePickerSheet';
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.3;
 
-const MOCK_RANDOM_QUESTIONS = [
-  '당신이 가장 행복했던 순간은 언제였나요?',
-  '오늘 하루 중 가장 감사했던 일은 무엇인가요?',
-  '최근에 새롭게 배운 것이 있나요?',
-  '당신의 삶에서 가장 중요한 가치는 무엇인가요?',
-  '요즘 가장 기대되는 일은 무엇인가요?',
-  '최근에 누군가에게 고마웠던 순간이 있나요?',
-];
-
 export function QuestionHistoryView() {
   const router = useRouter();
   const theme = useTheme();
+  const { t } = useTranslation('question');
   const { currentDate, setCurrentDate, getQuestionByDate, setIsDatePickerVisible, addQuestion } =
     useHistoryStore();
+
+  const randomQuestions = t('random', { returnObjects: true }) as string[];
 
   const currentItem = getQuestionByDate(currentDate);
   const translateX = useRef(new Animated.Value(0)).current;
@@ -232,9 +227,9 @@ export function QuestionHistoryView() {
     const date = new Date(dateString);
     const month = date.getMonth() + 1;
     const day = date.getDate();
-    const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
-    const weekday = weekdays[date.getDay()];
-    return `${month}월 ${day}일 ${weekday}요일`;
+    const weekdayKeys = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+    const weekday = t(`weekdays.${weekdayKeys[date.getDay()]}`);
+    return t('dateFormat', { month, day, weekday });
   };
 
   const handleOpenDatePicker = () => {
@@ -246,7 +241,7 @@ export function QuestionHistoryView() {
   };
 
   const handleDrawRandomQuestion = () => {
-    const randomQuestion = MOCK_RANDOM_QUESTIONS[Math.floor(Math.random() * MOCK_RANDOM_QUESTIONS.length)];
+    const randomQuestion = randomQuestions[Math.floor(Math.random() * randomQuestions.length)];
     addQuestion(currentDate, randomQuestion);
   };
 
@@ -289,7 +284,7 @@ export function QuestionHistoryView() {
             <View style={styles.contentWrapper}>
               <View style={themedStyles.questionCard}>
                 <View style={styles.questionSection}>
-                  <Text style={themedStyles.labelText}>질문</Text>
+                  <Text style={themedStyles.labelText}>{t('labels.question')}</Text>
                   <Text style={themedStyles.questionText}>{currentItem.question}</Text>
                 </View>
 
@@ -297,10 +292,10 @@ export function QuestionHistoryView() {
                   <>
                     <View style={themedStyles.divider} />
                     <View style={styles.answerSection}>
-                      <Text style={themedStyles.labelText}>답변</Text>
+                      <Text style={themedStyles.labelText}>{t('labels.answer')}</Text>
                       <Text style={themedStyles.answerText}>{currentItem.answer}</Text>
                       <Text style={themedStyles.writtenDateText}>
-                        작성 날짜 {formatDate(currentDate)}
+                        {t('writtenDate', { date: formatDate(currentDate) })}
                       </Text>
                     </View>
                   </>
@@ -309,9 +304,9 @@ export function QuestionHistoryView() {
                 {!currentItem.answer && (
                   <View style={styles.buttonWrapper}>
                     <Button
-                      label="답변하러 가기"
+                      label={t('actions.goToAnswer')}
                       onPress={handleGoToAnswer}
-                      accessibilityLabel="답변 작성 화면으로 이동"
+                      accessibilityLabel={t('actions.goToAnswer')}
                     />
                   </View>
                 )}
@@ -320,19 +315,19 @@ export function QuestionHistoryView() {
           ) : (
             <View style={styles.emptyState}>
               <MailIcon size={140} color={theme.colorSubtle?.val} />
-              <Text style={themedStyles.emptyText}>이 날의 질문이 없습니다</Text>
+              <Text style={themedStyles.emptyText}>{t('empty.noQuestion')}</Text>
               <View style={styles.emptyButtonsContainer}>
                 <Pressable
                   style={themedStyles.emptyButton}
                   onPress={handleDrawRandomQuestion}
                 >
-                  <Text style={themedStyles.emptyButtonText}>질문 뽑기</Text>
+                  <Text style={themedStyles.emptyButtonText}>{t('empty.drawQuestion')}</Text>
                 </Pressable>
                 <Pressable
                   style={themedStyles.emptyButton}
                   onPress={handleDrawYearAgoQuestion}
                 >
-                  <Text style={themedStyles.emptyButtonText}>1년 전 오늘</Text>
+                  <Text style={themedStyles.emptyButtonText}>{t('empty.yearAgo')}</Text>
                 </Pressable>
               </View>
             </View>
@@ -343,7 +338,7 @@ export function QuestionHistoryView() {
       {/* Swipe Indicator */}
       <YStack ai="center" pb="$6">
         <Paragraph fontSize="$2" color="$gray9">
-          좌우로 밀어서 날짜 이동
+          {t('actions.swipeHint')}
         </Paragraph>
       </YStack>
 

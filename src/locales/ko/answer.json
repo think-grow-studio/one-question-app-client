@@ -1,0 +1,14 @@
+{
+  "title": "답변 작성",
+  "placeholder": "여기에 답변을 작성해주세요",
+  "charCount": "{{count}}자",
+  "submit": "작성 완료",
+  "submitSuccess": "답변이 저장되었어요",
+  "reload": {
+    "title": "질문 다시 받기",
+    "message": "어떤 질문을 받으시겠어요?",
+    "randomQuestion": "랜덤 질문",
+    "pastQuestion": "과거 질문",
+    "pastQuestionNotReady": "과거 질문은 아직 준비 중이에요"
+  }
+}

@@ -6,6 +6,7 @@ import { TamaguiProvider, Theme } from 'tamagui';
 import tamaguiConfig from '../../tamagui.config';
 import { queryClient } from '@/services/queryClient';
 import { useThemeStore } from '@/stores/useThemeStore';
+import '@/locales'; // i18n 초기화
 
 export default function RootLayout() {
   const { mode } = useThemeStore();

@@ -1,11 +1,13 @@
 import { View } from 'react-native';
 import { YStack, useTheme } from 'tamagui';
+import { useTranslation } from 'react-i18next';
 import { Screen } from '@/shared/layout/Screen';
 import { Text } from '@/shared/ui/Text';
 import { ThemeToggle } from '@/features/settings/components/ThemeToggle';
 
 export default function SettingsScreen() {
   const theme = useTheme();
+  const { t } = useTranslation('settings');
 
   return (
     <Screen>
@@ -21,7 +23,7 @@ export default function SettingsScreen() {
           }}
         >
           <Text variant="subheading" fontWeight="600">
-            설정
+            {t('title')}
           </Text>
         </View>
 
@@ -30,7 +32,7 @@ export default function SettingsScreen() {
           {/* Appearance Section */}
           <YStack gap="$2">
             <Text variant="caption" muted px="$1">
-              화면 설정
+              {t('appearance.title')}
             </Text>
             <ThemeToggle />
           </YStack>
@@ -38,7 +40,7 @@ export default function SettingsScreen() {
           {/* App Info Section */}
           <YStack gap="$2" mt="$4">
             <Text variant="caption" muted px="$1">
-              앱 정보
+              {t('appInfo.title')}
             </Text>
             <YStack
               py="$3"
@@ -51,7 +53,7 @@ export default function SettingsScreen() {
                 style={{ flexDirection: 'row', justifyContent: 'space-between' }}
               >
                 <Text variant="body" muted>
-                  버전
+                  {t('appInfo.version')}
                 </Text>
                 <Text variant="body">1.0.0</Text>
               </View>

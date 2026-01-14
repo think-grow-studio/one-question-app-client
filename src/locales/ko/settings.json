@@ -1,0 +1,19 @@
+{
+  "title": "설정",
+  "appearance": {
+    "title": "화면 설정",
+    "theme": "테마",
+    "themeLight": "라이트",
+    "themeDark": "다크",
+    "themeSystem": "시스템",
+    "darkMode": "다크 모드",
+    "lightMode": "라이트 모드",
+    "darkModeDescription": "어두운 배경으로 눈의 피로를 줄여요",
+    "lightModeDescription": "밝은 배경으로 가독성을 높여요"
+  },
+  "appInfo": {
+    "title": "앱 정보",
+    "version": "버전",
+    "language": "언어"
+  }
+}
