@@ -5,21 +5,16 @@ export default {
     version: '0.1.0',
     scheme: 'onequestion',
     orientation: 'portrait',
-    icon: './assets/icon.png',
-    userInterfaceStyle: 'light',
+    icon: './assets/one-question-light.png',
+    userInterfaceStyle: 'automatic',
     newArchEnabled: true,
-    splash: {
-      image: './assets/one-question-light.png',
-      resizeMode: 'contain',
-      backgroundColor: '#ffffff',
-    },
     ios: {
       supportsTablet: true,
       bundleIdentifier: 'com.onequestion.app',
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: './assets/adaptive-icon.png',
+        foregroundImage: './assets/one-question-light.png',
         backgroundColor: '#ffffff',
       },
       package: 'com.onequestion.app',
@@ -32,6 +27,19 @@ export default {
     },
     plugins: [
       'expo-router',
+      [
+        'expo-splash-screen',
+        {
+          image: './assets/one-question-light.png',
+          imageWidth: 200,
+          resizeMode: 'contain',
+          backgroundColor: '#ffffff',
+          dark: {
+            image: './assets/one-question-dark.png',
+            backgroundColor: '#1C1C1E',
+          },
+        },
+      ],
       [
         'expo-build-properties',
         {
