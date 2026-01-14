@@ -6,9 +6,6 @@ interface ChipProps extends Omit<ButtonProps, 'children'> {
   onPress: () => void;
 }
 
-const CHIP_BLUE = '#007AFF';
-const CHIP_BLUE_PRESSED = '#0051D5';
-
 const ChipButton = styled(Button, {
   name: 'QuestionChip',
   unstyled: true,
@@ -19,21 +16,21 @@ const ChipButton = styled(Button, {
   justifyContent: 'center',
   fontWeight: '600',
   fontSize: 15,
-  backgroundColor: '$gray5',
+  backgroundColor: '$backgroundSoft',
   color: '$color',
   borderWidth: 1,
-  borderColor: '$gray6',
+  borderColor: '$borderColor',
   pressStyle: {
-    backgroundColor: '$gray4',
+    backgroundColor: '$backgroundHover',
   },
   variants: {
     selected: {
       true: {
-        backgroundColor: CHIP_BLUE,
-        borderColor: CHIP_BLUE,
+        backgroundColor: '$primary',
+        borderColor: '$primary',
         color: '#FFFFFF',
         pressStyle: {
-          backgroundColor: CHIP_BLUE_PRESSED,
+          backgroundColor: '$primaryHover',
         },
       },
       false: {},
