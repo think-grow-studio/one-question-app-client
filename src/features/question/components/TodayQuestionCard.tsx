@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { StyleSheet, Pressable } from 'react-native';
-import { Paragraph, YStack, XStack } from 'tamagui';
+import { Paragraph, YStack, XStack, useTheme } from 'tamagui';
 import { useRouter } from 'expo-router';
 import Animated, {
   useSharedValue,
@@ -11,7 +11,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Button } from '@/shared/ui/Button';
 import { MailIcon } from '@/shared/icons/MailIcon';
-import { colors } from '@/constants/colors';
 import { useTodayQuestionStore } from '../stores/useTodayQuestionStore';
 import { QuestionTypeSelector } from './QuestionTypeSelector';
 
@@ -26,6 +25,7 @@ const MOCK_YEAR_AGO_QUESTION = '1년 전 오늘, 당신은 무엇을 했나요?'
 
 export function TodayQuestionCard() {
   const router = useRouter();
+  const theme = useTheme();
   const { questionType, selectedQuestion, setSelectedQuestion, isQuestionVisible, setIsQuestionVisible } =
     useTodayQuestionStore();
 
@@ -82,7 +82,7 @@ export function TodayQuestionCard() {
               hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
               style={styles.letterContainer}
             >
-              <MailIcon size={140} color={colors.systemBlue} />
+              <MailIcon size={140} color={theme.primary?.val} />
             </Pressable>
           </Animated.View>
 
@@ -90,7 +90,7 @@ export function TodayQuestionCard() {
             <Paragraph color="$gray12" ta="center" fontSize={22} fontWeight="700" letterSpacing={-0.3}>
               편지를 열어보세요
             </Paragraph>
-            <Paragraph color={colors.textSecondary} ta="center" fontSize={16} letterSpacing={-0.2}>
+            <Paragraph color="$colorMuted" ta="center" fontSize={16} letterSpacing={-0.2}>
               오늘의 질문이 담겨있어요
             </Paragraph>
           </YStack>
@@ -107,17 +107,17 @@ export function TodayQuestionCard() {
               gap="$4"
               p="$8"
               borderRadius={24}
-              bg={colors.cardWhite}
+              bg="$surface"
               borderWidth={1}
-              borderColor={colors.systemGray5}
+              borderColor="$borderColor"
               style={styles.questionCard}
             >
               <XStack ai="center" jc="space-between">
-                <Paragraph fontSize={13} color={colors.systemBlue} fontWeight="600" letterSpacing={-0.2} style={{ textTransform: 'uppercase' }}>
+                <Paragraph fontSize={13} color="$primary" fontWeight="600" letterSpacing={-0.2} style={{ textTransform: 'uppercase' }}>
                   오늘의 질문
                 </Paragraph>
                 <Pressable onPress={handleRedraw} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-                  <Paragraph fontSize={24} color={colors.systemBlue}>
+                  <Paragraph fontSize={24} color="$primary">
                     ↻
                   </Paragraph>
                 </Pressable>
@@ -135,7 +135,7 @@ export function TodayQuestionCard() {
                 accessibilityLabel="답변 작성 화면으로 이동"
               />
               <Pressable onPress={handleRedraw} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-                <Paragraph ta="center" color={colors.textSecondary} fontSize={15} fontWeight="600" letterSpacing={-0.2}>
+                <Paragraph ta="center" color="$colorMuted" fontSize={15} fontWeight="600" letterSpacing={-0.2}>
                   질문 다시 뽑기
                 </Paragraph>
               </Pressable>

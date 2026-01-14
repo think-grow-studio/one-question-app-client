@@ -1,8 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Modal, Pressable, StyleSheet, View, Text, ScrollView, Dimensions } from 'react-native';
-import { YStack, XStack, Paragraph } from 'tamagui';
+import { YStack, XStack, Paragraph, useTheme } from 'tamagui';
 import Animated, { FadeIn, SlideInDown, SlideOutDown } from 'react-native-reanimated';
-import { colors } from '@/constants/colors';
 import { useHistoryStore } from '../stores/useHistoryStore';
 import { Button } from '@/shared/ui/Button';
 
@@ -10,6 +9,7 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
 export function DatePickerSheet() {
+  const theme = useTheme();
   const { isDatePickerVisible, setIsDatePickerVisible, history, currentDate, setCurrentDate } =
     useHistoryStore();
 
@@ -25,6 +25,89 @@ export function DatePickerSheet() {
 
   // 선택한 날짜 (미리보기용) - 기본값은 현재 보고 있는 날짜
   const [previewDate, setPreviewDate] = useState<string>(currentDate);
+
+  // Theme-dependent styles
+  const themedStyles = useMemo(
+    () => ({
+      sheet: {
+        backgroundColor: theme.surface?.val,
+      },
+      handle: {
+        backgroundColor: theme.borderColor?.val,
+      },
+      navArrow: {
+        fontSize: 24,
+        fontWeight: '600' as const,
+        color: theme.primary?.val,
+        paddingHorizontal: 8,
+      },
+      navArrowDisabled: {
+        color: theme.colorSubtle?.val,
+      },
+      weekdayText: {
+        fontSize: 14,
+        fontWeight: '600' as const,
+        color: theme.colorMuted?.val,
+      },
+      sundayText: {
+        color: theme.error?.val,
+      },
+      saturdayText: {
+        color: theme.primary?.val,
+      },
+      dayText: {
+        fontSize: 16,
+        fontWeight: '500' as const,
+        color: theme.color?.val,
+      },
+      dayTextDisabled: {
+        color: theme.colorSubtle?.val,
+      },
+      dayTextSelected: {
+        color: '#FFFFFF',
+        fontWeight: '700' as const,
+      },
+      dayTextCurrent: {
+        color: theme.primary?.val,
+        fontWeight: '700' as const,
+      },
+      dayButtonSelected: {
+        backgroundColor: theme.primary?.val,
+      },
+      dayButtonCurrent: {
+        borderWidth: 2,
+        borderColor: theme.primary?.val,
+      },
+      dayButtonToday: {
+        backgroundColor: theme.backgroundSoft?.val,
+      },
+      answerDot: {
+        backgroundColor: theme.primary?.val,
+      },
+      questionDot: {
+        backgroundColor: theme.colorSubtle?.val,
+      },
+      legendRing: {
+        borderColor: theme.primary?.val,
+      },
+      previewContainer: {
+        backgroundColor: theme.backgroundSoft?.val,
+      },
+      previewTitle: {
+        color: theme.color?.val,
+      },
+      previewText: {
+        color: theme.colorMuted?.val,
+      },
+      previewEmpty: {
+        color: theme.colorSubtle?.val,
+      },
+      answeredBadge: {
+        backgroundColor: theme.primary?.val,
+      },
+    }),
+    [theme]
+  );
 
   const handleClose = () => {
     setIsDatePickerVisible(false);
@@ -147,22 +230,22 @@ export function DatePickerSheet() {
         exiting={SlideOutDown.duration(200)}
         style={styles.sheetContainer}
       >
-        <YStack bg={colors.cardWhite} borderTopLeftRadius={24} borderTopRightRadius={24} pb="$5">
+        <YStack style={[{ borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingBottom: 20 }, themedStyles.sheet]}>
           {/* Handle */}
           <YStack ai="center" py="$4">
-            <YStack width={40} height={4} bg={colors.systemGray4} borderRadius={2} />
+            <YStack width={40} height={4} borderRadius={2} style={themedStyles.handle} />
           </YStack>
 
           {/* Month Navigation */}
           <XStack ai="center" jc="space-between" px="$5" pb="$4">
             <Pressable onPress={goToPrevMonth} hitSlop={12}>
-              <Text style={styles.navArrow}>{'<'}</Text>
+              <Text style={themedStyles.navArrow}>{'<'}</Text>
             </Pressable>
-            <Paragraph fontSize={20} fontWeight="700" letterSpacing={-0.3}>
+            <Paragraph fontSize={20} fontWeight="700" letterSpacing={-0.3} color="$color">
               {viewYear}년 {viewMonth + 1}월
             </Paragraph>
             <Pressable onPress={goToNextMonth} hitSlop={12} disabled={isNextDisabled}>
-              <Text style={[styles.navArrow, isNextDisabled && styles.navArrowDisabled]}>{'>'}</Text>
+              <Text style={[themedStyles.navArrow, isNextDisabled && themedStyles.navArrowDisabled]}>{'>'}</Text>
             </Pressable>
           </XStack>
 
@@ -171,9 +254,9 @@ export function DatePickerSheet() {
             {WEEKDAYS.map((day, index) => (
               <View key={day} style={styles.weekdayCell}>
                 <Text style={[
-                  styles.weekdayText,
-                  index === 0 && styles.sundayText,
-                  index === 6 && styles.saturdayText,
+                  themedStyles.weekdayText,
+                  index === 0 && themedStyles.sundayText,
+                  index === 6 && themedStyles.saturdayText,
                 ]}>
                   {day}
                 </Text>
@@ -191,27 +274,27 @@ export function DatePickerSheet() {
                     disabled={isFutureDate(day)}
                     style={[
                       styles.dayButton,
-                      isSelected(day) && styles.dayButtonSelected,
-                      isCurrentDate(day) && !isSelected(day) && styles.dayButtonCurrent,
-                      isToday(day) && !isSelected(day) && !isCurrentDate(day) && styles.dayButtonToday,
+                      isSelected(day) && themedStyles.dayButtonSelected,
+                      isCurrentDate(day) && !isSelected(day) && themedStyles.dayButtonCurrent,
+                      isToday(day) && !isSelected(day) && !isCurrentDate(day) && themedStyles.dayButtonToday,
                     ]}
                   >
                     <Text style={[
-                      styles.dayText,
-                      index % 7 === 0 && styles.sundayText,
-                      index % 7 === 6 && styles.saturdayText,
-                      isFutureDate(day) && styles.dayTextDisabled,
-                      isSelected(day) && styles.dayTextSelected,
-                      isCurrentDate(day) && !isSelected(day) && styles.dayTextCurrent,
-                      isToday(day) && !isSelected(day) && !isCurrentDate(day) && styles.dayTextToday,
+                      themedStyles.dayText,
+                      index % 7 === 0 && themedStyles.sundayText,
+                      index % 7 === 6 && themedStyles.saturdayText,
+                      isFutureDate(day) && themedStyles.dayTextDisabled,
+                      isSelected(day) && themedStyles.dayTextSelected,
+                      isCurrentDate(day) && !isSelected(day) && themedStyles.dayTextCurrent,
+                      isToday(day) && !isSelected(day) && !isCurrentDate(day) && themedStyles.dayTextCurrent,
                     ]}>
                       {day}
                     </Text>
                     {hasAnswer(day) && !isSelected(day) && (
-                      <View style={styles.answerDot} />
+                      <View style={[styles.dot, themedStyles.answerDot]} />
                     )}
                     {hasQuestion(day) && !hasAnswer(day) && !isSelected(day) && (
-                      <View style={styles.questionDot} />
+                      <View style={[styles.dot, themedStyles.questionDot]} />
                     )}
                   </Pressable>
                 )}
@@ -222,28 +305,28 @@ export function DatePickerSheet() {
           {/* Legend */}
           <XStack px="$5" pt="$3" gap="$5">
             <XStack ai="center" gap="$2">
-              <View style={[styles.legendDot, { backgroundColor: colors.systemBlue }]} />
-              <Paragraph fontSize={12} color={colors.textSecondary}>답변 완료</Paragraph>
+              <View style={[styles.legendDot, themedStyles.answerDot]} />
+              <Paragraph fontSize={12} color="$colorMuted">답변 완료</Paragraph>
             </XStack>
             <XStack ai="center" gap="$2">
-              <View style={[styles.legendDot, { backgroundColor: colors.systemGray3 }]} />
-              <Paragraph fontSize={12} color={colors.textSecondary}>질문만</Paragraph>
+              <View style={[styles.legendDot, themedStyles.questionDot]} />
+              <Paragraph fontSize={12} color="$colorMuted">질문만</Paragraph>
             </XStack>
             <XStack ai="center" gap="$2">
-              <View style={[styles.legendRing]} />
-              <Paragraph fontSize={12} color={colors.textSecondary}>현재 보는 날</Paragraph>
+              <View style={[styles.legendRing, themedStyles.legendRing]} />
+              <Paragraph fontSize={12} color="$colorMuted">현재 보는 날</Paragraph>
             </XStack>
           </XStack>
 
           {/* Preview Section */}
-          <View style={styles.previewContainer}>
+          <View style={[styles.previewContainer, themedStyles.previewContainer]}>
               <YStack gap="$3">
                 <XStack ai="center" jc="space-between">
-                  <Paragraph fontSize={15} fontWeight="700" color={colors.textPrimary}>
+                  <Paragraph fontSize={15} fontWeight="700" style={themedStyles.previewTitle}>
                     {formatPreviewDate(previewDate)}
                   </Paragraph>
                   {previewItem?.answer && (
-                    <View style={styles.answeredBadge}>
+                    <View style={[styles.answeredBadge, themedStyles.answeredBadge]}>
                       <Text style={styles.answeredBadgeText}>답변 완료</Text>
                     </View>
                   )}
@@ -252,12 +335,12 @@ export function DatePickerSheet() {
                 <ScrollView style={styles.previewScroll} showsVerticalScrollIndicator={false}>
                   {previewItem ? (
                     <YStack gap="$2">
-                      <Paragraph fontSize={14} color={colors.textSecondary}>
+                      <Paragraph fontSize={14} style={themedStyles.previewText}>
                         {previewItem.question}
                       </Paragraph>
                     </YStack>
                   ) : (
-                    <Paragraph fontSize={14} color={colors.systemGray3}>
+                    <Paragraph fontSize={14} style={themedStyles.previewEmpty}>
                       이 날의 질문이 없습니다
                     </Paragraph>
                   )}
@@ -291,30 +374,10 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
   },
-  navArrow: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: colors.systemBlue,
-    paddingHorizontal: 8,
-  },
-  navArrowDisabled: {
-    color: colors.systemGray4,
-  },
   weekdayCell: {
     flex: 1,
     alignItems: 'center',
     paddingVertical: 8,
-  },
-  weekdayText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.textSecondary,
-  },
-  sundayText: {
-    color: '#FF6B6B',
-  },
-  saturdayText: {
-    color: colors.systemBlue,
   },
   calendarGrid: {
     flexDirection: 'row',
@@ -332,51 +395,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 12,
   },
-  dayButtonSelected: {
-    backgroundColor: colors.systemBlue,
-  },
-  dayButtonCurrent: {
-    borderWidth: 2,
-    borderColor: colors.systemBlue,
-  },
-  dayButtonToday: {
-    backgroundColor: colors.systemGray6,
-  },
-  dayText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: colors.textPrimary,
-  },
-  dayTextDisabled: {
-    color: colors.systemGray4,
-  },
-  dayTextSelected: {
-    color: colors.white,
-    fontWeight: '700',
-  },
-  dayTextCurrent: {
-    color: colors.systemBlue,
-    fontWeight: '700',
-  },
-  dayTextToday: {
-    color: colors.systemBlue,
-    fontWeight: '700',
-  },
-  answerDot: {
+  dot: {
     position: 'absolute',
     bottom: 6,
     width: 5,
     height: 5,
     borderRadius: 2.5,
-    backgroundColor: colors.systemBlue,
-  },
-  questionDot: {
-    position: 'absolute',
-    bottom: 6,
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
-    backgroundColor: colors.systemGray3,
   },
   legendDot: {
     width: 8,
@@ -388,13 +412,11 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     borderWidth: 2,
-    borderColor: colors.systemBlue,
   },
   previewContainer: {
     marginTop: 16,
     marginHorizontal: 20,
     padding: 16,
-    backgroundColor: colors.systemGray6,
     borderRadius: 16,
     maxHeight: SCREEN_HEIGHT * 0.25,
   },
@@ -402,7 +424,6 @@ const styles = StyleSheet.create({
     maxHeight: 80,
   },
   answeredBadge: {
-    backgroundColor: colors.systemBlue,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
@@ -410,6 +431,6 @@ const styles = StyleSheet.create({
   answeredBadgeText: {
     fontSize: 11,
     fontWeight: '600',
-    color: colors.white,
+    color: '#FFFFFF',
   },
 });

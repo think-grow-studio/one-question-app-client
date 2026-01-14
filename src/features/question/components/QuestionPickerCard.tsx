@@ -3,7 +3,6 @@ import { StyleSheet, Pressable } from 'react-native';
 import { Paragraph, YStack } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { Button } from '@/shared/ui/Button';
-import { colors } from '@/constants/colors';
 import { useQuestionPickerStore } from '../stores/useQuestionPickerStore';
 
 const MOCK_QUESTION = '당신이 가장 행복했던 순간은 언제였나요?';
@@ -37,7 +36,7 @@ export function QuestionPickerCard() {
               📬
             </Paragraph>
           </Pressable>
-          <Paragraph color="$gray10" ta="center" fontSize="$4">
+          <Paragraph color="$colorMuted" ta="center" fontSize="$4">
             편지를 클릭해보세요 ✨
           </Paragraph>
         </>
@@ -48,16 +47,16 @@ export function QuestionPickerCard() {
             gap="$3"
             p="$5"
             borderRadius="$4"
-            bg={colors.backgroundPrimary}
+            bg="$surface"
             borderWidth={1}
-            borderColor={colors.systemGray5}
+            borderColor="$borderColor"
             mx="$4"
             style={styles.questionCard}
           >
-            <Paragraph fontSize="$1" color="$gray10" fontWeight="500">
+            <Paragraph fontSize="$1" color="$colorMuted" fontWeight="500">
               오늘의 질문
             </Paragraph>
-            <Paragraph fontSize="$5" fontWeight="500" lineHeight={24}>
+            <Paragraph fontSize="$5" fontWeight="500" lineHeight={24} color="$color">
               {MOCK_QUESTION}
             </Paragraph>
           </YStack>

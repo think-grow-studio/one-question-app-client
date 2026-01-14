@@ -1,9 +1,9 @@
 import { Pressable, StyleSheet } from 'react-native';
-import { XStack, Paragraph } from 'tamagui';
-import { colors } from '@/constants/colors';
+import { XStack, Paragraph, useTheme } from 'tamagui';
 import { useTodayQuestionStore } from '../stores/useTodayQuestionStore';
 
 export function QuestionTypeSelector() {
+  const theme = useTheme();
   const { questionType, setQuestionType } = useTodayQuestionStore();
 
   return (
@@ -12,13 +12,16 @@ export function QuestionTypeSelector() {
         onPress={() => setQuestionType('random')}
         style={[
           styles.chip,
-          questionType === 'random' && styles.chipActive,
+          {
+            backgroundColor: questionType === 'random' ? theme.primary?.val : theme.surface?.val,
+            borderColor: questionType === 'random' ? theme.primary?.val : theme.borderColor?.val,
+          },
         ]}
       >
         <Paragraph
           fontSize={15}
           fontWeight="600"
-          color={questionType === 'random' ? colors.white : colors.textSecondary}
+          color={questionType === 'random' ? '#FFFFFF' : '$colorMuted'}
           letterSpacing={-0.2}
         >
           랜덤 질문
@@ -29,13 +32,16 @@ export function QuestionTypeSelector() {
         onPress={() => setQuestionType('yearAgo')}
         style={[
           styles.chip,
-          questionType === 'yearAgo' && styles.chipActive,
+          {
+            backgroundColor: questionType === 'yearAgo' ? theme.primary?.val : theme.surface?.val,
+            borderColor: questionType === 'yearAgo' ? theme.primary?.val : theme.borderColor?.val,
+          },
         ]}
       >
         <Paragraph
           fontSize={15}
           fontWeight="600"
-          color={questionType === 'yearAgo' ? colors.white : colors.textSecondary}
+          color={questionType === 'yearAgo' ? '#FFFFFF' : '$colorMuted'}
           letterSpacing={-0.2}
         >
           1년 전 오늘
@@ -50,12 +56,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 24,
-    backgroundColor: colors.cardWhite,
     borderWidth: 1,
-    borderColor: colors.systemGray5,
-  },
-  chipActive: {
-    backgroundColor: colors.systemBlue,
-    borderColor: colors.systemBlue,
   },
 });

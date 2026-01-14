@@ -1,11 +1,10 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useMemo } from 'react';
 import { StyleSheet, Pressable, View, Text, PanResponder, Dimensions, Animated } from 'react-native';
-import { Paragraph, YStack, XStack } from 'tamagui';
+import { Paragraph, YStack, XStack, useTheme } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { Button } from '@/shared/ui/Button';
 import { MailIcon } from '@/shared/icons/MailIcon';
 import { CalendarIcon } from '@/shared/icons/CalendarIcon';
-import { colors } from '@/constants/colors';
 import { useHistoryStore } from '../stores/useHistoryStore';
 import { DatePickerSheet } from './DatePickerSheet';
 
@@ -23,6 +22,7 @@ const MOCK_RANDOM_QUESTIONS = [
 
 export function QuestionHistoryView() {
   const router = useRouter();
+  const theme = useTheme();
   const { currentDate, setCurrentDate, getQuestionByDate, setIsDatePickerVisible, addQuestion } =
     useHistoryStore();
 
@@ -31,6 +31,75 @@ export function QuestionHistoryView() {
   const opacity = useRef(new Animated.Value(1)).current;
   const isAnimating = useRef(false);
   const currentDateRef = useRef(currentDate);
+
+  // Theme-dependent styles
+  const themedStyles = useMemo(
+    () => ({
+      questionCard: {
+        backgroundColor: theme.surface?.val,
+        borderRadius: 32,
+        borderWidth: 1,
+        borderColor: theme.borderColor?.val,
+        padding: 48,
+        height: SCREEN_HEIGHT * 0.75,
+        flexDirection: 'column' as const,
+      },
+      writtenDateText: {
+        fontSize: 11,
+        fontWeight: '500' as const,
+        color: theme.colorSubtle?.val,
+        marginTop: 20,
+        letterSpacing: -0.1,
+      },
+      labelText: {
+        fontSize: 13,
+        fontWeight: '700' as const,
+        color: theme.primary?.val,
+        marginBottom: 12,
+        letterSpacing: -0.2,
+        textTransform: 'uppercase' as const,
+      },
+      questionText: {
+        fontSize: 22,
+        fontWeight: '700' as const,
+        lineHeight: 32,
+        color: theme.color?.val,
+        letterSpacing: -0.4,
+      },
+      divider: {
+        height: 1,
+        backgroundColor: theme.borderColor?.val,
+        marginVertical: 24,
+      },
+      answerText: {
+        fontSize: 19,
+        lineHeight: 32,
+        color: theme.colorMuted?.val,
+        letterSpacing: -0.3,
+      },
+      emptyText: {
+        fontSize: 20,
+        color: theme.colorMuted?.val,
+        textAlign: 'center' as const,
+        letterSpacing: -0.3,
+      },
+      emptyButton: {
+        backgroundColor: theme.surface?.val,
+        paddingVertical: 14,
+        paddingHorizontal: 24,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: theme.borderColor?.val,
+      },
+      emptyButtonText: {
+        fontSize: 16,
+        fontWeight: '600' as const,
+        color: theme.primary?.val,
+        letterSpacing: -0.2,
+      },
+    }),
+    [theme]
+  );
 
   // currentDate가 바뀔 때마다 ref 동기화
   useEffect(() => {
@@ -200,7 +269,7 @@ export function QuestionHistoryView() {
           onPress={handleOpenDatePicker}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <CalendarIcon size={32} color={colors.textPrimary} />
+          <CalendarIcon size={32} color={theme.color?.val} />
         </Pressable>
       </XStack>
 
@@ -218,19 +287,19 @@ export function QuestionHistoryView() {
         >
           {currentItem ? (
             <View style={styles.contentWrapper}>
-              <View style={styles.questionCard}>
+              <View style={themedStyles.questionCard}>
                 <View style={styles.questionSection}>
-                  <Text style={styles.labelText}>질문</Text>
-                  <Text style={styles.questionText}>{currentItem.question}</Text>
+                  <Text style={themedStyles.labelText}>질문</Text>
+                  <Text style={themedStyles.questionText}>{currentItem.question}</Text>
                 </View>
 
                 {currentItem.answer && (
                   <>
-                    <View style={styles.divider} />
+                    <View style={themedStyles.divider} />
                     <View style={styles.answerSection}>
-                      <Text style={styles.labelText}>답변</Text>
-                      <Text style={styles.answerText}>{currentItem.answer}</Text>
-                      <Text style={styles.writtenDateText}>
+                      <Text style={themedStyles.labelText}>답변</Text>
+                      <Text style={themedStyles.answerText}>{currentItem.answer}</Text>
+                      <Text style={themedStyles.writtenDateText}>
                         작성 날짜 {formatDate(currentDate)}
                       </Text>
                     </View>
@@ -250,20 +319,20 @@ export function QuestionHistoryView() {
             </View>
           ) : (
             <View style={styles.emptyState}>
-              <MailIcon size={140} color={colors.systemGray3} />
-              <Text style={styles.emptyText}>이 날의 질문이 없습니다</Text>
+              <MailIcon size={140} color={theme.colorSubtle?.val} />
+              <Text style={themedStyles.emptyText}>이 날의 질문이 없습니다</Text>
               <View style={styles.emptyButtonsContainer}>
                 <Pressable
-                  style={styles.emptyButton}
+                  style={themedStyles.emptyButton}
                   onPress={handleDrawRandomQuestion}
                 >
-                  <Text style={styles.emptyButtonText}>질문 뽑기</Text>
+                  <Text style={themedStyles.emptyButtonText}>질문 뽑기</Text>
                 </Pressable>
                 <Pressable
-                  style={styles.emptyButton}
+                  style={themedStyles.emptyButton}
                   onPress={handleDrawYearAgoQuestion}
                 >
-                  <Text style={styles.emptyButtonText}>1년 전 오늘</Text>
+                  <Text style={themedStyles.emptyButtonText}>1년 전 오늘</Text>
                 </Pressable>
               </View>
             </View>
@@ -300,53 +369,11 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  questionCard: {
-    backgroundColor: colors.cardWhite,
-    borderRadius: 32,
-    borderWidth: 1,
-    borderColor: colors.systemGray5,
-    padding: 48,
-    height: SCREEN_HEIGHT * 0.75,
-    flexDirection: 'column',
-  },
   questionSection: {
     // 질문은 내용에 맞는 최소 높이만 차지
   },
   answerSection: {
     flex: 1, // 나머지 공간 전부 차지
-  },
-  writtenDateText: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: colors.systemGray2,
-    marginTop: 20,
-    letterSpacing: -0.1,
-  },
-  labelText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.systemBlue,
-    marginBottom: 12,
-    letterSpacing: -0.2,
-    textTransform: 'uppercase',
-  },
-  questionText: {
-    fontSize: 22,
-    fontWeight: '700',
-    lineHeight: 32,
-    color: colors.textPrimary,
-    letterSpacing: -0.4,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: colors.systemGray5,
-    marginVertical: 24,
-  },
-  answerText: {
-    fontSize: 19,
-    lineHeight: 32,
-    color: colors.textSecondary,
-    letterSpacing: -0.3,
   },
   buttonWrapper: {
     marginTop: 40,
@@ -357,29 +384,9 @@ const styles = StyleSheet.create({
     gap: 32,
     height: SCREEN_HEIGHT * 0.75,
   },
-  emptyText: {
-    fontSize: 20,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    letterSpacing: -0.3,
-  },
   emptyButtonsContainer: {
     flexDirection: 'row',
     gap: 12,
     marginTop: 8,
-  },
-  emptyButton: {
-    backgroundColor: colors.cardWhite,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.systemGray5,
-  },
-  emptyButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.systemBlue,
-    letterSpacing: -0.2,
   },
 });
