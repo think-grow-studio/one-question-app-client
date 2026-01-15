@@ -11,6 +11,17 @@
     "darkModeDescription": "어두운 배경으로 눈의 피로를 줄여요",
     "lightModeDescription": "밝은 배경으로 가독성을 높여요"
   },
+  "notification": {
+    "title": "알림",
+    "sectionTitle": "알림 설정",
+    "description": "매일 정해진 시간에 알림을 받아요",
+    "time": "알림 시간",
+    "done": "완료",
+    "am": "오전",
+    "pm": "오후",
+    "pushTitle": "One Question",
+    "pushBody": "오늘의 질문에 답을 해보세요."
+  },
   "appInfo": {
     "title": "앱 정보",
     "version": "버전",

@@ -1,8 +1,10 @@
-import { Stack } from 'expo-router';
+import { useEffect } from 'react';
+import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'react-native';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { TamaguiProvider, Theme } from 'tamagui';
+import * as Notifications from 'expo-notifications';
 import tamaguiConfig from '../../tamagui.config';
 import { queryClient } from '@/services/queryClient';
 import { useThemeStore } from '@/stores/useThemeStore';
@@ -10,6 +12,18 @@ import '@/locales'; // i18n 초기화
 
 export default function RootLayout() {
   const { mode } = useThemeStore();
+  const router = useRouter();
+
+  // 알림 클릭 시 홈으로 이동
+  useEffect(() => {
+    const subscription = Notifications.addNotificationResponseReceivedListener(
+      (response) => {
+        router.replace('/(tabs)');
+      }
+    );
+
+    return () => subscription.remove();
+  }, [router]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

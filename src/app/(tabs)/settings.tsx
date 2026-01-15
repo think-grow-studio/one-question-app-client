@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Screen } from '@/shared/layout/Screen';
 import { Text } from '@/shared/ui/Text';
 import { ThemeToggle } from '@/features/settings/components/ThemeToggle';
+import { NotificationSettings } from '@/features/settings/components/NotificationSettings';
 
 export default function SettingsScreen() {
   const theme = useTheme();
@@ -35,6 +36,14 @@ export default function SettingsScreen() {
               {t('appearance.title')}
             </Text>
             <ThemeToggle />
+          </YStack>
+
+          {/* Notification Section */}
+          <YStack gap="$2" mt="$4">
+            <Text variant="caption" muted px="$1">
+              {t('notification.sectionTitle')}
+            </Text>
+            <NotificationSettings />
           </YStack>
 
           {/* App Info Section */}
