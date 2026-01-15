@@ -163,35 +163,17 @@ object NotificationScheduler {
     fun rescheduleFromPreferences(context: Context) {
         try {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            val jsonString = prefs.getString("state", null)
 
-            if (jsonString == null) {
-                Log.d(TAG, "No notification settings found")
-                return
-            }
-
-            // JSON 파싱 (간단한 방식)
-            val isEnabled = jsonString.contains("\\"isEnabled\\":true")
+            val isEnabled = prefs.getBoolean("isEnabled", false)
             if (!isEnabled) {
                 Log.d(TAG, "Notifications are disabled")
                 return
             }
 
-            // hour, minute, title, body 추출
-            val hourRegex = "\\"hour\\":(\\\\d+)".toRegex()
-            val minuteRegex = "\\"minute\\":(\\\\d+)".toRegex()
-            val titleRegex = "\\"title\\":\\"([^\\"]*)\\"".toRegex()
-            val bodyRegex = "\\"body\\":\\"([^\\"]*)\\"".toRegex()
-
-            val hourMatch = hourRegex.find(jsonString)
-            val minuteMatch = minuteRegex.find(jsonString)
-            val titleMatch = titleRegex.find(jsonString)
-            val bodyMatch = bodyRegex.find(jsonString)
-
-            val hour = hourMatch?.groupValues?.get(1)?.toIntOrNull() ?: 21
-            val minute = minuteMatch?.groupValues?.get(1)?.toIntOrNull() ?: 0
-            val title = titleMatch?.groupValues?.get(1) ?: "One Question"
-            val body = bodyMatch?.groupValues?.get(1) ?: "오늘의 질문에 답을 해보세요."
+            val hour = prefs.getInt("hour", 21)
+            val minute = prefs.getInt("minute", 0)
+            val title = prefs.getString("title", "One Question") ?: "One Question"
+            val body = prefs.getString("body", "오늘의 질문에 답을 해보세요.") ?: "오늘의 질문에 답을 해보세요."
 
             Log.d(TAG, "Rescheduling notification for \$hour:\$minute with title: \$title")
 
@@ -345,16 +327,16 @@ class NotificationPreferencesModule(reactContext: ReactApplicationContext) : Rea
     fun saveNotificationSettings(isEnabled: Boolean, hour: Int, minute: Int, title: String, body: String, promise: Promise) {
         try {
             val prefs = reactApplicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            // JSON에서 특수문자 이스케이프 처리
-            val escapedTitle = title.replace("\\\\", "\\\\\\\\").replace("\"", "\\\\\"")
-            val escapedBody = body.replace("\\\\", "\\\\\\\\").replace("\"", "\\\\\"")
-            val jsonString = """{"state":{"isEnabled":$isEnabled,"hour":$hour,"minute":$minute,"title":"$escapedTitle","body":"$escapedBody"}}"""
 
             prefs.edit()
-                .putString("state", jsonString)
+                .putBoolean("isEnabled", isEnabled)
+                .putInt("hour", hour)
+                .putInt("minute", minute)
+                .putString("title", title)
+                .putString("body", body)
                 .apply()
 
-            Log.d(TAG, "Saved notification settings: enabled=$isEnabled, time=$hour:$minute, title=$title")
+            Log.d(TAG, "Saved notification settings: enabled=\$isEnabled, time=\$hour:\$minute, title=\$title")
             promise.resolve(true)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to save notification settings", e)
@@ -443,18 +425,18 @@ function withNotificationPackage(config) {
     }
 
     // getPackages()에 NotificationPackage 추가
-    if (!mainApplication.contents.includes('NotificationPackage()')) {
-      // Kotlin 버전 (New Architecture)
+    if (!mainApplication.contents.includes('add(NotificationPackage())')) {
+      // 새로운 Expo SDK 형식 (expression body with apply)
       mainApplication.contents = mainApplication.contents.replace(
-        /(override fun getPackages\(\): List<ReactPackage> \{[\s\S]*?packages\.apply \{)/,
-        '$1\n            add(NotificationPackage())'
+        /(PackageList\(this\)\.packages\.apply\s*\{)/,
+        '$1\n              add(NotificationPackage())'
       );
 
-      // 만약 위 패턴이 안 맞으면 Java 스타일 시도
-      if (!mainApplication.contents.includes('NotificationPackage()')) {
+      // 만약 위 패턴이 안 맞으면 기존 블록 형식 시도
+      if (!mainApplication.contents.includes('add(NotificationPackage())')) {
         mainApplication.contents = mainApplication.contents.replace(
-          /(packages\.add\()/,
-          'packages.add(NotificationPackage())\n            $1'
+          /(override fun getPackages\(\): List<ReactPackage> \{[\s\S]*?packages\.apply \{)/,
+          '$1\n            add(NotificationPackage())'
         );
       }
     }
