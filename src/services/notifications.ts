@@ -2,6 +2,7 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import i18n from '@/locales';
+import { saveNotificationSettingsNative } from './notificationPreferences';
 
 // 알림 표시 설정 (포그라운드에서도 표시)
 Notifications.setNotificationHandler({
@@ -102,6 +103,15 @@ export async function scheduleDailyNotification(
 
     console.log(`알림 스케줄됨: ${hour}:${minute.toString().padStart(2, '0')}`);
 
+    // 네이티브 SharedPreferences에 저장 (Boot Receiver용 - 다국어 지원)
+    await saveNotificationSettingsNative(
+      true,
+      hour,
+      minute,
+      i18n.t('settings:notification.pushTitle'),
+      i18n.t('settings:notification.pushBody')
+    );
+
     // 디버그: 예약된 알림 확인
     const scheduled = await Notifications.getAllScheduledNotificationsAsync();
     console.log('예약된 알림 목록:', JSON.stringify(scheduled, null, 2));
@@ -128,6 +138,9 @@ export async function cancelDailyNotification(): Promise<void> {
     for (const notification of scheduledNotifications) {
       await Notifications.cancelScheduledNotificationAsync(notification.identifier);
     }
+
+    // 네이티브 SharedPreferences에서도 비활성화 (Boot Receiver용)
+    await saveNotificationSettingsNative(false, 0, 0);
 
     console.log('모든 예약된 알림이 취소되었습니다.');
   } catch (error) {

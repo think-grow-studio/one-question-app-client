@@ -28,6 +28,7 @@ export default {
     plugins: [
       'expo-router',
       'expo-localization',
+      './plugins/withBootReceiver',
       [
         'expo-splash-screen',
         {
