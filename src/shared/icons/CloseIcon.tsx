@@ -9,16 +9,16 @@ export function CloseIcon({ size = 24, color = '#000000' }: CloseIconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
-        d="M18 6L6 18"
+        d="M19 5L5 19"
         stroke={color}
-        strokeWidth="2"
+        strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <Path
-        d="M6 6L18 18"
+        d="M19 19L5 5"
         stroke={color}
-        strokeWidth="2"
+        strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
