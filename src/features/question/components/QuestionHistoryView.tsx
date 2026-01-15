@@ -1,9 +1,10 @@
 import { useRef, useEffect } from 'react';
 import { StyleSheet, Pressable, View, Text, PanResponder, Dimensions, Animated } from 'react-native';
-import { Paragraph, YStack, XStack, useTheme } from 'tamagui';
+import { YStack, Paragraph, useTheme } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
+import { ScreenHeader } from '@/shared/ui/ScreenHeader';
 import { MailIcon } from '@/shared/icons/MailIcon';
 import { CalendarIcon } from '@/shared/icons/CalendarIcon';
 import { useQuestionCardStyles } from '@/shared/ui/QuestionCard';
@@ -187,19 +188,14 @@ export function QuestionHistoryView() {
   };
 
   return (
-    <YStack flex={1} pt="$4">
+    <YStack flex={1}>
       {/* Header - Date & Calendar */}
-      <XStack ai="center" jc="space-between" px="$5" mb="$5">
-        <Paragraph fontSize="$6" fontWeight="700" color="$gray12">
-          {formatDate(currentDate)}
-        </Paragraph>
-        <Pressable
-          onPress={handleOpenDatePicker}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <CalendarIcon size={32} color={theme.color?.val} />
-        </Pressable>
-      </XStack>
+      <ScreenHeader
+        title={formatDate(currentDate)}
+        rightIcon={<CalendarIcon size={28} color={theme.color?.val} />}
+        onRightPress={handleOpenDatePicker}
+        rightButtonStyle="plain"
+      />
 
       {/* Swipeable Card */}
       <View style={styles.cardContainer}>

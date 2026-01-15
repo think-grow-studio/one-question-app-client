@@ -13,7 +13,9 @@ import { YStack, XStack, useTheme } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuestionCardStyles } from '@/shared/ui/QuestionCard';
+import { ScreenHeader } from '@/shared/ui/ScreenHeader';
 import { ReloadIcon } from '@/shared/icons/ReloadIcon';
+import { CloseIcon } from '@/shared/icons/CloseIcon';
 
 function getRandomQuestion(questions: string[]) {
   return questions[Math.floor(Math.random() * questions.length)];
@@ -84,18 +86,12 @@ export function DailyQuestionAnswer() {
     >
       <YStack flex={1} bg="$cardBlue">
         {/* Header - Today's Date & Close Button */}
-        <XStack ai="center" jc="space-between" px="$5" pt="$4" mb="$4">
-          <Text style={[styles.headerDate, { color: theme.color?.val }]}>
-            {getTodayFormatted()}
-          </Text>
-          <Pressable
-            onPress={() => router.back()}
-            hitSlop={12}
-            style={[styles.closeButton, { backgroundColor: theme.backgroundSoft?.val }]}
-          >
-            <Text style={[styles.closeIcon, { color: theme.color?.val }]}>✕</Text>
-          </Pressable>
-        </XStack>
+        <ScreenHeader
+          title={getTodayFormatted()}
+          rightIcon={<CloseIcon size={16} color={theme.color?.val} />}
+          onRightPress={() => router.back()}
+          rightButtonStyle="filled"
+        />
 
         {/* Question Card */}
         <View style={styles.cardContainer}>
@@ -165,22 +161,6 @@ export function DailyQuestionAnswer() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  headerDate: {
-    fontSize: 20,
-    fontWeight: '700',
-    letterSpacing: -0.4,
-  },
-  closeButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  closeIcon: {
-    fontSize: 16,
-    fontWeight: '600',
   },
   cardContainer: {
     flex: 1,
