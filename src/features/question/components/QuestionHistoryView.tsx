@@ -1,4 +1,4 @@
-import { useRef, useEffect, useMemo } from 'react';
+import { useRef, useEffect } from 'react';
 import { StyleSheet, Pressable, View, Text, PanResponder, Dimensions, Animated } from 'react-native';
 import { Paragraph, YStack, XStack, useTheme } from 'tamagui';
 import { useRouter } from 'expo-router';
@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
 import { MailIcon } from '@/shared/icons/MailIcon';
 import { CalendarIcon } from '@/shared/icons/CalendarIcon';
+import { useQuestionCardStyles } from '@/shared/ui/QuestionCard';
 import { useHistoryStore } from '../stores/useHistoryStore';
 import { DatePickerSheet } from './DatePickerSheet';
 
@@ -18,6 +19,7 @@ export function QuestionHistoryView() {
   const { t } = useTranslation('question');
   const { currentDate, setCurrentDate, getQuestionByDate, setIsDatePickerVisible, addQuestion } =
     useHistoryStore();
+  const cardStyles = useQuestionCardStyles();
 
   const randomQuestions = t('random', { returnObjects: true }) as string[];
 
@@ -26,75 +28,6 @@ export function QuestionHistoryView() {
   const opacity = useRef(new Animated.Value(1)).current;
   const isAnimating = useRef(false);
   const currentDateRef = useRef(currentDate);
-
-  // Theme-dependent styles
-  const themedStyles = useMemo(
-    () => ({
-      questionCard: {
-        backgroundColor: theme.surface?.val,
-        borderRadius: 32,
-        borderWidth: 1,
-        borderColor: theme.borderColor?.val,
-        padding: 48,
-        height: SCREEN_HEIGHT * 0.75,
-        flexDirection: 'column' as const,
-      },
-      writtenDateText: {
-        fontSize: 11,
-        fontWeight: '500' as const,
-        color: theme.colorSubtle?.val,
-        marginTop: 20,
-        letterSpacing: -0.1,
-      },
-      labelText: {
-        fontSize: 13,
-        fontWeight: '700' as const,
-        color: theme.primary?.val,
-        marginBottom: 12,
-        letterSpacing: -0.2,
-        textTransform: 'uppercase' as const,
-      },
-      questionText: {
-        fontSize: 22,
-        fontWeight: '700' as const,
-        lineHeight: 32,
-        color: theme.color?.val,
-        letterSpacing: -0.4,
-      },
-      divider: {
-        height: 1,
-        backgroundColor: theme.borderColor?.val,
-        marginVertical: 24,
-      },
-      answerText: {
-        fontSize: 19,
-        lineHeight: 32,
-        color: theme.colorMuted?.val,
-        letterSpacing: -0.3,
-      },
-      emptyText: {
-        fontSize: 20,
-        color: theme.colorMuted?.val,
-        textAlign: 'center' as const,
-        letterSpacing: -0.3,
-      },
-      emptyButton: {
-        backgroundColor: theme.surface?.val,
-        paddingVertical: 14,
-        paddingHorizontal: 24,
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: theme.borderColor?.val,
-      },
-      emptyButtonText: {
-        fontSize: 16,
-        fontWeight: '600' as const,
-        color: theme.primary?.val,
-        letterSpacing: -0.2,
-      },
-    }),
-    [theme]
-  );
 
   // currentDate가 바뀔 때마다 ref 동기화
   useEffect(() => {
@@ -282,19 +215,19 @@ export function QuestionHistoryView() {
         >
           {currentItem ? (
             <View style={styles.contentWrapper}>
-              <View style={themedStyles.questionCard}>
+              <View style={[cardStyles.card, cardStyles.cardFull]}>
                 <View style={styles.questionSection}>
-                  <Text style={themedStyles.labelText}>{t('labels.question')}</Text>
-                  <Text style={themedStyles.questionText}>{currentItem.question}</Text>
+                  <Text style={[cardStyles.labelText, { marginBottom: 12 }]}>{t('labels.question')}</Text>
+                  <Text style={cardStyles.questionText}>{currentItem.question}</Text>
                 </View>
 
                 {currentItem.answer && (
                   <>
-                    <View style={themedStyles.divider} />
+                    <View style={cardStyles.divider} />
                     <View style={styles.answerSection}>
-                      <Text style={themedStyles.labelText}>{t('labels.answer')}</Text>
-                      <Text style={themedStyles.answerText}>{currentItem.answer}</Text>
-                      <Text style={themedStyles.writtenDateText}>
+                      <Text style={[cardStyles.labelText, { marginBottom: 12 }]}>{t('labels.answer')}</Text>
+                      <Text style={cardStyles.answerText}>{currentItem.answer}</Text>
+                      <Text style={cardStyles.writtenDateText}>
                         {t('writtenDate', { date: formatDate(currentDate) })}
                       </Text>
                     </View>
@@ -315,19 +248,19 @@ export function QuestionHistoryView() {
           ) : (
             <View style={styles.emptyState}>
               <MailIcon size={140} color={theme.colorSubtle?.val} />
-              <Text style={themedStyles.emptyText}>{t('empty.noQuestion')}</Text>
+              <Text style={cardStyles.emptyText}>{t('empty.noQuestion')}</Text>
               <View style={styles.emptyButtonsContainer}>
                 <Pressable
-                  style={themedStyles.emptyButton}
+                  style={cardStyles.emptyButton}
                   onPress={handleDrawRandomQuestion}
                 >
-                  <Text style={themedStyles.emptyButtonText}>{t('empty.drawQuestion')}</Text>
+                  <Text style={cardStyles.emptyButtonText}>{t('empty.drawQuestion')}</Text>
                 </Pressable>
                 <Pressable
-                  style={themedStyles.emptyButton}
+                  style={cardStyles.emptyButton}
                   onPress={handleDrawYearAgoQuestion}
                 >
-                  <Text style={themedStyles.emptyButtonText}>{t('empty.yearAgo')}</Text>
+                  <Text style={cardStyles.emptyButtonText}>{t('empty.yearAgo')}</Text>
                 </Pressable>
               </View>
             </View>

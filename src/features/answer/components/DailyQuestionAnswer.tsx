@@ -1,9 +1,18 @@
 import { useState, useEffect } from 'react';
-import { Alert, TextInput, StyleSheet, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
-import { ScrollView, XStack, YStack, useTheme } from 'tamagui';
+import {
+  Alert,
+  TextInput,
+  StyleSheet,
+  Pressable,
+  KeyboardAvoidingView,
+  Platform,
+  View,
+  Text,
+} from 'react-native';
+import { YStack, XStack, useTheme } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Text } from '@/shared/ui/Text';
+import { useQuestionCardStyles } from '@/shared/ui/QuestionCard';
 
 function getRandomQuestion(questions: string[]) {
   return questions[Math.floor(Math.random() * questions.length)];
@@ -13,6 +22,7 @@ export function DailyQuestionAnswer() {
   const router = useRouter();
   const theme = useTheme();
   const { t } = useTranslation(['answer', 'question', 'common']);
+  const cardStyles = useQuestionCardStyles();
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
 
@@ -56,55 +66,62 @@ export function DailyQuestionAnswer() {
     ]);
   };
 
+  const getTodayFormatted = () => {
+    const today = new Date();
+    const month = today.getMonth() + 1;
+    const day = today.getDate();
+    const weekdayKeys = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+    const weekday = t(`question:weekdays.${weekdayKeys[today.getDay()]}`);
+    return t('question:dateFormat', { month, day, weekday });
+  };
+
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
-      <YStack flex={1} bg="$background">
-        <ScrollView
-          flex={1}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Question Section */}
-          <YStack px="$5" pt="$4" gap="$6">
-            {/* Question with Reload Button */}
-            <YStack gap="$4">
-              <XStack ai="flex-start" jc="space-between" gap="$3">
-                <Text
-                  flex={1}
-                  fontSize={24}
-                  fontWeight="700"
-                  lineHeight={34}
-                  letterSpacing={-0.5}
-                >
-                  {question}
-                </Text>
+      <YStack flex={1} bg="$cardBlue">
+        {/* Header - Today's Date & Close Button */}
+        <XStack ai="center" jc="space-between" px="$5" pt="$4" mb="$4">
+          <Text style={[styles.headerDate, { color: theme.color?.val }]}>
+            {getTodayFormatted()}
+          </Text>
+          <Pressable
+            onPress={() => router.back()}
+            hitSlop={12}
+            style={[styles.closeButton, { backgroundColor: theme.backgroundSoft?.val }]}
+          >
+            <Text style={[styles.closeIcon, { color: theme.color?.val }]}>✕</Text>
+          </Pressable>
+        </XStack>
+
+        {/* Question Card */}
+        <View style={styles.cardContainer}>
+          <View style={[cardStyles.card, cardStyles.cardMinHeight]}>
+            {/* Question Section */}
+            <View style={styles.questionSection}>
+              <XStack ai="center" jc="space-between" mb="$3">
+                <Text style={cardStyles.labelText}>{t('question:labels.question')}</Text>
                 <Pressable
                   onPress={handleReloadPress}
-                  hitSlop={12}
-                  style={[
-                    styles.reloadButton,
-                    { backgroundColor: theme.backgroundSoft?.val },
-                  ]}
+                  style={cardStyles.reloadButton}
+                  hitSlop={8}
                 >
-                  <Text fontSize={20}>↻</Text>
+                  <Text style={cardStyles.reloadIcon}>↻</Text>
                 </Pressable>
               </XStack>
-            </YStack>
+              <Text style={cardStyles.questionText}>{question}</Text>
+            </View>
 
-            {/* Answer Input */}
-            <YStack gap="$2">
+            {/* Divider */}
+            <View style={cardStyles.divider} />
+
+            {/* Answer Section */}
+            <View style={styles.answerSection}>
+              <Text style={[cardStyles.labelText, { marginBottom: 12 }]}>{t('question:labels.answer')}</Text>
               <TextInput
-                style={[
-                  styles.input,
-                  {
-                    color: theme.color?.val,
-                    backgroundColor: theme.backgroundSoft?.val,
-                  },
-                ]}
+                style={cardStyles.input}
                 multiline
                 value={answer}
                 onChangeText={setAnswer}
@@ -112,33 +129,28 @@ export function DailyQuestionAnswer() {
                 placeholderTextColor={theme.colorMuted?.val}
                 textAlignVertical="top"
               />
-              <XStack jc="flex-end">
-                <Text fontSize={13} color="$colorMuted">
-                  {t('answer:charCount', { count: answer.length })}
-                </Text>
-              </XStack>
-            </YStack>
-          </YStack>
-        </ScrollView>
+              <Text style={cardStyles.charCount}>
+                {t('answer:charCount', { count: answer.length })}
+              </Text>
+            </View>
+          </View>
+        </View>
 
-        {/* Bottom Button */}
-        <YStack px="$5" pb="$4" pt="$3">
+        {/* Submit Button */}
+        <YStack px="$5" pb="$5" pt="$3">
           <Pressable
             style={[
-              styles.submitButton,
-              {
-                backgroundColor: isSubmitEnabled
-                  ? theme.color?.val
-                  : theme.backgroundSoft?.val,
-              },
+              cardStyles.submitButton,
+              isSubmitEnabled ? cardStyles.submitButtonEnabled : cardStyles.submitButtonDisabled,
             ]}
             onPress={handleSubmit}
             disabled={!isSubmitEnabled}
           >
             <Text
-              fontSize={16}
-              fontWeight="600"
-              color={isSubmitEnabled ? '$background' : '$colorMuted'}
+              style={[
+                cardStyles.submitButtonText,
+                isSubmitEnabled ? cardStyles.submitTextEnabled : cardStyles.submitTextDisabled,
+              ]}
             >
               {t('answer:submit')}
             </Text>
@@ -150,28 +162,33 @@ export function DailyQuestionAnswer() {
 }
 
 const styles = StyleSheet.create({
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 24,
+  container: {
+    flex: 1,
   },
-  reloadButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  headerDate: {
+    fontSize: 20,
+    fontWeight: '700',
+    letterSpacing: -0.4,
+  },
+  closeButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  input: {
-    borderRadius: 16,
-    padding: 16,
-    minHeight: 200,
+  closeIcon: {
     fontSize: 16,
-    lineHeight: 24,
+    fontWeight: '600',
   },
-  submitButton: {
-    paddingVertical: 16,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
+  cardContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  questionSection: {
+    // Question takes minimum space needed
+  },
+  answerSection: {
+    flex: 1,
   },
 });

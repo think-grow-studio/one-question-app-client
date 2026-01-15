@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { YStack, styled, GetProps, useTheme } from 'tamagui';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar, Platform } from 'react-native';
+import { StatusBar, View, StyleSheet } from 'react-native';
 import { useThemeStore } from '@/stores/useThemeStore';
 
 const ScreenContainer = styled(YStack, {
@@ -25,6 +25,8 @@ export type ScreenProps = GetProps<typeof ScreenContainer> & {
   edges?: Edge[];
   maxContentWidth?: number;
   statusBarStyle?: 'auto' | 'light' | 'dark';
+  bgColor?: string;
+  variant?: 'default' | 'modal';
 };
 
 export function Screen({
@@ -33,6 +35,8 @@ export function Screen({
   edges = ['top', 'bottom'],
   maxContentWidth = 600,
   statusBarStyle = 'auto',
+  bgColor,
+  variant = 'default',
   ...props
 }: ScreenProps) {
   const { mode } = useThemeStore();
@@ -47,8 +51,11 @@ export function Screen({
         ? 'light-content'
         : 'dark-content';
 
+  const backgroundColor = bgColor ?? theme.background?.val;
+  const isModal = variant === 'modal';
+
   const content = (
-    <ScreenContainer {...props}>
+    <ScreenContainer backgroundColor={backgroundColor} {...props}>
       <ContentContainer maxWidth={maxContentWidth}>{children}</ContentContainer>
     </ScreenContainer>
   );
@@ -56,13 +63,19 @@ export function Screen({
   if (safeArea) {
     return (
       <SafeAreaView
-        style={{
-          flex: 1,
-          backgroundColor: theme.background?.val,
-        }}
+        style={[
+          styles.safeArea,
+          { backgroundColor },
+          isModal && styles.modalSafeArea,
+        ]}
         edges={edges}
       >
         <StatusBar barStyle={barStyle} />
+        {isModal && (
+          <YStack ai="center" pt="$3" pb="$2">
+            <View style={[styles.handle, { backgroundColor: theme.borderColor?.val }]} />
+          </YStack>
+        )}
         {content}
       </SafeAreaView>
     );
@@ -75,3 +88,18 @@ export function Screen({
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
+  modalSafeArea: {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  handle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+  },
+});
