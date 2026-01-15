@@ -2,6 +2,7 @@ import { Switch, View } from 'react-native';
 import { XStack, useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
+import { ThemeModeIcon } from '@/shared/icons/ThemeModeIcon';
 import { useThemeStore } from '@/stores/useThemeStore';
 
 interface ThemeToggleProps {
@@ -24,7 +25,7 @@ export function ThemeToggle({ showLabel = true }: ThemeToggleProps) {
       borderRadius={12}
     >
       <XStack ai="center" gap="$3" flex={1}>
-        <Text fontSize={20}>{isDark ? '🌙' : '☀️'}</Text>
+        <ThemeModeIcon mode={isDark ? 'dark' : 'light'} size={24} color={theme.color?.val} />
         {showLabel && (
           <View style={{ flex: 1 }}>
             <Text variant="body" fontWeight="600">
