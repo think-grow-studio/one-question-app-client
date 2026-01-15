@@ -1,7 +1,9 @@
+import { Text } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
-import { Text } from '@/shared/ui/Text';
+import { HomeIcon } from '@/shared/icons/HomeIcon';
+import { SettingsIcon } from '@/shared/icons/SettingsIcon';
 
 export default function TabLayout() {
   const theme = useTheme();
@@ -24,9 +26,12 @@ export default function TabLayout() {
         name="index"
         options={{
           title: t('tabs.home'),
-          tabBarIcon: ({ color }) => (
-            <Text fontSize={24} color={color}>
-              🏠
+          tabBarIcon: ({ color, focused }) => (
+            <HomeIcon size={24} color={color} active={focused} />
+          ),
+          tabBarLabel: ({ color, focused }) => (
+            <Text style={{ color, fontSize: 10, fontWeight: focused ? '700' : '400' }}>
+              {t('tabs.home')}
             </Text>
           ),
         }}
@@ -35,9 +40,12 @@ export default function TabLayout() {
         name="settings"
         options={{
           title: t('tabs.settings'),
-          tabBarIcon: ({ color }) => (
-            <Text fontSize={24} color={color}>
-              ⚙️
+          tabBarIcon: ({ color, focused }) => (
+            <SettingsIcon size={24} color={color} active={focused} />
+          ),
+          tabBarLabel: ({ color, focused }) => (
+            <Text style={{ color, fontSize: 10, fontWeight: focused ? '700' : '400' }}>
+              {t('tabs.settings')}
             </Text>
           ),
         }}
