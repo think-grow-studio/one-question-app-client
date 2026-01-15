@@ -13,6 +13,7 @@ import { YStack, XStack, useTheme } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuestionCardStyles } from '@/shared/ui/QuestionCard';
+import { ReloadIcon } from '@/shared/icons/ReloadIcon';
 
 function getRandomQuestion(questions: string[]) {
   return questions[Math.floor(Math.random() * questions.length)];
@@ -108,7 +109,7 @@ export function DailyQuestionAnswer() {
                   style={cardStyles.reloadButton}
                   hitSlop={8}
                 >
-                  <Text style={cardStyles.reloadIcon}>↻</Text>
+                  <ReloadIcon size={22} color={theme.color?.val} />
                 </Pressable>
               </XStack>
               <Text style={cardStyles.questionText}>{question}</Text>

@@ -98,10 +98,6 @@ export function useQuestionCardStyles() {
         alignItems: 'center' as const,
         justifyContent: 'center' as const,
       },
-      reloadIcon: {
-        fontSize: 22,
-        color: theme.color?.val,
-      },
 
       // Empty state
       emptyText: {
