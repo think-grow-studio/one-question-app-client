@@ -8,6 +8,7 @@ import * as Notifications from 'expo-notifications';
 import tamaguiConfig from '../../tamagui.config';
 import { queryClient } from '@/services/queryClient';
 import { useThemeStore } from '@/stores/useThemeStore';
+import { ThemeTransitionProvider } from '@/shared/ui/ThemeTransitionProvider';
 import '@/locales'; // i18n 초기화
 
 export default function RootLayout() {
@@ -29,21 +30,23 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <TamaguiProvider config={tamaguiConfig}>
         <Theme name={mode}>
-          <StatusBar
-            barStyle={mode === 'dark' ? 'light-content' : 'dark-content'}
-          />
-          <QueryClientProvider client={queryClient}>
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen
-                name="answer"
-                options={{
-                  presentation: 'modal',
-                  animation: 'slide_from_bottom',
-                }}
-              />
-            </Stack>
-          </QueryClientProvider>
+          <ThemeTransitionProvider>
+            <StatusBar
+              barStyle={mode === 'dark' ? 'light-content' : 'dark-content'}
+            />
+            <QueryClientProvider client={queryClient}>
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen
+                  name="answer"
+                  options={{
+                    presentation: 'modal',
+                    animation: 'slide_from_bottom',
+                  }}
+                />
+              </Stack>
+            </QueryClientProvider>
+          </ThemeTransitionProvider>
         </Theme>
       </TamaguiProvider>
     </GestureHandlerRootView>

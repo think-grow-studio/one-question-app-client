@@ -4,13 +4,15 @@ import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
 import { ThemeModeIcon } from '@/shared/icons/ThemeModeIcon';
 import { useThemeStore } from '@/stores/useThemeStore';
+import { useThemeTransition } from '@/shared/ui/ThemeTransitionProvider';
 
 interface ThemeToggleProps {
   showLabel?: boolean;
 }
 
 export function ThemeToggle({ showLabel = true }: ThemeToggleProps) {
-  const { mode, toggleMode } = useThemeStore();
+  const { mode } = useThemeStore();
+  const { toggleThemeWithTransition } = useThemeTransition();
   const theme = useTheme();
   const { t } = useTranslation('settings');
   const isDark = mode === 'dark';
@@ -39,7 +41,7 @@ export function ThemeToggle({ showLabel = true }: ThemeToggleProps) {
       </XStack>
       <Switch
         value={isDark}
-        onValueChange={toggleMode}
+        onValueChange={toggleThemeWithTransition}
         trackColor={{
           false: theme.borderColor?.val,
           true: theme.primary?.val,
