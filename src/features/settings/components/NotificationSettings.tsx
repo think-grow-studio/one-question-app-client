@@ -5,9 +5,11 @@ import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
 import { useNotificationSettings } from '../hooks/useNotificationSettings';
 import { TimePickerSheet } from './TimePickerSheet';
+import { useAccentColors } from '@/shared/theme';
 
 export function NotificationSettings() {
   const theme = useTheme();
+  const accent = useAccentColors();
   const { t } = useTranslation('settings');
   const { isEnabled, hour, minute, toggleNotification, updateNotificationTime } =
     useNotificationSettings();
@@ -51,7 +53,7 @@ export function NotificationSettings() {
             onValueChange={toggleNotification}
             trackColor={{
               false: theme.borderColor?.val,
-              true: theme.primary?.val,
+              true: accent.primary,
             }}
             thumbColor="#FFFFFF"
             ios_backgroundColor={theme.borderColor?.val}
@@ -92,7 +94,7 @@ export function NotificationSettings() {
                 fontWeight="600"
                 style={{
                   fontSize: 17,
-                  color: isEnabled ? theme.primary?.val : theme.colorMuted?.val,
+                  color: isEnabled ? accent.primary : theme.colorMuted?.val,
                 }}
               >
                 {formatTime(hour, minute)}

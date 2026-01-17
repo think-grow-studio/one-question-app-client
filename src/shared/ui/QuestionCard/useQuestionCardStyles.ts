@@ -1,11 +1,13 @@
 import { useMemo } from 'react';
 import { Dimensions } from 'react-native';
 import { useTheme } from 'tamagui';
+import { useAccentColors } from '@/shared/theme';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export function useQuestionCardStyles() {
   const theme = useTheme();
+  const accent = useAccentColors();
 
   return useMemo(
     () => ({
@@ -29,7 +31,7 @@ export function useQuestionCardStyles() {
       labelText: {
         fontSize: 13,
         fontWeight: '700' as const,
-        color: theme.primary?.val,
+        color: accent.primary,
         letterSpacing: -0.2,
         textTransform: 'uppercase' as const,
       },
@@ -117,7 +119,7 @@ export function useQuestionCardStyles() {
       emptyButtonText: {
         fontSize: 16,
         fontWeight: '600' as const,
-        color: theme.primary?.val,
+        color: accent.primary,
         letterSpacing: -0.2,
       },
 
@@ -133,18 +135,18 @@ export function useQuestionCardStyles() {
         fontWeight: '600' as const,
       },
       submitButtonEnabled: {
-        backgroundColor: theme.primary?.val,
+        backgroundColor: accent.primary,
       },
       submitButtonDisabled: {
         backgroundColor: theme.backgroundSoft?.val,
       },
       submitTextEnabled: {
-        color: '#FFFFFF',
+        color: accent.textOnPrimary,
       },
       submitTextDisabled: {
         color: theme.colorMuted?.val,
       },
     }),
-    [theme]
+    [theme, accent]
   );
 }

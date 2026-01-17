@@ -1,4 +1,5 @@
 import { Button as TamaguiButton, styled, GetProps } from 'tamagui';
+import { useAccentColors } from '@/shared/theme';
 
 const StyledButton = styled(TamaguiButton, {
   name: 'AppButton',
@@ -12,33 +13,6 @@ const StyledButton = styled(TamaguiButton, {
   borderWidth: 1.5,
 
   variants: {
-    variant: {
-      filled: {
-        backgroundColor: '$primary',
-        borderColor: '$primary',
-        color: '#FFFFFF',
-        pressStyle: {
-          backgroundColor: '$primaryHover',
-          borderColor: '$primaryHover',
-        },
-      },
-      outlined: {
-        backgroundColor: 'transparent',
-        borderColor: '$primary',
-        color: '$primary',
-        pressStyle: {
-          backgroundColor: '$backgroundSoft',
-        },
-      },
-      ghost: {
-        backgroundColor: 'transparent',
-        borderColor: 'transparent',
-        color: '$primary',
-        pressStyle: {
-          backgroundColor: '$backgroundSoft',
-        },
-      },
-    },
     size: {
       small: {
         height: 40,
@@ -68,27 +42,55 @@ const StyledButton = styled(TamaguiButton, {
   } as const,
 
   defaultVariants: {
-    variant: 'filled',
     size: 'large',
     fullWidth: true,
   },
 });
 
-export type ButtonProps = GetProps<typeof StyledButton> & {
+type ButtonVariant = 'filled' | 'outlined' | 'ghost';
+
+export type ButtonProps = Omit<GetProps<typeof StyledButton>, 'variant'> & {
   label: string;
   enabled?: boolean;
+  variant?: ButtonVariant;
 };
 
 export function Button({
   label,
   enabled = true,
   disabled,
+  variant = 'filled',
   ...props
 }: ButtonProps) {
+  const accent = useAccentColors();
+
+  const variantStyles = {
+    filled: {
+      backgroundColor: accent.primary,
+      borderColor: accent.primary,
+      color: accent.textOnPrimary,
+    },
+    outlined: {
+      backgroundColor: 'transparent',
+      borderColor: accent.primary,
+      color: accent.primary,
+    },
+    ghost: {
+      backgroundColor: 'transparent',
+      borderColor: 'transparent',
+      color: accent.primary,
+    },
+  };
+
   return (
     <StyledButton
       disabled={!enabled || disabled}
       opacity={!enabled || disabled ? 0.5 : 1}
+      {...variantStyles[variant]}
+      pressStyle={{
+        backgroundColor: variant === 'filled' ? accent.primaryHover : '$backgroundSoft',
+        borderColor: variant === 'filled' ? accent.primaryHover : variantStyles[variant].borderColor,
+      }}
       {...props}
     >
       {label}

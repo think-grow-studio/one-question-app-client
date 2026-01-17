@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Screen } from '@/shared/layout/Screen';
 import { Text } from '@/shared/ui/Text';
 import { ThemeToggle } from '@/features/settings/components/ThemeToggle';
+import { AccentColorPicker } from '@/features/settings/components/AccentColorPicker';
 import { NotificationSettings } from '@/features/settings/components/NotificationSettings';
 
 export default function SettingsScreen() {
@@ -36,6 +37,7 @@ export default function SettingsScreen() {
               {t('appearance.title')}
             </Text>
             <ThemeToggle />
+            <AccentColorPicker />
           </YStack>
 
           {/* Notification Section */}

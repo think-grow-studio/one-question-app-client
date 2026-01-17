@@ -4,9 +4,11 @@ import { useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { HomeIcon } from '@/shared/icons/HomeIcon';
 import { SettingsIcon } from '@/shared/icons/SettingsIcon';
+import { useAccentColors } from '@/shared/theme';
 
 export default function TabLayout() {
   const theme = useTheme();
+  const accent = useAccentColors();
   const { t } = useTranslation();
 
   return (
@@ -18,7 +20,7 @@ export default function TabLayout() {
           borderTopColor: theme.borderColor?.val,
           borderTopWidth: 1,
         },
-        tabBarActiveTintColor: theme.primary?.val,
+        tabBarActiveTintColor: accent.primary,
         tabBarInactiveTintColor: theme.colorMuted?.val,
       }}
     >

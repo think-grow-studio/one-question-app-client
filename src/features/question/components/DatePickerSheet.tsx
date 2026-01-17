@@ -4,12 +4,14 @@ import { YStack, XStack, Paragraph, useTheme } from 'tamagui';
 import Animated, { FadeIn, SlideInDown, SlideOutDown } from 'react-native-reanimated';
 import { useHistoryStore } from '../stores/useHistoryStore';
 import { Button } from '@/shared/ui/Button';
+import { useAccentColors } from '@/shared/theme';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
 export function DatePickerSheet() {
   const theme = useTheme();
+  const accent = useAccentColors();
   const { isDatePickerVisible, setIsDatePickerVisible, history, currentDate, setCurrentDate } =
     useHistoryStore();
 
@@ -38,7 +40,7 @@ export function DatePickerSheet() {
       navArrow: {
         fontSize: 24,
         fontWeight: '600' as const,
-        color: theme.primary?.val,
+        color: accent.primary,
         paddingHorizontal: 8,
       },
       navArrowDisabled: {
@@ -53,7 +55,7 @@ export function DatePickerSheet() {
         color: theme.error?.val,
       },
       saturdayText: {
-        color: theme.primary?.val,
+        color: accent.primary,
       },
       dayText: {
         fontSize: 16,
@@ -68,27 +70,27 @@ export function DatePickerSheet() {
         fontWeight: '700' as const,
       },
       dayTextCurrent: {
-        color: theme.primary?.val,
+        color: accent.primary,
         fontWeight: '700' as const,
       },
       dayButtonSelected: {
-        backgroundColor: theme.primary?.val,
+        backgroundColor: accent.primary,
       },
       dayButtonCurrent: {
         borderWidth: 2,
-        borderColor: theme.primary?.val,
+        borderColor: accent.primary,
       },
       dayButtonToday: {
         backgroundColor: theme.backgroundSoft?.val,
       },
       answerDot: {
-        backgroundColor: theme.primary?.val,
+        backgroundColor: accent.primary,
       },
       questionDot: {
         backgroundColor: theme.colorSubtle?.val,
       },
       legendRing: {
-        borderColor: theme.primary?.val,
+        borderColor: accent.primary,
       },
       previewContainer: {
         backgroundColor: theme.backgroundSoft?.val,
@@ -103,10 +105,10 @@ export function DatePickerSheet() {
         color: theme.colorSubtle?.val,
       },
       answeredBadge: {
-        backgroundColor: theme.primary?.val,
+        backgroundColor: accent.primary,
       },
     }),
-    [theme]
+    [theme, accent]
   );
 
   const handleClose = () => {

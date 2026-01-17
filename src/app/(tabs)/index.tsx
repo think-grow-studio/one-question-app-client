@@ -1,12 +1,12 @@
-import { useTheme } from 'tamagui';
 import { Screen } from '@/shared/layout/Screen';
 import { QuestionHistoryView } from '@/features/question/components/QuestionHistoryView';
+import { useAccentColors } from '@/shared/theme';
 
 export default function HomeScreen() {
-  const theme = useTheme();
+  const accent = useAccentColors();
 
   return (
-    <Screen edges={['top']} bgColor={theme.cardBlue?.val}>
+    <Screen edges={['top']} bgColor={accent.background}>
       <QuestionHistoryView />
     </Screen>
   );

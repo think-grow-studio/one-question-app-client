@@ -5,6 +5,7 @@ import { Text } from '@/shared/ui/Text';
 import { ThemeModeIcon } from '@/shared/icons/ThemeModeIcon';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { useThemeTransition } from '@/shared/ui/ThemeTransitionProvider';
+import { useAccentColors } from '@/shared/theme';
 
 interface ThemeToggleProps {
   showLabel?: boolean;
@@ -14,6 +15,7 @@ export function ThemeToggle({ showLabel = true }: ThemeToggleProps) {
   const { mode } = useThemeStore();
   const { toggleThemeWithTransition } = useThemeTransition();
   const theme = useTheme();
+  const accent = useAccentColors();
   const { t } = useTranslation('settings');
   const isDark = mode === 'dark';
 
@@ -44,7 +46,7 @@ export function ThemeToggle({ showLabel = true }: ThemeToggleProps) {
         onValueChange={toggleThemeWithTransition}
         trackColor={{
           false: theme.borderColor?.val,
-          true: theme.primary?.val,
+          true: accent.primary,
         }}
         thumbColor="#FFFFFF"
         ios_backgroundColor={theme.borderColor?.val}

@@ -16,6 +16,7 @@ import { useQuestionCardStyles } from '@/shared/ui/QuestionCard';
 import { ScreenHeader } from '@/shared/ui/ScreenHeader';
 import { ReloadIcon } from '@/shared/icons/ReloadIcon';
 import { CloseIcon } from '@/shared/icons/CloseIcon';
+import { useAccentColors } from '@/shared/theme';
 
 function getRandomQuestion(questions: string[]) {
   return questions[Math.floor(Math.random() * questions.length)];
@@ -24,6 +25,7 @@ function getRandomQuestion(questions: string[]) {
 export function DailyQuestionAnswer() {
   const router = useRouter();
   const theme = useTheme();
+  const accent = useAccentColors();
   const { t } = useTranslation(['answer', 'question', 'common']);
   const cardStyles = useQuestionCardStyles();
   const [question, setQuestion] = useState('');
@@ -84,7 +86,7 @@ export function DailyQuestionAnswer() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
-      <YStack flex={1} bg="$cardBlue">
+      <YStack flex={1} style={{ backgroundColor: accent.background }}>
         {/* Header - Today's Date & Close Button */}
         <ScreenHeader
           title={getTodayFormatted()}

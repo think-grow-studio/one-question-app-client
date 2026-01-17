@@ -5,6 +5,7 @@ import Animated, { FadeIn, SlideInDown, SlideOutDown } from 'react-native-reanim
 import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
 import { Button } from '@/shared/ui/Button';
+import { useAccentColors } from '@/shared/theme';
 
 const ITEM_HEIGHT = 44;
 const VISIBLE_ITEMS = 5;
@@ -26,6 +27,7 @@ export function TimePickerSheet({
   onConfirm,
 }: TimePickerSheetProps) {
   const theme = useTheme();
+  const accent = useAccentColors();
   const { t } = useTranslation('settings');
 
   // 내부 상태
@@ -190,7 +192,7 @@ export function TimePickerSheet({
                 onPress={() => setIsPM(false)}
                 style={[
                   styles.periodButton,
-                  !isPM && { backgroundColor: theme.primary?.val },
+                  !isPM && { backgroundColor: accent.primary },
                 ]}
               >
                 <Text
@@ -205,7 +207,7 @@ export function TimePickerSheet({
                 onPress={() => setIsPM(true)}
                 style={[
                   styles.periodButton,
-                  isPM && { backgroundColor: theme.primary?.val },
+                  isPM && { backgroundColor: accent.primary },
                 ]}
               >
                 <Text
@@ -236,7 +238,7 @@ export function TimePickerSheet({
               <View
                 style={[
                   styles.selectionIndicator,
-                  { backgroundColor: theme.primary?.val },
+                  { backgroundColor: accent.primary },
                 ]}
                 pointerEvents="none"
               />
@@ -265,7 +267,7 @@ export function TimePickerSheet({
               <View
                 style={[
                   styles.selectionIndicator,
-                  { backgroundColor: theme.primary?.val },
+                  { backgroundColor: accent.primary },
                 ]}
                 pointerEvents="none"
               />
