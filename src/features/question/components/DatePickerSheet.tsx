@@ -325,15 +325,17 @@ export function DatePickerSheet() {
           {/* Preview Section */}
           <View style={[styles.previewContainer, themedStyles.previewContainer]}>
               <YStack gap="$3">
-                <XStack ai="center" jc="space-between">
+                <XStack ai="center" jc="space-between" height={24}>
                   <Paragraph fontSize={15} fontWeight="700" style={themedStyles.previewTitle}>
                     {formatPreviewDate(previewDate)}
                   </Paragraph>
-                  {previewItem?.answer && (
-                    <View style={[styles.answeredBadge, themedStyles.answeredBadge]}>
-                      <Text style={styles.answeredBadgeText}>답변 완료</Text>
-                    </View>
-                  )}
+                  <View style={[
+                    styles.answeredBadge,
+                    themedStyles.answeredBadge,
+                    !previewItem?.answer && styles.badgeHidden,
+                  ]}>
+                    <Text style={styles.answeredBadgeText}>답변 완료</Text>
+                  </View>
                 </XStack>
 
                 <ScrollView style={styles.previewScroll} showsVerticalScrollIndicator={false}>
@@ -437,5 +439,8 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  badgeHidden: {
+    opacity: 0,
   },
 });

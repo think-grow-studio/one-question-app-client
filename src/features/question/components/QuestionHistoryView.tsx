@@ -220,28 +220,27 @@ export function QuestionHistoryView() {
                   )}
                 </View>
 
-                {currentItem.answer && (
-                  <>
-                    <View style={cardStyles.divider} />
-                    <View style={styles.answerSection}>
+                {/* Answer Section - 항상 동일한 레이아웃 유지 */}
+                <View style={cardStyles.divider} />
+                <View style={styles.answerSection}>
+                  {currentItem.answer ? (
+                    <>
                       <Text style={[cardStyles.labelText, { marginBottom: 12 }]}>{t('labels.answer')}</Text>
                       <Text style={cardStyles.answerText}>{currentItem.answer}</Text>
                       <Text style={cardStyles.writtenDateText}>
                         {t('writtenDate', { date: formatDate(currentDate) })}
                       </Text>
+                    </>
+                  ) : (
+                    <View style={styles.noAnswerContainer}>
+                      <Button
+                        label={t('actions.goToAnswer')}
+                        onPress={handleGoToAnswer}
+                        accessibilityLabel={t('actions.goToAnswer')}
+                      />
                     </View>
-                  </>
-                )}
-
-                {!currentItem.answer && (
-                  <View style={styles.buttonWrapper}>
-                    <Button
-                      label={t('actions.goToAnswer')}
-                      onPress={handleGoToAnswer}
-                      accessibilityLabel={t('actions.goToAnswer')}
-                    />
-                  </View>
-                )}
+                  )}
+                </View>
               </View>
             </View>
           ) : (
@@ -296,14 +295,14 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  questionSection: {
-    // 질문은 내용에 맞는 최소 높이만 차지
-  },
+  questionSection: {},
   answerSection: {
     flex: 1, // 나머지 공간 전부 차지
   },
-  buttonWrapper: {
-    marginTop: 40,
+  noAnswerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingBottom: 40,
   },
   emptyState: {
     alignItems: 'center',
