@@ -18,6 +18,7 @@ import { ScreenHeader } from '@/shared/ui/ScreenHeader';
 import { ReloadIcon } from '@/shared/icons/ReloadIcon';
 import { CloseIcon } from '@/shared/icons/CloseIcon';
 import { useAccentColors } from '@/shared/theme';
+import { ReloadOptionSheet } from './ReloadOptionSheet';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -38,6 +39,7 @@ export function DailyQuestionAnswer() {
   const cardStyles = useQuestionCardStyles();
   const [questionItem, setQuestionItem] = useState<QuestionItem>({ question: '' });
   const [answer, setAnswer] = useState('');
+  const [isReloadSheetVisible, setIsReloadSheetVisible] = useState(false);
 
   const randomQuestions = t('question:random', { returnObjects: true }) as QuestionItem[];
 
@@ -48,27 +50,15 @@ export function DailyQuestionAnswer() {
   const isSubmitEnabled = answer.trim().length > 0;
 
   const handleReloadPress = () => {
-    Alert.alert(
-      t('answer:reload.title'),
-      t('answer:reload.message'),
-      [
-        {
-          text: t('answer:reload.randomQuestion'),
-          onPress: () => setQuestionItem(getRandomQuestion(randomQuestions)),
-        },
-        {
-          text: t('answer:reload.pastQuestion'),
-          onPress: () => {
-            Alert.alert(t('common:status.preparing'), t('answer:reload.pastQuestionNotReady'));
-          },
-          style: 'default',
-        },
-        {
-          text: t('common:buttons.cancel'),
-          style: 'cancel',
-        },
-      ]
-    );
+    setIsReloadSheetVisible(true);
+  };
+
+  const handleRandomQuestion = () => {
+    setQuestionItem(getRandomQuestion(randomQuestions));
+  };
+
+  const handlePastQuestion = () => {
+    Alert.alert(t('common:status.preparing'), t('answer:reload.pastQuestionNotReady'));
   };
 
   const handleSubmit = () => {
@@ -176,6 +166,13 @@ export function DailyQuestionAnswer() {
           </Pressable>
         </YStack>
       </YStack>
+
+      <ReloadOptionSheet
+        visible={isReloadSheetVisible}
+        onClose={() => setIsReloadSheetVisible(false)}
+        onRandomQuestion={handleRandomQuestion}
+        onPastQuestion={handlePastQuestion}
+      />
     </KeyboardAvoidingView>
   );
 }

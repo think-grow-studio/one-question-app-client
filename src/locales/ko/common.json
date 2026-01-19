@@ -12,7 +12,8 @@
   "status": {
     "loading": "로딩 중...",
     "error": "오류가 발생했어요",
-    "preparing": "준비 중"
+    "preparing": "준비 중",
+    "comingSoon": "준비중"
   },
   "tabs": {
     "home": "홈",
