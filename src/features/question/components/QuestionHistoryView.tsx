@@ -22,7 +22,7 @@ export function QuestionHistoryView() {
     useHistoryStore();
   const cardStyles = useQuestionCardStyles();
 
-  const randomQuestions = t('random', { returnObjects: true }) as string[];
+  const randomQuestions = t('random', { returnObjects: true }) as { question: string; description?: string }[];
 
   const currentItem = getQuestionByDate(currentDate);
   const translateX = useRef(new Animated.Value(0)).current;
@@ -175,8 +175,8 @@ export function QuestionHistoryView() {
   };
 
   const handleDrawRandomQuestion = () => {
-    const randomQuestion = randomQuestions[Math.floor(Math.random() * randomQuestions.length)];
-    addQuestion(currentDate, randomQuestion);
+    const randomItem = randomQuestions[Math.floor(Math.random() * randomQuestions.length)];
+    addQuestion(currentDate, randomItem.question, randomItem.description);
   };
 
   const handleDrawYearAgoQuestion = () => {
@@ -215,6 +215,9 @@ export function QuestionHistoryView() {
                 <View style={styles.questionSection}>
                   <Text style={[cardStyles.labelText, { marginBottom: 12 }]}>{t('labels.question')}</Text>
                   <Text style={cardStyles.questionText}>{currentItem.question}</Text>
+                  {currentItem.description && (
+                    <Text style={cardStyles.questionDescription}>{currentItem.description}</Text>
+                  )}
                 </View>
 
                 {currentItem.answer && (

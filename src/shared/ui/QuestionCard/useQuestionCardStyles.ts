@@ -17,14 +17,16 @@ export function useQuestionCardStyles() {
         borderRadius: 32,
         borderWidth: 1,
         borderColor: theme.borderColor?.val,
-        padding: 48,
+        paddingHorizontal: 48,
+        paddingTop: 24,
+        paddingBottom: 48,
         flexDirection: 'column' as const,
       },
       cardFull: {
         height: SCREEN_HEIGHT * 0.75,
       },
       cardMinHeight: {
-        minHeight: SCREEN_HEIGHT * 0.65,
+        minHeight: SCREEN_HEIGHT * 0.75,
       },
 
       // Labels
@@ -38,11 +40,20 @@ export function useQuestionCardStyles() {
 
       // Question text
       questionText: {
-        fontSize: 22,
+        fontSize: 20,
         fontWeight: '700' as const,
         lineHeight: 32,
         color: theme.color?.val,
         letterSpacing: -0.4,
+        minHeight: 32, // 최소 1줄
+      },
+
+      // Question description
+      questionDescription: {
+        fontSize: 14,
+        lineHeight: 22,
+        color: theme.colorMuted?.val,
+        marginTop: 8,
       },
 
       // Divider
@@ -50,6 +61,7 @@ export function useQuestionCardStyles() {
         height: 1,
         backgroundColor: theme.borderColor?.val,
         marginVertical: 24,
+        marginHorizontal: -24,
       },
 
       // Answer text (for read mode)
@@ -69,34 +81,41 @@ export function useQuestionCardStyles() {
         letterSpacing: -0.1,
       },
 
+      // Input container (for write mode)
+      inputContainer: {
+        borderRadius: 16,
+        marginHorizontal: -32,
+        paddingHorizontal: 24,
+        paddingTop: 16,
+        paddingBottom: 18,
+        backgroundColor: theme.backgroundSoft?.val,
+      },
+
       // Input (for write mode)
       input: {
-        flex: 1,
-        borderRadius: 16,
-        padding: 16,
-        marginHorizontal: -16,
         fontSize: 19,
         lineHeight: 32,
         letterSpacing: -0.3,
         color: theme.colorMuted?.val,
-        backgroundColor: theme.backgroundSoft?.val,
-        minHeight: 160,
+        height: SCREEN_HEIGHT * 0.40,
+        paddingBottom: 28,
       },
 
       // Character count
       charCount: {
+        position: 'absolute' as const,
+        bottom: 10,
+        right: 20,
         fontSize: 12,
         color: theme.colorMuted?.val,
-        marginTop: 8,
-        textAlign: 'right' as const,
       },
 
       // Reload button
       reloadButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: theme.backgroundSoft?.val,
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: theme.background?.val,
         alignItems: 'center' as const,
         justifyContent: 'center' as const,
       },

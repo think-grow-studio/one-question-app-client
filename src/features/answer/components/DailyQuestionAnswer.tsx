@@ -8,6 +8,7 @@ import {
   Platform,
   View,
   Text,
+  Dimensions,
 } from 'react-native';
 import { YStack, XStack, useTheme } from 'tamagui';
 import { useRouter } from 'expo-router';
@@ -18,7 +19,14 @@ import { ReloadIcon } from '@/shared/icons/ReloadIcon';
 import { CloseIcon } from '@/shared/icons/CloseIcon';
 import { useAccentColors } from '@/shared/theme';
 
-function getRandomQuestion(questions: string[]) {
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+type QuestionItem = {
+  question: string;
+  description?: string;
+};
+
+function getRandomQuestion(questions: QuestionItem[]): QuestionItem {
   return questions[Math.floor(Math.random() * questions.length)];
 }
 
@@ -28,13 +36,13 @@ export function DailyQuestionAnswer() {
   const accent = useAccentColors();
   const { t } = useTranslation(['answer', 'question', 'common']);
   const cardStyles = useQuestionCardStyles();
-  const [question, setQuestion] = useState('');
+  const [questionItem, setQuestionItem] = useState<QuestionItem>({ question: '' });
   const [answer, setAnswer] = useState('');
 
-  const randomQuestions = t('question:random', { returnObjects: true }) as string[];
+  const randomQuestions = t('question:random', { returnObjects: true }) as QuestionItem[];
 
   useEffect(() => {
-    setQuestion(getRandomQuestion(randomQuestions));
+    setQuestionItem(getRandomQuestion(randomQuestions));
   }, []);
 
   const isSubmitEnabled = answer.trim().length > 0;
@@ -46,7 +54,7 @@ export function DailyQuestionAnswer() {
       [
         {
           text: t('answer:reload.randomQuestion'),
-          onPress: () => setQuestion(getRandomQuestion(randomQuestions)),
+          onPress: () => setQuestionItem(getRandomQuestion(randomQuestions)),
         },
         {
           text: t('answer:reload.pastQuestion'),
@@ -107,10 +115,20 @@ export function DailyQuestionAnswer() {
                   style={cardStyles.reloadButton}
                   hitSlop={8}
                 >
-                  <ReloadIcon size={22} color={theme.color?.val} />
+                  <ReloadIcon size={18} color={theme.color?.val} />
                 </Pressable>
               </XStack>
-              <Text style={cardStyles.questionText}>{question}</Text>
+              <Text
+                style={cardStyles.questionText}
+                numberOfLines={2}
+                adjustsFontSizeToFit
+                minimumFontScale={0.8}
+              >
+                {questionItem.question}
+              </Text>
+              {questionItem.description && (
+                <Text style={cardStyles.questionDescription}>{questionItem.description}</Text>
+              )}
             </View>
 
             {/* Divider */}
@@ -119,18 +137,20 @@ export function DailyQuestionAnswer() {
             {/* Answer Section */}
             <View style={styles.answerSection}>
               <Text style={[cardStyles.labelText, { marginBottom: 12 }]}>{t('question:labels.answer')}</Text>
-              <TextInput
-                style={cardStyles.input}
-                multiline
-                value={answer}
-                onChangeText={setAnswer}
-                placeholder={t('answer:placeholder')}
-                placeholderTextColor={theme.colorMuted?.val}
-                textAlignVertical="top"
-              />
-              <Text style={cardStyles.charCount}>
-                {t('answer:charCount', { count: answer.length })}
-              </Text>
+              <View style={cardStyles.inputContainer}>
+                <TextInput
+                  style={cardStyles.input}
+                  multiline
+                  value={answer}
+                  onChangeText={setAnswer}
+                  placeholder={t('answer:placeholder')}
+                  placeholderTextColor={theme.colorMuted?.val}
+                  textAlignVertical="top"
+                />
+                <Text style={cardStyles.charCount}>
+                  {t('answer:charCount', { count: answer.length })}
+                </Text>
+              </View>
             </View>
           </View>
         </View>
@@ -169,7 +189,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   questionSection: {
-    // Question takes minimum space needed
+    height: SCREEN_HEIGHT * 0.18,
   },
   answerSection: {
     flex: 1,
