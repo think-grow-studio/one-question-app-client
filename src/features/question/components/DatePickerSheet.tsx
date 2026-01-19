@@ -8,6 +8,8 @@ import { useAccentColors } from '@/shared/theme';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+const DAY_CELL_HEIGHT = 52;
+const MAX_WEEKS = 6;
 
 export function DatePickerSheet() {
   const theme = useTheme();
@@ -385,10 +387,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     paddingHorizontal: 16,
+    height: DAY_CELL_HEIGHT * MAX_WEEKS,
   },
   dayCell: {
     width: '14.28%',
-    height: 52,
+    height: DAY_CELL_HEIGHT,
     padding: 2,
   },
   dayButton: {
