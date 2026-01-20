@@ -223,7 +223,14 @@ export function QuestionHistoryView() {
                     {currentItem.question}
                   </Text>
                   {currentItem.description && (
-                    <Text style={cardStyles.questionDescription}>{currentItem.description}</Text>
+                    <Text
+                      style={cardStyles.questionDescription}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.85}
+                    >
+                      {currentItem.description}
+                    </Text>
                   )}
                 </View>
 
@@ -232,11 +239,11 @@ export function QuestionHistoryView() {
                 <View style={styles.answerSection}>
                   {currentItem.answer ? (
                     <>
-                      <Text style={[cardStyles.labelText, { marginBottom: 12 }]}>{t('labels.answer')}</Text>
-                      <Text style={cardStyles.answerText}>{currentItem.answer}</Text>
-                      <Text style={cardStyles.writtenDateText}>
+                      <Text style={[cardStyles.labelText, { marginBottom: 8 }]}>{t('labels.answer')}</Text>
+                      <Text style={[cardStyles.writtenDateText, { marginTop: 0, marginBottom: 12 }]}>
                         {t('writtenDate', { date: formatDate(currentDate) })}
                       </Text>
+                      <Text style={cardStyles.answerText}>{currentItem.answer}</Text>
                     </>
                   ) : (
                     <View style={styles.noAnswerContainer}>
@@ -302,7 +309,9 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  questionSection: {},
+  questionSection: {
+    height: SCREEN_HEIGHT * 0.13,
+  },
   answerSection: {
     flex: 1, // 나머지 공간 전부 차지
   },

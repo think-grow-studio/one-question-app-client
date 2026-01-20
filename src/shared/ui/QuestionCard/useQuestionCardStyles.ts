@@ -68,7 +68,7 @@ export function useQuestionCardStyles() {
       answerText: {
         fontSize: 19,
         lineHeight: 32,
-        color: theme.colorMuted?.val,
+        color: theme.color?.val,
         letterSpacing: -0.3,
       },
 
@@ -96,8 +96,8 @@ export function useQuestionCardStyles() {
         fontSize: 19,
         lineHeight: 32,
         letterSpacing: -0.3,
-        color: theme.colorMuted?.val,
-        height: SCREEN_HEIGHT * 0.40,
+        color: theme.color?.val,
+        height: SCREEN_HEIGHT * 0.43,
         paddingBottom: 28,
       },
 

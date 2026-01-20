@@ -117,7 +117,14 @@ export function DailyQuestionAnswer() {
                 {questionItem.question}
               </Text>
               {questionItem.description && (
-                <Text style={cardStyles.questionDescription}>{questionItem.description}</Text>
+                <Text
+                  style={cardStyles.questionDescription}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.85}
+                >
+                  {questionItem.description}
+                </Text>
               )}
             </View>
 
@@ -186,7 +193,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   questionSection: {
-    height: SCREEN_HEIGHT * 0.18,
+    height: SCREEN_HEIGHT * 0.13,
   },
   answerSection: {
     flex: 1,
