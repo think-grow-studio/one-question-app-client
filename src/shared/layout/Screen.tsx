@@ -61,21 +61,29 @@ export function Screen({
   );
 
   if (safeArea) {
+    if (isModal) {
+      return (
+        <View style={[styles.modalWrapper, { backgroundColor }]}>
+          <SafeAreaView
+            style={[styles.safeArea, { backgroundColor }]}
+            edges={edges}
+          >
+            <StatusBar barStyle={barStyle} />
+            <YStack ai="center" pt="$3" pb="$2">
+              <View style={[styles.handle, { backgroundColor: theme.borderColor?.val }]} />
+            </YStack>
+            {content}
+          </SafeAreaView>
+        </View>
+      );
+    }
+
     return (
       <SafeAreaView
-        style={[
-          styles.safeArea,
-          { backgroundColor },
-          isModal && styles.modalSafeArea,
-        ]}
+        style={[styles.safeArea, { backgroundColor }]}
         edges={edges}
       >
         <StatusBar barStyle={barStyle} />
-        {isModal && (
-          <YStack ai="center" pt="$3" pb="$2">
-            <View style={[styles.handle, { backgroundColor: theme.borderColor?.val }]} />
-          </YStack>
-        )}
         {content}
       </SafeAreaView>
     );
@@ -93,9 +101,11 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  modalSafeArea: {
+  modalWrapper: {
+    flex: 1,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+    overflow: 'hidden',
   },
   handle: {
     width: 36,

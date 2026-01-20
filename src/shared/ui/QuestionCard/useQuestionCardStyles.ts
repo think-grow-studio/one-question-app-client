@@ -100,7 +100,7 @@ export function useQuestionCardStyles() {
         lineHeight: 32,
         letterSpacing: -0.3,
         color: theme.color?.val,
-        height: SCREEN_HEIGHT * 0.43,
+        minHeight: SCREEN_HEIGHT * 0.35,
         paddingBottom: 28,
       },
 
@@ -147,13 +147,13 @@ export function useQuestionCardStyles() {
 
       // Submit button
       submitButton: {
-        paddingVertical: 16,
-        borderRadius: 16,
+        paddingVertical: 14,
+        borderRadius: 14,
         alignItems: 'center' as const,
         justifyContent: 'center' as const,
       },
       submitButtonText: {
-        fontSize: 16,
+        fontSize: 15,
         fontWeight: '600' as const,
       },
       submitButtonEnabled: {

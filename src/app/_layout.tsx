@@ -26,8 +26,10 @@ export default function RootLayout() {
     return () => subscription.remove();
   }, [router]);
 
+  const rootBackgroundColor = mode === 'dark' ? '#1C1C1E' : '#FFFFFF';
+
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: rootBackgroundColor }}>
       <TamaguiProvider config={tamaguiConfig}>
         <Theme name={mode}>
           <ThemeTransitionProvider>
@@ -35,7 +37,12 @@ export default function RootLayout() {
               barStyle={mode === 'dark' ? 'light-content' : 'dark-content'}
             />
             <QueryClientProvider client={queryClient}>
-              <Stack screenOptions={{ headerShown: false }}>
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  contentStyle: { backgroundColor: rootBackgroundColor },
+                }}
+              >
                 <Stack.Screen name="(tabs)" />
                 <Stack.Screen
                   name="answer"

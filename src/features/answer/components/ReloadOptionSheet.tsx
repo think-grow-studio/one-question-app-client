@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { Pressable, StyleSheet, View, Text, Dimensions, Modal, PanResponder } from 'react-native';
+import { Pressable, StyleSheet, View, Text, Dimensions, Modal, PanResponder, BackHandler } from 'react-native';
 import { YStack, useTheme } from 'tamagui';
 import Animated, {
   useSharedValue,
@@ -14,7 +14,7 @@ import { MailIcon } from '@/shared/icons/MailIcon';
 import { PastQuestionIcon } from '@/shared/icons/PastQuestionIcon';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-const SHEET_HEIGHT = SCREEN_HEIGHT * 0.42;
+const SHEET_HEIGHT = SCREEN_HEIGHT * 0.5;
 const DISMISS_THRESHOLD = 100;
 
 type ReloadOptionSheetProps = {
@@ -57,6 +57,18 @@ export function ReloadOptionSheet({
       openSheet();
     }
   }, [visible, openSheet]);
+
+  // Android back button handler
+  useEffect(() => {
+    if (!visible) return;
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      closeSheet();
+      return true;
+    });
+
+    return () => backHandler.remove();
+  }, [visible, closeSheet]);
 
   const panResponder = useRef(
     PanResponder.create({
@@ -106,7 +118,7 @@ export function ReloadOptionSheet({
   if (!visible) return null;
 
   return (
-    <Modal transparent visible={visible} animationType="none" statusBarTranslucent>
+    <Modal transparent visible={visible} animationType="none" statusBarTranslucent onRequestClose={closeSheet}>
       {/* Backdrop */}
       <Pressable style={styles.backdropContainer} onPress={handleBackdropPress}>
         <Animated.View style={[styles.backdrop, backdropStyle]} />

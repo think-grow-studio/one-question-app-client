@@ -7,7 +7,7 @@ import {
   Platform,
   View,
   Text,
-  Dimensions,
+  ScrollView,
 } from 'react-native';
 import { YStack, XStack, useTheme } from 'tamagui';
 import { useRouter } from 'expo-router';
@@ -19,8 +19,6 @@ import { ReloadIcon } from '@/shared/icons/ReloadIcon';
 import { CloseIcon } from '@/shared/icons/CloseIcon';
 import { useAccentColors } from '@/shared/theme';
 import { ReloadOptionSheet } from './ReloadOptionSheet';
-
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 type QuestionItem = {
   question: string;
@@ -111,85 +109,93 @@ export function DailyQuestionAnswer() {
           rightButtonStyle="filled"
         />
 
-        {/* Question Card */}
-        <View style={styles.cardContainer}>
-          <View style={[cardStyles.card, cardStyles.cardMinHeight]}>
-            {/* Question Section */}
-            <View style={styles.questionSection}>
-              <XStack ai="center" jc="space-between" mb="$3">
-                <Text style={cardStyles.labelText}>{t('question:labels.question')}</Text>
-                <Pressable
-                  onPress={handleReloadPress}
-                  style={cardStyles.reloadButton}
-                  hitSlop={8}
-                >
-                  <ReloadIcon size={18} color={theme.color?.val} />
-                </Pressable>
-              </XStack>
-              <Text
-                style={cardStyles.questionText}
-                numberOfLines={2}
-                adjustsFontSizeToFit
-                minimumFontScale={0.8}
-              >
-                {questionItem.question}
-              </Text>
-              {questionItem.description && (
+        {/* Scrollable Content */}
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Question Card */}
+          <View style={styles.cardContainer}>
+            <View style={cardStyles.card}>
+              {/* Question Section */}
+              <View style={styles.questionSection}>
+                <XStack ai="center" jc="space-between" mb="$3">
+                  <Text style={cardStyles.labelText}>{t('question:labels.question')}</Text>
+                  <Pressable
+                    onPress={handleReloadPress}
+                    style={cardStyles.reloadButton}
+                    hitSlop={8}
+                  >
+                    <ReloadIcon size={18} color={theme.color?.val} />
+                  </Pressable>
+                </XStack>
                 <Text
-                  style={cardStyles.questionDescription}
-                  numberOfLines={1}
+                  style={cardStyles.questionText}
+                  numberOfLines={2}
                   adjustsFontSizeToFit
-                  minimumFontScale={0.85}
+                  minimumFontScale={0.8}
                 >
-                  {questionItem.description}
+                  {questionItem.question}
                 </Text>
-              )}
-            </View>
+                {questionItem.description && (
+                  <Text
+                    style={cardStyles.questionDescription}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.85}
+                  >
+                    {questionItem.description}
+                  </Text>
+                )}
+              </View>
 
-            {/* Divider */}
-            <View style={cardStyles.divider} />
+              {/* Divider */}
+              <View style={cardStyles.divider} />
 
-            {/* Answer Section */}
-            <View style={styles.answerSection}>
-              <Text style={[cardStyles.labelText, { marginBottom: 12 }]}>{t('question:labels.answer')}</Text>
-              <View style={cardStyles.inputContainer}>
-                <TextInput
-                  style={cardStyles.input}
-                  multiline
-                  value={answer}
-                  onChangeText={setAnswer}
-                  placeholder={t('answer:placeholder')}
-                  placeholderTextColor={theme.colorMuted?.val}
-                  textAlignVertical="top"
-                />
-                <Text style={cardStyles.charCount}>
-                  {t('answer:charCount', { count: answer.length })}
-                </Text>
+              {/* Answer Section */}
+              <View style={styles.answerSection}>
+                <Text style={[cardStyles.labelText, { marginBottom: 12 }]}>{t('question:labels.answer')}</Text>
+                <View style={cardStyles.inputContainer}>
+                  <TextInput
+                    style={cardStyles.input}
+                    multiline
+                    value={answer}
+                    onChangeText={setAnswer}
+                    placeholder={t('answer:placeholder')}
+                    placeholderTextColor={theme.colorMuted?.val}
+                    textAlignVertical="top"
+                  />
+                  <Text style={cardStyles.charCount}>
+                    {t('answer:charCount', { count: answer.length })}
+                  </Text>
+                </View>
               </View>
             </View>
           </View>
-        </View>
 
-        {/* Submit Button */}
-        <YStack px="$5" pb="$5" pt="$3">
-          <Pressable
-            style={[
-              cardStyles.submitButton,
-              isSubmitEnabled ? cardStyles.submitButtonEnabled : cardStyles.submitButtonDisabled,
-            ]}
-            onPress={handleSubmit}
-            disabled={!isSubmitEnabled}
-          >
-            <Text
+          {/* Submit Button */}
+          <View style={styles.submitContainer}>
+            <Pressable
               style={[
-                cardStyles.submitButtonText,
-                isSubmitEnabled ? cardStyles.submitTextEnabled : cardStyles.submitTextDisabled,
+                cardStyles.submitButton,
+                isSubmitEnabled ? cardStyles.submitButtonEnabled : cardStyles.submitButtonDisabled,
               ]}
+              onPress={handleSubmit}
+              disabled={!isSubmitEnabled}
             >
-              {t('answer:submit')}
-            </Text>
-          </Pressable>
-        </YStack>
+              <Text
+                style={[
+                  cardStyles.submitButtonText,
+                  isSubmitEnabled ? cardStyles.submitTextEnabled : cardStyles.submitTextDisabled,
+                ]}
+              >
+                {t('answer:submit')}
+              </Text>
+            </Pressable>
+          </View>
+        </ScrollView>
       </YStack>
 
       <ReloadOptionSheet
@@ -214,14 +220,26 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 20,
+  },
   cardContainer: {
     flex: 1,
     paddingHorizontal: 20,
   },
   questionSection: {
-    height: SCREEN_HEIGHT * 0.13,
+    minHeight: 100,
   },
   answerSection: {
     flex: 1,
+  },
+  submitContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 8,
   },
 });

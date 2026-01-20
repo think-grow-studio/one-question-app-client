@@ -1,7 +1,12 @@
-import { useState, useMemo } from 'react';
-import { Modal, Pressable, StyleSheet, View, Text, ScrollView, Dimensions } from 'react-native';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { Modal, Pressable, StyleSheet, View, Text, Dimensions, PanResponder, BackHandler } from 'react-native';
 import { YStack, XStack, Paragraph, useTheme } from 'tamagui';
-import Animated, { FadeIn, SlideInDown, SlideOutDown } from 'react-native-reanimated';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  runOnJS,
+} from 'react-native-reanimated';
 import { useHistoryStore } from '../stores/useHistoryStore';
 import { Button } from '@/shared/ui/Button';
 import { useAccentColors } from '@/shared/theme';
@@ -10,6 +15,8 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 const DAY_CELL_HEIGHT = 52;
 const MAX_WEEKS = 6;
+const SHEET_HEIGHT = SCREEN_HEIGHT * 0.9;
+const DISMISS_THRESHOLD = 100;
 
 export function DatePickerSheet() {
   const theme = useTheme();
@@ -29,6 +36,74 @@ export function DatePickerSheet() {
 
   // 선택한 날짜 (미리보기용) - 기본값은 현재 보고 있는 날짜
   const [previewDate, setPreviewDate] = useState<string>(currentDate);
+
+  // Animation state
+  const translateY = useSharedValue(SHEET_HEIGHT);
+  const backdropOpacity = useSharedValue(0);
+  const startY = useRef(0);
+
+  const closeSheet = useCallback(() => {
+    translateY.value = withTiming(SHEET_HEIGHT, { duration: 200 }, (finished) => {
+      if (finished) {
+        runOnJS(setIsDatePickerVisible)(false);
+      }
+    });
+    backdropOpacity.value = withTiming(0, { duration: 200 });
+  }, [setIsDatePickerVisible, translateY, backdropOpacity]);
+
+  const openSheet = useCallback(() => {
+    translateY.value = withTiming(0, { duration: 280 });
+    backdropOpacity.value = withTiming(0.5, { duration: 250 });
+  }, [translateY, backdropOpacity]);
+
+  useEffect(() => {
+    if (isDatePickerVisible) {
+      openSheet();
+    }
+  }, [isDatePickerVisible, openSheet]);
+
+  // Android back button handler
+  useEffect(() => {
+    if (!isDatePickerVisible) return;
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      closeSheet();
+      return true;
+    });
+
+    return () => backHandler.remove();
+  }, [isDatePickerVisible, closeSheet]);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        return Math.abs(gestureState.dy) > 5;
+      },
+      onPanResponderGrant: () => {
+        startY.current = translateY.value;
+      },
+      onPanResponderMove: (_, gestureState) => {
+        const newValue = Math.max(0, startY.current + gestureState.dy);
+        translateY.value = newValue;
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > DISMISS_THRESHOLD || gestureState.vy > 0.5) {
+          closeSheet();
+        } else {
+          translateY.value = withTiming(0, { duration: 200 });
+        }
+      },
+    })
+  ).current;
+
+  const sheetStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  const backdropStyle = useAnimatedStyle(() => ({
+    opacity: backdropOpacity.value,
+  }));
 
   // Theme-dependent styles
   const themedStyles = useMemo(
@@ -117,7 +192,7 @@ export function DatePickerSheet() {
   );
 
   const handleClose = () => {
-    setIsDatePickerVisible(false);
+    closeSheet();
   };
 
   const handleNavigateToDate = () => {
@@ -227,21 +302,19 @@ export function DatePickerSheet() {
   if (!isDatePickerVisible) return null;
 
   return (
-    <Modal transparent visible={isDatePickerVisible} animationType="none">
+    <Modal transparent visible={isDatePickerVisible} animationType="none" statusBarTranslucent onRequestClose={closeSheet}>
       <Pressable style={styles.backdrop} onPress={handleClose}>
-        <Animated.View entering={FadeIn} style={styles.backdropOverlay} />
+        <Animated.View style={[styles.backdropOverlay, backdropStyle]} />
       </Pressable>
 
-      <Animated.View
-        entering={SlideInDown.duration(250)}
-        exiting={SlideOutDown.duration(200)}
-        style={styles.sheetContainer}
-      >
-        <YStack style={[{ borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingBottom: 20 }, themedStyles.sheet]}>
-          {/* Handle */}
-          <YStack ai="center" py="$4">
-            <YStack width={40} height={4} borderRadius={2} style={themedStyles.handle} />
-          </YStack>
+      <Animated.View style={[styles.sheetContainer, { height: SHEET_HEIGHT }, sheetStyle, themedStyles.sheet]}>
+        {/* Handle - Draggable area */}
+        <View {...panResponder.panHandlers} style={styles.handleContainer}>
+          <View style={[styles.handle, themedStyles.handle]} />
+        </View>
+
+        <YStack style={{ paddingBottom: 20 }}>
+          {/* Content area is not draggable */}
 
           {/* Month Navigation */}
           <XStack ai="center" jc="space-between" px="$5" pb="$4">
@@ -310,7 +383,7 @@ export function DatePickerSheet() {
           </View>
 
           {/* Legend */}
-          <XStack px="$5" pt="$3" gap="$5">
+          <XStack px="$5" pt="$1" gap="$5">
             <XStack ai="center" gap="$2">
               <View style={[styles.legendDot, themedStyles.answerDot]} />
               <Paragraph fontSize={12} color="$colorMuted">답변 완료</Paragraph>
@@ -327,7 +400,7 @@ export function DatePickerSheet() {
 
           {/* Preview Section */}
           <View style={[styles.previewContainer, themedStyles.previewContainer]}>
-              <YStack gap="$3">
+              <YStack gap="$1">
                 <XStack ai="center" jc="space-between" height={24}>
                   <Paragraph fontSize={15} fontWeight="700" style={themedStyles.previewTitle}>
                     {formatPreviewDate(previewDate)}
@@ -346,8 +419,6 @@ export function DatePickerSheet() {
                     <Text
                       style={themedStyles.previewText}
                       numberOfLines={2}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.85}
                     >
                       {previewItem.question}
                     </Text>
@@ -358,11 +429,13 @@ export function DatePickerSheet() {
                   )}
                 </View>
 
-                <Button
-                  label="이 날짜로 이동"
-                  onPress={handleNavigateToDate}
-                  accessibilityLabel={`${formatPreviewDate(previewDate)}로 이동`}
-                />
+                <View style={{ marginTop: 12 }}>
+                  <Button
+                    label="이 날짜로 이동"
+                    onPress={handleNavigateToDate}
+                    accessibilityLabel={`${formatPreviewDate(previewDate)}로 이동`}
+                  />
+                </View>
               </YStack>
           </View>
         </YStack>
@@ -378,13 +451,24 @@ const styles = StyleSheet.create({
   },
   backdropOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: '#000',
   },
   sheetContainer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+  },
+  handleContainer: {
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
   },
   weekdayCell: {
     flex: 1,
@@ -427,14 +511,14 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   previewContainer: {
-    marginTop: 16,
+    marginTop: 0,
     marginHorizontal: 20,
     padding: 16,
     borderRadius: 16,
     maxHeight: SCREEN_HEIGHT * 0.25,
   },
   previewContent: {
-    height: 44,
+    height: 44,  // 2줄 (lineHeight 22 * 2)
   },
   answeredBadge: {
     paddingHorizontal: 8,
