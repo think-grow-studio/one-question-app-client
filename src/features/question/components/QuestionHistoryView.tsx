@@ -214,7 +214,14 @@ export function QuestionHistoryView() {
               <View style={[cardStyles.card, cardStyles.cardFull]}>
                 <View style={styles.questionSection}>
                   <Text style={[cardStyles.labelText, { marginBottom: 12 }]}>{t('labels.question')}</Text>
-                  <Text style={cardStyles.questionText}>{currentItem.question}</Text>
+                  <Text
+                    style={cardStyles.questionText}
+                    numberOfLines={2}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.8}
+                  >
+                    {currentItem.question}
+                  </Text>
                   {currentItem.description && (
                     <Text style={cardStyles.questionDescription}>{currentItem.description}</Text>
                   )}

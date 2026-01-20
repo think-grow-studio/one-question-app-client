@@ -39,8 +39,8 @@ const MOCK_HISTORY: QuestionHistoryItem[] = [
   },
   {
     date: '2026-01-12',
-    question: '가장 기억에 남는 여행지는 어디인가요?',
-    description: '그곳에서의 특별한 순간을 떠올려 보세요.',
+    question: '자주 사용하는 SNS에 들어갔을 때 가장 먼저 보이는 것은 무엇인가요?',
+    description: '(유투브,틱톡,카카오톡 등등)',
   },
   {
     date: '2026-01-11',
