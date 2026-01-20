@@ -101,9 +101,12 @@ export function DatePickerSheet() {
         color: theme.color?.val,
       },
       previewText: {
+        fontSize: 14,
+        lineHeight: 22,
         color: theme.colorMuted?.val,
       },
       previewEmpty: {
+        fontSize: 14,
         color: theme.colorSubtle?.val,
       },
       answeredBadge: {
@@ -338,19 +341,22 @@ export function DatePickerSheet() {
                   </View>
                 </XStack>
 
-                <ScrollView style={styles.previewScroll} showsVerticalScrollIndicator={false}>
+                <View style={styles.previewContent}>
                   {previewItem ? (
-                    <YStack gap="$2">
-                      <Paragraph fontSize={14} style={themedStyles.previewText}>
-                        {previewItem.question}
-                      </Paragraph>
-                    </YStack>
+                    <Text
+                      style={themedStyles.previewText}
+                      numberOfLines={2}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.85}
+                    >
+                      {previewItem.question}
+                    </Text>
                   ) : (
-                    <Paragraph fontSize={14} style={themedStyles.previewEmpty}>
+                    <Text style={themedStyles.previewEmpty}>
                       이 날의 질문이 없습니다
-                    </Paragraph>
+                    </Text>
                   )}
-                </ScrollView>
+                </View>
 
                 <Button
                   label="이 날짜로 이동"
@@ -427,8 +433,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     maxHeight: SCREEN_HEIGHT * 0.25,
   },
-  previewScroll: {
-    maxHeight: 80,
+  previewContent: {
+    height: 44,
   },
   answeredBadge: {
     paddingHorizontal: 8,
