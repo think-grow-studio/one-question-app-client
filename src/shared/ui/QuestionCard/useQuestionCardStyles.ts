@@ -2,12 +2,15 @@ import { useMemo } from 'react';
 import { Dimensions } from 'react-native';
 import { useTheme } from 'tamagui';
 import { useAccentColors } from '@/shared/theme';
+import { useThemeStore } from '@/stores/useThemeStore';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export function useQuestionCardStyles() {
   const theme = useTheme();
   const accent = useAccentColors();
+  const { mode } = useThemeStore();
+  const isDark = mode === 'dark';
 
   return useMemo(
     () => ({
@@ -88,7 +91,7 @@ export function useQuestionCardStyles() {
         paddingHorizontal: 24,
         paddingTop: 16,
         paddingBottom: 18,
-        backgroundColor: theme.backgroundSoft?.val,
+        backgroundColor: isDark ? theme.background?.val : theme.backgroundSoft?.val,
       },
 
       // Input (for write mode)
@@ -107,7 +110,7 @@ export function useQuestionCardStyles() {
         bottom: 10,
         right: 20,
         fontSize: 12,
-        color: theme.colorMuted?.val,
+        color: theme.color?.val,
       },
 
       // Reload button
@@ -166,6 +169,6 @@ export function useQuestionCardStyles() {
         color: theme.colorMuted?.val,
       },
     }),
-    [theme, accent]
+    [theme, accent, isDark]
   );
 }
