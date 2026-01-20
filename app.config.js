@@ -28,7 +28,6 @@ export default {
     plugins: [
       'expo-router',
       'expo-localization',
-      './plugins/withBootReceiver',
       [
         'expo-splash-screen',
         {
@@ -58,6 +57,9 @@ export default {
       // Environment variables (can be accessed via expo-constants)
       apiUrl: process.env.API_URL || 'https://api.example.com',
       environment: process.env.NODE_ENV || 'development',
+      eas: {
+        projectId: 'd2581480-0979-4cc5-9dac-01c48af69bf2',
+      },
     },
   },
 };
