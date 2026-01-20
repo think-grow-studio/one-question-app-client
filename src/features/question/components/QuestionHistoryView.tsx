@@ -1,10 +1,11 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { StyleSheet, Pressable, View, Text, PanResponder, Dimensions, Animated } from 'react-native';
 import { YStack, Paragraph, useTheme } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
 import { ScreenHeader } from '@/shared/ui/ScreenHeader';
+import { AlertDialog } from '@/shared/ui/AlertDialog';
 import { MailIcon } from '@/shared/icons/MailIcon';
 import { CalendarIcon } from '@/shared/icons/CalendarIcon';
 import { useQuestionCardStyles } from '@/shared/ui/QuestionCard';
@@ -17,10 +18,11 @@ const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.3;
 export function QuestionHistoryView() {
   const router = useRouter();
   const theme = useTheme();
-  const { t } = useTranslation('question');
+  const { t } = useTranslation(['question', 'common']);
   const { currentDate, setCurrentDate, getQuestionByDate, setIsDatePickerVisible, addQuestion } =
     useHistoryStore();
   const cardStyles = useQuestionCardStyles();
+  const [isAlertVisible, setIsAlertVisible] = useState(false);
 
   const randomQuestions = t('random', { returnObjects: true }) as { question: string; description?: string }[];
 
@@ -180,11 +182,7 @@ export function QuestionHistoryView() {
   };
 
   const handleDrawYearAgoQuestion = () => {
-    // 1년 전 날짜 계산
-    const [year, month, day] = currentDate.split('-').map(Number);
-    const yearAgoDate = `${year - 1}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    const question = `${year - 1}년 ${month}월 ${day}일, 당신은 무엇을 했나요?`;
-    addQuestion(currentDate, question);
+    setIsAlertVisible(true);
   };
 
   return (
@@ -288,6 +286,14 @@ export function QuestionHistoryView() {
       </YStack>
 
       <DatePickerSheet />
+
+      <AlertDialog
+        visible={isAlertVisible}
+        title={t('common:status.preparing')}
+        message={t('common:status.comingSoon')}
+        buttons={[{ label: t('common:buttons.confirm'), variant: 'primary' }]}
+        onClose={() => setIsAlertVisible(false)}
+      />
     </YStack>
   );
 }

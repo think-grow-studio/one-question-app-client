@@ -15,8 +15,8 @@
   },
   "empty": {
     "noQuestion": "이 날의 질문이 없습니다",
-    "drawQuestion": "질문 뽑기",
-    "yearAgo": "1년 전 오늘"
+    "drawQuestion": "랜덤 질문",
+    "yearAgo": "과거 질문"
   },
   "actions": {
     "goToAnswer": "답변하러 가기",

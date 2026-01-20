@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import {
-  Alert,
   TextInput,
   StyleSheet,
   Pressable,
@@ -15,6 +14,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuestionCardStyles } from '@/shared/ui/QuestionCard';
 import { ScreenHeader } from '@/shared/ui/ScreenHeader';
+import { AlertDialog, AlertDialogButton } from '@/shared/ui/AlertDialog';
 import { ReloadIcon } from '@/shared/icons/ReloadIcon';
 import { CloseIcon } from '@/shared/icons/CloseIcon';
 import { useAccentColors } from '@/shared/theme';
@@ -40,6 +40,12 @@ export function DailyQuestionAnswer() {
   const [questionItem, setQuestionItem] = useState<QuestionItem>({ question: '' });
   const [answer, setAnswer] = useState('');
   const [isReloadSheetVisible, setIsReloadSheetVisible] = useState(false);
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    title: string;
+    message?: string;
+    buttons?: AlertDialogButton[];
+  }>({ visible: false, title: '' });
 
   const randomQuestions = t('question:random', { returnObjects: true }) as QuestionItem[];
 
@@ -58,15 +64,27 @@ export function DailyQuestionAnswer() {
   };
 
   const handlePastQuestion = () => {
-    Alert.alert(t('common:status.preparing'), t('answer:reload.pastQuestionNotReady'));
+    setAlertConfig({
+      visible: true,
+      title: t('common:status.preparing'),
+      message: t('common:status.comingSoon'),
+      buttons: [{ label: t('common:buttons.confirm'), variant: 'primary' }],
+    });
   };
 
   const handleSubmit = () => {
     if (!isSubmitEnabled) return;
 
-    Alert.alert(t('answer:submit'), t('answer:submitSuccess'), [
-      { text: t('common:buttons.confirm'), onPress: () => router.back() },
-    ]);
+    setAlertConfig({
+      visible: true,
+      title: t('answer:submit'),
+      message: t('answer:submitSuccess'),
+      buttons: [{ label: t('common:buttons.confirm'), variant: 'primary', onPress: () => router.back() }],
+    });
+  };
+
+  const closeAlert = () => {
+    setAlertConfig((prev) => ({ ...prev, visible: false }));
   };
 
   const getTodayFormatted = () => {
@@ -179,6 +197,14 @@ export function DailyQuestionAnswer() {
         onClose={() => setIsReloadSheetVisible(false)}
         onRandomQuestion={handleRandomQuestion}
         onPastQuestion={handlePastQuestion}
+      />
+
+      <AlertDialog
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        buttons={alertConfig.buttons}
+        onClose={closeAlert}
       />
     </KeyboardAvoidingView>
   );
