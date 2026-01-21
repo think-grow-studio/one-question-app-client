@@ -1,9 +1,18 @@
 {
   "title": "답변 작성",
+  "titleEdit": "답변 수정",
   "placeholder": "여기에 답변을 작성해주세요",
   "charCount": "{{count}}자",
   "submit": "작성 완료",
+  "submitEdit": "수정 완료",
   "submitSuccess": "답변이 저장되었어요",
+  "editSuccess": "답변이 수정되었어요",
+  "cancelEdit": {
+    "title": "수정 취소",
+    "message": "변경사항이 저장되지 않습니다. 정말 나가시겠어요?",
+    "continue": "계속 수정",
+    "exit": "나가기"
+  },
   "reload": {
     "title": "질문 다시 받기",
     "message": "어떤 질문을 받으시겠어요?",

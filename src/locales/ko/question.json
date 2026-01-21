@@ -20,7 +20,8 @@
   },
   "actions": {
     "goToAnswer": "답변하러 가기",
-    "swipeHint": "좌우로 밀어서 날짜 이동"
+    "swipeHint": "좌우로 밀어서 날짜 이동",
+    "edit": "수정"
   },
   "writtenDate": "작성 날짜 {{date}}",
   "random": [

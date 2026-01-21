@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import { StyleSheet, Pressable, View, Text, PanResponder, Dimensions, Animated } from 'react-native';
-import { YStack, Paragraph, useTheme } from 'tamagui';
+import { YStack, XStack, Paragraph, useTheme } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
@@ -8,6 +8,7 @@ import { ScreenHeader } from '@/shared/ui/ScreenHeader';
 import { AlertDialog } from '@/shared/ui/AlertDialog';
 import { MailIcon } from '@/shared/icons/MailIcon';
 import { CalendarIcon } from '@/shared/icons/CalendarIcon';
+import { EditIcon } from '@/shared/icons/EditIcon';
 import { useQuestionCardStyles } from '@/shared/ui/QuestionCard';
 import { useHistoryStore } from '../stores/useHistoryStore';
 import { DatePickerSheet } from './DatePickerSheet';
@@ -185,6 +186,22 @@ export function QuestionHistoryView() {
     setIsAlertVisible(true);
   };
 
+  // 답변 수정 화면으로 이동
+  const handleEditAnswer = () => {
+    if (!currentItem?.answer) return;
+
+    router.push({
+      pathname: '/answer',
+      params: {
+        mode: 'edit',
+        date: currentDate,
+        question: currentItem.question,
+        description: currentItem.description || '',
+        existingAnswer: currentItem.answer,
+      },
+    });
+  };
+
   return (
     <YStack flex={1}>
       {/* Header - Date & Calendar */}
@@ -237,7 +254,15 @@ export function QuestionHistoryView() {
                 <View style={styles.answerSection}>
                   {currentItem.answer ? (
                     <>
-                      <Text style={[cardStyles.labelText, { marginBottom: 8 }]}>{t('labels.answer')}</Text>
+                      <XStack ai="center" jc="space-between" mb="$2">
+                        <Text style={cardStyles.labelText}>{t('labels.answer')}</Text>
+                        <Pressable onPress={handleEditAnswer} style={styles.editButton} hitSlop={8}>
+                          <EditIcon size={14} color={theme.colorMuted?.val} />
+                          <Text style={[styles.editButtonText, { color: theme.colorMuted?.val }]}>
+                            {t('actions.edit')}
+                          </Text>
+                        </Pressable>
+                      </XStack>
                       <Text style={[cardStyles.writtenDateText, { marginTop: 0, marginBottom: 12 }]}>
                         {t('writtenDate', { date: formatDate(currentDate) })}
                       </Text>
@@ -320,6 +345,17 @@ const styles = StyleSheet.create({
   },
   answerSection: {
     flex: 1, // 나머지 공간 전부 차지
+  },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  editButtonText: {
+    fontSize: 13,
+    fontWeight: '500',
   },
   noAnswerContainer: {
     flex: 1,

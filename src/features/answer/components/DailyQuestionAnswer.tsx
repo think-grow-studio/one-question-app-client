@@ -25,18 +25,48 @@ type QuestionItem = {
   description?: string;
 };
 
+interface EditData {
+  date: string;
+  question: string;
+  description?: string;
+  existingAnswer: string;
+}
+
+interface DailyQuestionAnswerProps {
+  mode?: 'create' | 'edit';
+  editData?: EditData;
+}
+
 function getRandomQuestion(questions: QuestionItem[]): QuestionItem {
   return questions[Math.floor(Math.random() * questions.length)];
 }
 
-export function DailyQuestionAnswer() {
+export function DailyQuestionAnswer({ mode = 'create', editData }: DailyQuestionAnswerProps) {
+  const isEditMode = mode === 'edit';
   const router = useRouter();
   const theme = useTheme();
   const accent = useAccentColors();
   const { t } = useTranslation(['answer', 'question', 'common']);
   const cardStyles = useQuestionCardStyles();
-  const [questionItem, setQuestionItem] = useState<QuestionItem>({ question: '' });
-  const [answer, setAnswer] = useState('');
+
+  // 수정 모드일 때 editData 사용, 아니면 빈 질문으로 시작
+  const [questionItem, setQuestionItem] = useState<QuestionItem>(() => {
+    if (isEditMode && editData) {
+      return {
+        question: editData.question,
+        description: editData.description,
+      };
+    }
+    return { question: '' };
+  });
+
+  // 답변 초기값: 수정 모드면 기존 답변, 아니면 빈 문자열
+  const [answer, setAnswer] = useState(() => (isEditMode && editData ? editData.existingAnswer : ''));
+  const [originalAnswer] = useState(() => (isEditMode && editData ? editData.existingAnswer : ''));
+
+  // 변경사항 감지 (dirty state)
+  const isDirty = answer !== originalAnswer;
+
   const [isReloadSheetVisible, setIsReloadSheetVisible] = useState(false);
   const [alertConfig, setAlertConfig] = useState<{
     visible: boolean;
@@ -47,9 +77,12 @@ export function DailyQuestionAnswer() {
 
   const randomQuestions = t('question:random', { returnObjects: true }) as QuestionItem[];
 
+  // 생성 모드일 때만 랜덤 질문 설정
   useEffect(() => {
-    setQuestionItem(getRandomQuestion(randomQuestions));
-  }, []);
+    if (!isEditMode) {
+      setQuestionItem(getRandomQuestion(randomQuestions));
+    }
+  }, [isEditMode]);
 
   const isSubmitEnabled = answer.trim().length > 0;
 
@@ -73,10 +106,14 @@ export function DailyQuestionAnswer() {
   const handleSubmit = () => {
     if (!isSubmitEnabled) return;
 
+    // 수정 모드와 생성 모드에 따라 다른 메시지 표시
+    const title = isEditMode ? t('answer:submitEdit') : t('answer:submit');
+    const message = isEditMode ? t('answer:editSuccess') : t('answer:submitSuccess');
+
     setAlertConfig({
       visible: true,
-      title: t('answer:submit'),
-      message: t('answer:submitSuccess'),
+      title,
+      message,
       buttons: [{ label: t('common:buttons.confirm'), variant: 'primary', onPress: () => router.back() }],
     });
   };
@@ -85,12 +122,30 @@ export function DailyQuestionAnswer() {
     setAlertConfig((prev) => ({ ...prev, visible: false }));
   };
 
-  const getTodayFormatted = () => {
-    const today = new Date();
-    const month = today.getMonth() + 1;
-    const day = today.getDate();
+  // 닫기 버튼 핸들러 - 수정 모드에서 변경사항이 있으면 확인 다이얼로그 표시
+  const handleClose = () => {
+    if (isEditMode && isDirty) {
+      setAlertConfig({
+        visible: true,
+        title: t('answer:cancelEdit.title'),
+        message: t('answer:cancelEdit.message'),
+        buttons: [
+          { label: t('answer:cancelEdit.continue'), variant: 'default' },
+          { label: t('answer:cancelEdit.exit'), variant: 'primary', onPress: () => router.back() },
+        ],
+      });
+    } else {
+      router.back();
+    }
+  };
+
+  // 날짜 포맷팅 함수 - 수정 모드면 editData.date 사용, 아니면 오늘 날짜
+  const getFormattedDate = () => {
+    const dateToFormat = isEditMode && editData ? new Date(editData.date) : new Date();
+    const month = dateToFormat.getMonth() + 1;
+    const day = dateToFormat.getDate();
     const weekdayKeys = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
-    const weekday = t(`question:weekdays.${weekdayKeys[today.getDay()]}`);
+    const weekday = t(`question:weekdays.${weekdayKeys[dateToFormat.getDay()]}`);
     return t('question:dateFormat', { month, day, weekday });
   };
 
@@ -101,11 +156,11 @@ export function DailyQuestionAnswer() {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
       <YStack flex={1} style={{ backgroundColor: accent.background }}>
-        {/* Header - Today's Date & Close Button */}
+        {/* Header - Date & Close Button */}
         <ScreenHeader
-          title={getTodayFormatted()}
+          title={getFormattedDate()}
           rightIcon={<CloseIcon size={16} color={theme.color?.val} />}
-          onRightPress={() => router.back()}
+          onRightPress={handleClose}
           rightButtonStyle="filled"
         />
 
@@ -123,13 +178,16 @@ export function DailyQuestionAnswer() {
               <View style={styles.questionSection}>
                 <XStack ai="center" jc="space-between" mb="$3">
                   <Text style={cardStyles.labelText}>{t('question:labels.question')}</Text>
-                  <Pressable
-                    onPress={handleReloadPress}
-                    style={cardStyles.reloadButton}
-                    hitSlop={8}
-                  >
-                    <ReloadIcon size={18} color={theme.color?.val} />
-                  </Pressable>
+                  {/* 수정 모드에서는 reload 아이콘 숨김 */}
+                  {!isEditMode && (
+                    <Pressable
+                      onPress={handleReloadPress}
+                      style={cardStyles.reloadButton}
+                      hitSlop={8}
+                    >
+                      <ReloadIcon size={18} color={theme.color?.val} />
+                    </Pressable>
+                  )}
                 </XStack>
                 <Text
                   style={cardStyles.questionText}
@@ -191,7 +249,7 @@ export function DailyQuestionAnswer() {
                   isSubmitEnabled ? cardStyles.submitTextEnabled : cardStyles.submitTextDisabled,
                 ]}
               >
-                {t('answer:submit')}
+                {isEditMode ? t('answer:submitEdit') : t('answer:submit')}
               </Text>
             </Pressable>
           </View>
