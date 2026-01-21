@@ -8,6 +8,7 @@ import {
   View,
   Text,
   ScrollView,
+  BackHandler,
 } from 'react-native';
 import { YStack, XStack, useTheme } from 'tamagui';
 import { useRouter } from 'expo-router';
@@ -84,6 +85,30 @@ export function DailyQuestionAnswer({ mode = 'create', editData }: DailyQuestion
     }
   }, [isEditMode]);
 
+  // Android 뒤로가기 버튼 처리
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      const hasContent = answer.trim().length > 0;
+      const shouldShowAlert = isEditMode ? isDirty : hasContent;
+
+      if (shouldShowAlert) {
+        setAlertConfig({
+          visible: true,
+          title: t('answer:cancelEdit.title'),
+          message: t('answer:cancelEdit.message'),
+          buttons: [
+            { label: t('answer:cancelEdit.continue'), variant: 'default' },
+            { label: t('answer:cancelEdit.exit'), variant: 'primary', onPress: () => router.back() },
+          ],
+        });
+        return true; // 기본 뒤로가기 동작 방지
+      }
+      return false; // 기본 뒤로가기 동작 허용
+    });
+
+    return () => backHandler.remove();
+  }, [answer, isEditMode, isDirty]);
+
   const isSubmitEnabled = answer.trim().length > 0;
 
   const handleReloadPress = () => {
@@ -124,7 +149,12 @@ export function DailyQuestionAnswer({ mode = 'create', editData }: DailyQuestion
 
   // 닫기 버튼 핸들러 - 수정 모드에서 변경사항이 있으면 확인 다이얼로그 표시
   const handleClose = () => {
-    if (isEditMode && isDirty) {
+    // 생성 모드: 내용이 있으면 팝업
+    // 수정 모드: 변경사항이 있으면 팝업
+    const hasContent = answer.trim().length > 0;
+    const shouldShowAlert = isEditMode ? isDirty : hasContent;
+
+    if (shouldShowAlert) {
       setAlertConfig({
         visible: true,
         title: t('answer:cancelEdit.title'),
