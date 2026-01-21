@@ -123,6 +123,22 @@ export function useQuestionCardStyles() {
         justifyContent: 'center' as const,
       },
 
+      // Reload count badge
+      reloadCountBadge: {
+        minWidth: 20,
+        height: 20,
+        borderRadius: 10,
+        backgroundColor: accent.background,
+        alignItems: 'center' as const,
+        justifyContent: 'center' as const,
+        paddingHorizontal: 6,
+      },
+      reloadCountText: {
+        fontSize: 12,
+        fontWeight: '600' as const,
+        color: accent.primary,
+      },
+
       // Empty state
       emptyText: {
         fontSize: 20,

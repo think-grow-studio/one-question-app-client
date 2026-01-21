@@ -20,6 +20,7 @@
     "randomQuestionDesc": "새로운 랜덤 질문을 받아요",
     "pastQuestion": "과거 질문",
     "pastQuestionDesc": "과거에 받았던 질문을 다시 받아요",
-    "pastQuestionNotReady": "과거 질문은 아직 준비 중이에요"
+    "pastQuestionNotReady": "과거 질문은 아직 준비 중이에요",
+    "countRemaining": "{{count}}회 남음"
   }
 }

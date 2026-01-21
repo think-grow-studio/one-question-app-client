@@ -9,9 +9,11 @@ import { AlertDialog } from '@/shared/ui/AlertDialog';
 import { MailIcon } from '@/shared/icons/MailIcon';
 import { CalendarIcon } from '@/shared/icons/CalendarIcon';
 import { EditIcon } from '@/shared/icons/EditIcon';
+import { ReloadIcon } from '@/shared/icons/ReloadIcon';
 import { useQuestionCardStyles } from '@/shared/ui/QuestionCard';
 import { useHistoryStore } from '../stores/useHistoryStore';
 import { DatePickerSheet } from './DatePickerSheet';
+import { ReloadOptionSheet } from '@/features/answer/components/ReloadOptionSheet';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.3;
@@ -20,10 +22,20 @@ export function QuestionHistoryView() {
   const router = useRouter();
   const theme = useTheme();
   const { t } = useTranslation(['question', 'common']);
-  const { currentDate, setCurrentDate, getQuestionByDate, setIsDatePickerVisible, addQuestion } =
-    useHistoryStore();
+  const {
+    currentDate,
+    setCurrentDate,
+    getQuestionByDate,
+    getReloadCount,
+    setIsDatePickerVisible,
+    addQuestion,
+    decrementReloadCount,
+  } = useHistoryStore();
   const cardStyles = useQuestionCardStyles();
   const [isAlertVisible, setIsAlertVisible] = useState(false);
+  const [isReloadSheetVisible, setIsReloadSheetVisible] = useState(false);
+
+  const reloadCount = getReloadCount(currentDate);
 
   const randomQuestions = t('random', { returnObjects: true }) as { question: string; description?: string }[];
 
@@ -174,7 +186,15 @@ export function QuestionHistoryView() {
   };
 
   const handleGoToAnswer = () => {
-    router.push('/answer');
+    if (!currentItem) return;
+    router.push({
+      pathname: '/answer',
+      params: {
+        date: currentDate,
+        question: currentItem.question,
+        description: currentItem.description || '',
+      },
+    });
   };
 
   const handleDrawRandomQuestion = () => {
@@ -183,6 +203,23 @@ export function QuestionHistoryView() {
   };
 
   const handleDrawYearAgoQuestion = () => {
+    setIsAlertVisible(true);
+  };
+
+  // Reload 관련 핸들러
+  const handleReloadPress = () => {
+    setIsReloadSheetVisible(true);
+  };
+
+  const handleRandomQuestion = () => {
+    if (reloadCount > 0) {
+      const randomItem = randomQuestions[Math.floor(Math.random() * randomQuestions.length)];
+      addQuestion(currentDate, randomItem.question, randomItem.description);
+      decrementReloadCount(currentDate);
+    }
+  };
+
+  const handlePastQuestion = () => {
     setIsAlertVisible(true);
   };
 
@@ -228,7 +265,25 @@ export function QuestionHistoryView() {
             <View style={styles.contentWrapper}>
               <View style={[cardStyles.card, cardStyles.cardFull]}>
                 <View style={styles.questionSection}>
-                  <Text style={[cardStyles.labelText, { marginBottom: 12 }]}>{t('labels.question')}</Text>
+                  <XStack ai="center" jc="space-between" mb="$3">
+                    <Text style={cardStyles.labelText}>{t('labels.question')}</Text>
+                    {/* 답변이 없을 때만 reload 버튼 표시 */}
+                    {!currentItem.answer && (
+                      <XStack ai="center" gap="$2">
+                        <View style={cardStyles.reloadCountBadge}>
+                          <Text style={cardStyles.reloadCountText}>{reloadCount}</Text>
+                        </View>
+                        <Pressable
+                          onPress={handleReloadPress}
+                          style={cardStyles.reloadButton}
+                          hitSlop={8}
+                          disabled={reloadCount === 0}
+                        >
+                          <ReloadIcon size={18} color={reloadCount > 0 ? theme.color?.val : theme.colorMuted?.val} />
+                        </Pressable>
+                      </XStack>
+                    )}
+                  </XStack>
                   <Text
                     style={cardStyles.questionText}
                     numberOfLines={2}
@@ -311,6 +366,13 @@ export function QuestionHistoryView() {
       </YStack>
 
       <DatePickerSheet />
+
+      <ReloadOptionSheet
+        visible={isReloadSheetVisible}
+        onClose={() => setIsReloadSheetVisible(false)}
+        onRandomQuestion={handleRandomQuestion}
+        onPastQuestion={handlePastQuestion}
+      />
 
       <AlertDialog
         visible={isAlertVisible}

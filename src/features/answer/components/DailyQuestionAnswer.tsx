@@ -10,39 +10,28 @@ import {
   ScrollView,
   BackHandler,
 } from 'react-native';
-import { YStack, XStack, useTheme } from 'tamagui';
+import { YStack, useTheme } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useQuestionCardStyles } from '@/shared/ui/QuestionCard';
 import { ScreenHeader } from '@/shared/ui/ScreenHeader';
 import { AlertDialog, AlertDialogButton } from '@/shared/ui/AlertDialog';
-import { ReloadIcon } from '@/shared/icons/ReloadIcon';
 import { CloseIcon } from '@/shared/icons/CloseIcon';
 import { useAccentColors } from '@/shared/theme';
-import { ReloadOptionSheet } from './ReloadOptionSheet';
 
-type QuestionItem = {
-  question: string;
-  description?: string;
-};
-
-interface EditData {
+interface QuestionData {
   date: string;
   question: string;
   description?: string;
-  existingAnswer: string;
+  existingAnswer?: string;
 }
 
 interface DailyQuestionAnswerProps {
   mode?: 'create' | 'edit';
-  editData?: EditData;
+  data: QuestionData;
 }
 
-function getRandomQuestion(questions: QuestionItem[]): QuestionItem {
-  return questions[Math.floor(Math.random() * questions.length)];
-}
-
-export function DailyQuestionAnswer({ mode = 'create', editData }: DailyQuestionAnswerProps) {
+export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnswerProps) {
   const isEditMode = mode === 'edit';
   const router = useRouter();
   const theme = useTheme();
@@ -50,40 +39,19 @@ export function DailyQuestionAnswer({ mode = 'create', editData }: DailyQuestion
   const { t } = useTranslation(['answer', 'question', 'common']);
   const cardStyles = useQuestionCardStyles();
 
-  // 수정 모드일 때 editData 사용, 아니면 빈 질문으로 시작
-  const [questionItem, setQuestionItem] = useState<QuestionItem>(() => {
-    if (isEditMode && editData) {
-      return {
-        question: editData.question,
-        description: editData.description,
-      };
-    }
-    return { question: '' };
-  });
-
   // 답변 초기값: 수정 모드면 기존 답변, 아니면 빈 문자열
-  const [answer, setAnswer] = useState(() => (isEditMode && editData ? editData.existingAnswer : ''));
-  const [originalAnswer] = useState(() => (isEditMode && editData ? editData.existingAnswer : ''));
+  const [answer, setAnswer] = useState(() => (isEditMode && data.existingAnswer ? data.existingAnswer : ''));
+  const [originalAnswer] = useState(() => (isEditMode && data.existingAnswer ? data.existingAnswer : ''));
 
   // 변경사항 감지 (dirty state)
   const isDirty = answer !== originalAnswer;
 
-  const [isReloadSheetVisible, setIsReloadSheetVisible] = useState(false);
   const [alertConfig, setAlertConfig] = useState<{
     visible: boolean;
     title: string;
     message?: string;
     buttons?: AlertDialogButton[];
   }>({ visible: false, title: '' });
-
-  const randomQuestions = t('question:random', { returnObjects: true }) as QuestionItem[];
-
-  // 생성 모드일 때만 랜덤 질문 설정
-  useEffect(() => {
-    if (!isEditMode) {
-      setQuestionItem(getRandomQuestion(randomQuestions));
-    }
-  }, [isEditMode]);
 
   // Android 뒤로가기 버튼 처리
   useEffect(() => {
@@ -110,23 +78,6 @@ export function DailyQuestionAnswer({ mode = 'create', editData }: DailyQuestion
   }, [answer, isEditMode, isDirty]);
 
   const isSubmitEnabled = answer.trim().length > 0;
-
-  const handleReloadPress = () => {
-    setIsReloadSheetVisible(true);
-  };
-
-  const handleRandomQuestion = () => {
-    setQuestionItem(getRandomQuestion(randomQuestions));
-  };
-
-  const handlePastQuestion = () => {
-    setAlertConfig({
-      visible: true,
-      title: t('common:status.preparing'),
-      message: t('common:status.comingSoon'),
-      buttons: [{ label: t('common:buttons.confirm'), variant: 'primary' }],
-    });
-  };
 
   const handleSubmit = () => {
     if (!isSubmitEnabled) return;
@@ -169,9 +120,9 @@ export function DailyQuestionAnswer({ mode = 'create', editData }: DailyQuestion
     }
   };
 
-  // 날짜 포맷팅 함수 - 수정 모드면 editData.date 사용, 아니면 오늘 날짜
+  // 날짜 포맷팅 함수
   const getFormattedDate = () => {
-    const dateToFormat = isEditMode && editData ? new Date(editData.date) : new Date();
+    const dateToFormat = new Date(data.date);
     const month = dateToFormat.getMonth() + 1;
     const day = dateToFormat.getDate();
     const weekdayKeys = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
@@ -206,35 +157,23 @@ export function DailyQuestionAnswer({ mode = 'create', editData }: DailyQuestion
             <View style={cardStyles.card}>
               {/* Question Section */}
               <View style={styles.questionSection}>
-                <XStack ai="center" jc="space-between" mb="$3">
-                  <Text style={cardStyles.labelText}>{t('question:labels.question')}</Text>
-                  {/* 수정 모드에서는 reload 아이콘 숨김 */}
-                  {!isEditMode && (
-                    <Pressable
-                      onPress={handleReloadPress}
-                      style={cardStyles.reloadButton}
-                      hitSlop={8}
-                    >
-                      <ReloadIcon size={18} color={theme.color?.val} />
-                    </Pressable>
-                  )}
-                </XStack>
+                <Text style={[cardStyles.labelText, { marginBottom: 12 }]}>{t('question:labels.question')}</Text>
                 <Text
                   style={cardStyles.questionText}
                   numberOfLines={2}
                   adjustsFontSizeToFit
                   minimumFontScale={0.8}
                 >
-                  {questionItem.question}
+                  {data.question}
                 </Text>
-                {questionItem.description && (
+                {data.description && (
                   <Text
                     style={cardStyles.questionDescription}
                     numberOfLines={1}
                     adjustsFontSizeToFit
                     minimumFontScale={0.85}
                   >
-                    {questionItem.description}
+                    {data.description}
                   </Text>
                 )}
               </View>
@@ -285,13 +224,6 @@ export function DailyQuestionAnswer({ mode = 'create', editData }: DailyQuestion
           </View>
         </ScrollView>
       </YStack>
-
-      <ReloadOptionSheet
-        visible={isReloadSheetVisible}
-        onClose={() => setIsReloadSheetVisible(false)}
-        onRandomQuestion={handleRandomQuestion}
-        onPastQuestion={handlePastQuestion}
-      />
 
       <AlertDialog
         visible={alertConfig.visible}

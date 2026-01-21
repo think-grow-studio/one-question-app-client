@@ -7,25 +7,23 @@ export default function AnswerScreen() {
   const accent = useAccentColors();
   const params = useLocalSearchParams<{
     mode?: 'edit';
-    date?: string;
-    question?: string;
+    date: string;
+    question: string;
     description?: string;
     existingAnswer?: string;
   }>();
 
   const isEditMode = params.mode === 'edit';
-  const editData = isEditMode
-    ? {
-        date: params.date!,
-        question: params.question!,
-        description: params.description,
-        existingAnswer: params.existingAnswer!,
-      }
-    : undefined;
+  const data = {
+    date: params.date,
+    question: params.question,
+    description: params.description,
+    existingAnswer: params.existingAnswer,
+  };
 
   return (
     <Screen variant="modal" edges={['bottom']} bgColor={accent.background}>
-      <DailyQuestionAnswer mode={isEditMode ? 'edit' : 'create'} editData={editData} />
+      <DailyQuestionAnswer mode={isEditMode ? 'edit' : 'create'} data={data} />
     </Screen>
   );
 }
