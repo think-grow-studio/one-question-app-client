@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
-import { StyleSheet, Pressable, View, Text, PanResponder, Dimensions, Animated } from 'react-native';
+import { StyleSheet, Pressable, View, Text, PanResponder, Animated } from 'react-native';
 import { YStack, XStack, Paragraph, useTheme } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -14,9 +14,9 @@ import { useQuestionCardStyles } from '@/shared/ui/QuestionCard';
 import { useHistoryStore } from '../stores/useHistoryStore';
 import { DatePickerSheet } from './DatePickerSheet';
 import { ReloadOptionSheet } from '@/features/answer/components/ReloadOptionSheet';
+import { SCREEN } from '@/utils/responsive';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.3;
+const SWIPE_THRESHOLD = SCREEN.width * 0.3;
 
 export function QuestionHistoryView() {
   const router = useRouter();
@@ -126,7 +126,7 @@ export function QuestionHistoryView() {
           isAnimating.current = true;
           Animated.parallel([
             Animated.timing(translateX, {
-              toValue: -SCREEN_WIDTH,
+              toValue: -SCREEN.width,
               duration: 250,
               useNativeDriver: true,
             }),
@@ -136,7 +136,7 @@ export function QuestionHistoryView() {
               useNativeDriver: true,
             }),
           ]).start(() => {
-            translateX.setValue(SCREEN_WIDTH);
+            translateX.setValue(SCREEN.width);
             opacity.setValue(0);
             goToNextDay();
           });
@@ -145,7 +145,7 @@ export function QuestionHistoryView() {
           isAnimating.current = true;
           Animated.parallel([
             Animated.timing(translateX, {
-              toValue: SCREEN_WIDTH,
+              toValue: SCREEN.width,
               duration: 250,
               useNativeDriver: true,
             }),
@@ -155,7 +155,7 @@ export function QuestionHistoryView() {
               useNativeDriver: true,
             }),
           ]).start(() => {
-            translateX.setValue(-SCREEN_WIDTH);
+            translateX.setValue(-SCREEN.width);
             opacity.setValue(0);
             goToPreviousDay();
           });
@@ -403,7 +403,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   questionSection: {
-    height: SCREEN_HEIGHT * 0.13,
+    height: SCREEN.height * 0.13,
   },
   answerSection: {
     flex: 1, // 나머지 공간 전부 차지
@@ -428,7 +428,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 32,
-    height: SCREEN_HEIGHT * 0.75,
+    height: SCREEN.height * 0.75,
   },
   emptyButtonsContainer: {
     flexDirection: 'row',

@@ -2,6 +2,7 @@ import { Modal, Pressable, StyleSheet, View, Text } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useTheme } from 'tamagui';
 import { useAccentColors } from '@/shared/theme';
+import { fs, sp, radius, deviceValue } from '@/utils/responsive';
 
 export type AlertDialogButton = {
   label: string;
@@ -65,39 +66,76 @@ export function AlertDialog({
 
   if (!visible) return null;
 
+  const responsiveStyles = {
+    centeredContainer: {
+      paddingHorizontal: sp(40),
+    },
+    dialogContainer: {
+      maxWidth: deviceValue(320, 480),
+      borderRadius: radius(24),
+      paddingTop: sp(28),
+      paddingBottom: sp(20),
+      paddingHorizontal: sp(24),
+    },
+    title: {
+      fontSize: fs(18),
+      marginBottom: sp(8),
+    },
+    message: {
+      fontSize: fs(14),
+      lineHeight: fs(20),
+      marginBottom: sp(24),
+    },
+    buttonContainer: {
+      gap: sp(10),
+    },
+    button: {
+      paddingVertical: sp(14),
+      borderRadius: radius(14),
+    },
+    buttonText: {
+      fontSize: fs(15),
+    },
+  };
+
   return (
     <Modal transparent visible={visible} animationType="none" statusBarTranslucent>
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Animated.View entering={FadeIn.duration(150)} exiting={FadeOut.duration(100)} style={styles.backdropOverlay} />
       </Pressable>
 
-      <View style={styles.centeredContainer}>
+      <View style={[styles.centeredContainer, responsiveStyles.centeredContainer]}>
         <Animated.View
           entering={FadeIn.duration(200)}
           exiting={FadeOut.duration(150)}
-          style={[styles.dialogContainer, { backgroundColor: theme.surface?.val }]}
+          style={[
+            styles.dialogContainer,
+            responsiveStyles.dialogContainer,
+            { backgroundColor: theme.surface?.val },
+          ]}
         >
           {/* Title */}
-          <Text style={[styles.title, { color: theme.color?.val }]}>{title}</Text>
+          <Text style={[styles.title, responsiveStyles.title, { color: theme.color?.val }]}>{title}</Text>
 
           {/* Message */}
           {message && (
-            <Text style={[styles.message, { color: theme.colorMuted?.val }]}>{message}</Text>
+            <Text style={[styles.message, responsiveStyles.message, { color: theme.colorMuted?.val }]}>{message}</Text>
           )}
 
           {/* Buttons */}
-          <View style={styles.buttonContainer}>
+          <View style={[styles.buttonContainer, responsiveStyles.buttonContainer]}>
             {buttons.map((button, index) => (
               <Pressable
                 key={index}
                 style={({ pressed }) => [
                   styles.button,
+                  responsiveStyles.button,
                   getButtonStyle(button.variant),
                   pressed && { opacity: 0.8 },
                 ]}
                 onPress={() => handleButtonPress(button)}
               >
-                <Text style={[styles.buttonText, getButtonTextStyle(button.variant)]}>
+                <Text style={[styles.buttonText, responsiveStyles.buttonText, getButtonTextStyle(button.variant)]}>
                   {button.label}
                 </Text>
               </Pressable>
@@ -121,43 +159,28 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 40,
   },
   dialogContainer: {
     width: '100%',
-    maxWidth: 320,
-    borderRadius: 24,
-    paddingTop: 28,
-    paddingBottom: 20,
-    paddingHorizontal: 24,
   },
   title: {
-    fontSize: 18,
     fontWeight: '700',
     textAlign: 'center',
-    marginBottom: 8,
     letterSpacing: -0.3,
   },
   message: {
-    fontSize: 14,
     textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 24,
   },
   buttonContainer: {
     flexDirection: 'row',
-    gap: 10,
   },
   button: {
     flex: 1,
-    paddingVertical: 14,
-    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
   },
   buttonText: {
-    fontSize: 15,
     fontWeight: '600',
   },
 });

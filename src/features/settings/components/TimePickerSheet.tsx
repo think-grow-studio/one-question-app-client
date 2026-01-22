@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Modal, Pressable, StyleSheet, View, ScrollView, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { YStack, XStack, useTheme } from 'tamagui';
 import Animated, { FadeIn, SlideInDown, SlideOutDown } from 'react-native-reanimated';
@@ -6,10 +6,9 @@ import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
 import { Button } from '@/shared/ui/Button';
 import { useAccentColors } from '@/shared/theme';
+import { cs, fs, sp, radius, SHEET_MAX_WIDTH } from '@/utils/responsive';
 
-const ITEM_HEIGHT = 44;
 const VISIBLE_ITEMS = 5;
-const PICKER_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS;
 
 interface TimePickerSheetProps {
   visible: boolean;
@@ -29,6 +28,10 @@ export function TimePickerSheet({
   const theme = useTheme();
   const accent = useAccentColors();
   const { t } = useTranslation('settings');
+
+  // Responsive values
+  const ITEM_HEIGHT = cs(44);
+  const PICKER_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS;
 
   // 내부 상태
   const [isPM, setIsPM] = useState(hour >= 12);
@@ -62,7 +65,7 @@ export function TimePickerSheet({
         });
       }, 100);
     }
-  }, [visible, hour, minute]);
+  }, [visible, hour, minute, ITEM_HEIGHT]);
 
   const handleHourScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const y = event.nativeEvent.contentOffset.y;
@@ -75,7 +78,7 @@ export function TimePickerSheet({
     if (Math.abs(y - targetY) > 1) {
       hourScrollRef.current?.scrollTo({ y: targetY, animated: true });
     }
-  }, []);
+  }, [ITEM_HEIGHT]);
 
   const handleMinuteScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const y = event.nativeEvent.contentOffset.y;
@@ -88,7 +91,7 @@ export function TimePickerSheet({
     if (Math.abs(y - targetY) > 1) {
       minuteScrollRef.current?.scrollTo({ y: targetY, animated: false });
     }
-  }, []);
+  }, [ITEM_HEIGHT]);
 
   const handleConfirm = () => {
     let hour24 = selectedHour;
@@ -111,17 +114,17 @@ export function TimePickerSheet({
     return (
       <>
         {Array(paddingCount).fill(null).map((_, i) => (
-          <View key={`pad-top-${i}`} style={styles.pickerItem} />
+          <View key={`pad-top-${i}`} style={{ height: ITEM_HEIGHT, justifyContent: 'center', alignItems: 'center' }} />
         ))}
         {items.map((item) => {
           const isSelected = item === selectedValue;
           return (
-            <View key={item} style={styles.pickerItem}>
+            <View key={item} style={{ height: ITEM_HEIGHT, justifyContent: 'center', alignItems: 'center' }}>
               <Text
                 variant="body"
                 style={{
-                  fontSize: 22,
-                  lineHeight: 28,
+                  fontSize: fs(22),
+                  lineHeight: fs(28),
                   fontWeight: '600',
                   color: isSelected ? '#FFFFFF' : theme.colorMuted?.val,
                 }}
@@ -132,7 +135,7 @@ export function TimePickerSheet({
           );
         })}
         {Array(paddingCount).fill(null).map((_, i) => (
-          <View key={`pad-bottom-${i}`} style={styles.pickerItem} />
+          <View key={`pad-bottom-${i}`} style={{ height: ITEM_HEIGHT, justifyContent: 'center', alignItems: 'center' }} />
         ))}
       </>
     );
@@ -140,6 +143,36 @@ export function TimePickerSheet({
 
   const hours = Array.from({ length: 12 }, (_, i) => i + 1); // 1-12
   const minutes = Array.from({ length: 60 }, (_, i) => i); // 0-59
+
+  const responsiveStyles = useMemo(() => ({
+    sheetWrapper: {
+      maxWidth: SHEET_MAX_WIDTH,
+      alignSelf: 'center' as const,
+      width: '100%' as const,
+    },
+    container: {
+      borderTopLeftRadius: radius(24),
+      borderTopRightRadius: radius(24),
+      paddingBottom: sp(32),
+    },
+    periodButton: {
+      paddingHorizontal: sp(24),
+      paddingVertical: sp(10),
+      borderRadius: radius(8),
+    },
+    pickerContainer: {
+      width: cs(80),
+      height: PICKER_HEIGHT,
+    },
+    selectionIndicator: {
+      top: ITEM_HEIGHT * 2,
+      height: ITEM_HEIGHT,
+      borderRadius: radius(12),
+    },
+    separator: {
+      fontSize: fs(28),
+    },
+  }), [PICKER_HEIGHT, ITEM_HEIGHT]);
 
   if (!visible) return null;
 
@@ -152,15 +185,13 @@ export function TimePickerSheet({
       <Animated.View
         entering={SlideInDown.duration(250)}
         exiting={SlideOutDown.duration(200)}
-        style={styles.sheetContainer}
+        style={[styles.sheetContainer, responsiveStyles.sheetWrapper]}
       >
         <YStack
-          style={{
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
-            paddingBottom: 32,
-            backgroundColor: theme.surface?.val,
-          }}
+          style={[
+            responsiveStyles.container,
+            { backgroundColor: theme.surface?.val },
+          ]}
         >
           {/* Handle */}
           <YStack ai="center" py="$4">
@@ -184,14 +215,14 @@ export function TimePickerSheet({
             <XStack
               style={{
                 backgroundColor: theme.backgroundSoft?.val,
-                borderRadius: 12,
+                borderRadius: radius(12),
                 padding: 4,
               }}
             >
               <Pressable
                 onPress={() => setIsPM(false)}
                 style={[
-                  styles.periodButton,
+                  responsiveStyles.periodButton,
                   !isPM && { backgroundColor: accent.primary },
                 ]}
               >
@@ -206,7 +237,7 @@ export function TimePickerSheet({
               <Pressable
                 onPress={() => setIsPM(true)}
                 style={[
-                  styles.periodButton,
+                  responsiveStyles.periodButton,
                   isPM && { backgroundColor: accent.primary },
                 ]}
               >
@@ -224,7 +255,7 @@ export function TimePickerSheet({
           {/* Time Picker Wheels */}
           <XStack jc="center" ai="center" gap="$2" px="$6">
             {/* Hour Picker */}
-            <View style={styles.pickerContainer}>
+            <View style={[styles.pickerContainer, responsiveStyles.pickerContainer]}>
               <ScrollView
                 ref={hourScrollRef}
                 showsVerticalScrollIndicator={false}
@@ -238,6 +269,7 @@ export function TimePickerSheet({
               <View
                 style={[
                   styles.selectionIndicator,
+                  responsiveStyles.selectionIndicator,
                   { backgroundColor: accent.primary },
                 ]}
                 pointerEvents="none"
@@ -246,14 +278,14 @@ export function TimePickerSheet({
 
             {/* Separator */}
             <Text
-              variant="title"
-              style={{ fontSize: 28, fontWeight: '700', color: theme.color?.val }}
+              variant="heading"
+              style={[responsiveStyles.separator, { fontWeight: '700', color: theme.color?.val }]}
             >
               :
             </Text>
 
             {/* Minute Picker */}
-            <View style={styles.pickerContainer}>
+            <View style={[styles.pickerContainer, responsiveStyles.pickerContainer]}>
               <ScrollView
                 ref={minuteScrollRef}
                 showsVerticalScrollIndicator={false}
@@ -267,6 +299,7 @@ export function TimePickerSheet({
               <View
                 style={[
                   styles.selectionIndicator,
+                  responsiveStyles.selectionIndicator,
                   { backgroundColor: accent.primary },
                 ]}
                 pointerEvents="none"
@@ -299,31 +332,16 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
   },
-  periodButton: {
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
   pickerContainer: {
-    width: 80,
-    height: PICKER_HEIGHT,
     overflow: 'hidden',
   },
   pickerContent: {
     alignItems: 'center',
   },
-  pickerItem: {
-    height: ITEM_HEIGHT,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   selectionIndicator: {
     position: 'absolute',
-    top: ITEM_HEIGHT * 2,
     left: 0,
     right: 0,
-    height: ITEM_HEIGHT,
-    borderRadius: 12,
     zIndex: -1,
   },
 });

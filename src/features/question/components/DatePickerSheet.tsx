@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import { Modal, Pressable, StyleSheet, View, Text, Dimensions, PanResponder, BackHandler } from 'react-native';
+import { Modal, Pressable, StyleSheet, View, Text, PanResponder, BackHandler } from 'react-native';
 import { YStack, XStack, Paragraph, useTheme } from 'tamagui';
 import Animated, {
   useSharedValue,
@@ -10,12 +10,10 @@ import Animated, {
 import { useHistoryStore } from '../stores/useHistoryStore';
 import { Button } from '@/shared/ui/Button';
 import { useAccentColors } from '@/shared/theme';
+import { fs, sp, radius, cs, SCREEN, SHEET_HEIGHTS, SHEET_MAX_WIDTH } from '@/utils/responsive';
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
-const DAY_CELL_HEIGHT = 52;
 const MAX_WEEKS = 6;
-const SHEET_HEIGHT = SCREEN_HEIGHT * 0.9;
 const DISMISS_THRESHOLD = 100;
 
 export function DatePickerSheet() {
@@ -23,6 +21,10 @@ export function DatePickerSheet() {
   const accent = useAccentColors();
   const { isDatePickerVisible, setIsDatePickerVisible, history, currentDate, setCurrentDate } =
     useHistoryStore();
+
+  // Responsive values (static)
+  const DAY_CELL_HEIGHT = cs(52);
+  const SHEET_HEIGHT = SHEET_HEIGHTS.full;
 
   // 현재 보고 있는 달 (년, 월)
   const [viewYear, setViewYear] = useState(() => {
@@ -49,7 +51,7 @@ export function DatePickerSheet() {
       }
     });
     backdropOpacity.value = withTiming(0, { duration: 200 });
-  }, [setIsDatePickerVisible, translateY, backdropOpacity]);
+  }, [setIsDatePickerVisible, translateY, backdropOpacity, SHEET_HEIGHT]);
 
   const openSheet = useCallback(() => {
     translateY.value = withTiming(0, { duration: 280 });
@@ -115,16 +117,16 @@ export function DatePickerSheet() {
         backgroundColor: theme.borderColor?.val,
       },
       navArrow: {
-        fontSize: 24,
+        fontSize: fs(24),
         fontWeight: '600' as const,
         color: accent.primary,
-        paddingHorizontal: 8,
+        paddingHorizontal: sp(8),
       },
       navArrowDisabled: {
         color: theme.colorSubtle?.val,
       },
       weekdayText: {
-        fontSize: 14,
+        fontSize: fs(14),
         fontWeight: '600' as const,
         color: theme.colorMuted?.val,
       },
@@ -135,7 +137,7 @@ export function DatePickerSheet() {
         color: accent.primary,
       },
       dayText: {
-        fontSize: 16,
+        fontSize: fs(16),
         fontWeight: '500' as const,
         color: theme.color?.val,
       },
@@ -176,12 +178,12 @@ export function DatePickerSheet() {
         color: theme.color?.val,
       },
       previewText: {
-        fontSize: 14,
-        lineHeight: 22,
+        fontSize: fs(14),
+        lineHeight: fs(22),
         color: theme.colorMuted?.val,
       },
       previewEmpty: {
-        fontSize: 14,
+        fontSize: fs(14),
         color: theme.colorSubtle?.val,
       },
       answeredBadge: {
@@ -190,6 +192,62 @@ export function DatePickerSheet() {
     }),
     [theme, accent]
   );
+
+  const responsiveStyles = useMemo(() => ({
+    sheetContainer: {
+      height: SHEET_HEIGHT,
+      maxWidth: SHEET_MAX_WIDTH,
+      alignSelf: 'center' as const,
+      width: '100%' as const,
+      borderTopLeftRadius: radius(24),
+      borderTopRightRadius: radius(24),
+    },
+    calendarGrid: {
+      paddingHorizontal: sp(16),
+      height: DAY_CELL_HEIGHT * MAX_WEEKS,
+    },
+    dayCell: {
+      height: DAY_CELL_HEIGHT,
+      padding: sp(2),
+    },
+    dayButton: {
+      borderRadius: radius(12),
+    },
+    dot: {
+      bottom: sp(6),
+      width: cs(5),
+      height: cs(5),
+      borderRadius: cs(2.5),
+    },
+    legendDot: {
+      width: cs(8),
+      height: cs(8),
+      borderRadius: cs(4),
+    },
+    legendRing: {
+      width: cs(8),
+      height: cs(8),
+      borderRadius: cs(4),
+      borderWidth: 2,
+    },
+    previewContainer: {
+      marginHorizontal: sp(20),
+      padding: sp(16),
+      borderRadius: radius(16),
+      maxHeight: SCREEN.height * 0.25,
+    },
+    previewContent: {
+      height: fs(22) * 2,  // 2줄
+    },
+    answeredBadge: {
+      paddingHorizontal: sp(8),
+      paddingVertical: sp(4),
+      borderRadius: radius(8),
+    },
+    answeredBadgeText: {
+      fontSize: fs(11),
+    },
+  }), [SHEET_HEIGHT, DAY_CELL_HEIGHT]);
 
   const handleClose = () => {
     closeSheet();
@@ -307,13 +365,13 @@ export function DatePickerSheet() {
         <Animated.View style={[styles.backdropOverlay, backdropStyle]} />
       </Pressable>
 
-      <Animated.View style={[styles.sheetContainer, { height: SHEET_HEIGHT }, sheetStyle, themedStyles.sheet]}>
+      <Animated.View style={[styles.sheetContainer, responsiveStyles.sheetContainer, sheetStyle, themedStyles.sheet]}>
         {/* Handle - Draggable area */}
         <View {...panResponder.panHandlers} style={styles.handleContainer}>
           <View style={[styles.handle, themedStyles.handle]} />
         </View>
 
-        <YStack style={{ paddingBottom: 20 }}>
+        <YStack style={{ paddingBottom: sp(20) }}>
           {/* Content area is not draggable */}
 
           {/* Month Navigation */}
@@ -321,7 +379,7 @@ export function DatePickerSheet() {
             <Pressable onPress={goToPrevMonth} hitSlop={12}>
               <Text style={themedStyles.navArrow}>{'<'}</Text>
             </Pressable>
-            <Paragraph fontSize={20} fontWeight="700" letterSpacing={-0.3} color="$color">
+            <Paragraph fontSize={fs(20)} fontWeight="700" letterSpacing={-0.3} color="$color">
               {viewYear}년 {viewMonth + 1}월
             </Paragraph>
             <Pressable onPress={goToNextMonth} hitSlop={12} disabled={isNextDisabled}>
@@ -345,15 +403,16 @@ export function DatePickerSheet() {
           </XStack>
 
           {/* Calendar Grid */}
-          <View style={styles.calendarGrid}>
+          <View style={[styles.calendarGrid, responsiveStyles.calendarGrid]}>
             {calendarDays.map((day, index) => (
-              <View key={index} style={styles.dayCell}>
+              <View key={index} style={[styles.dayCell, responsiveStyles.dayCell]}>
                 {day !== null && (
                   <Pressable
                     onPress={() => !isFutureDate(day) && handleDayPress(getDateString(day))}
                     disabled={isFutureDate(day)}
                     style={[
                       styles.dayButton,
+                      responsiveStyles.dayButton,
                       isSelected(day) && themedStyles.dayButtonSelected,
                       isCurrentDate(day) && !isSelected(day) && themedStyles.dayButtonCurrent,
                       isToday(day) && !isSelected(day) && !isCurrentDate(day) && themedStyles.dayButtonToday,
@@ -371,10 +430,10 @@ export function DatePickerSheet() {
                       {day}
                     </Text>
                     {hasAnswer(day) && !isSelected(day) && (
-                      <View style={[styles.dot, themedStyles.answerDot]} />
+                      <View style={[styles.dot, responsiveStyles.dot, themedStyles.answerDot]} />
                     )}
                     {hasQuestion(day) && !hasAnswer(day) && !isSelected(day) && (
-                      <View style={[styles.dot, themedStyles.questionDot]} />
+                      <View style={[styles.dot, responsiveStyles.dot, themedStyles.questionDot]} />
                     )}
                   </Pressable>
                 )}
@@ -385,36 +444,37 @@ export function DatePickerSheet() {
           {/* Legend */}
           <XStack px="$5" pt="$1" gap="$5">
             <XStack ai="center" gap="$2">
-              <View style={[styles.legendDot, themedStyles.answerDot]} />
-              <Paragraph fontSize={12} color="$colorMuted">답변 완료</Paragraph>
+              <View style={[styles.legendDot, responsiveStyles.legendDot, themedStyles.answerDot]} />
+              <Paragraph fontSize={fs(12)} color="$colorMuted">답변 완료</Paragraph>
             </XStack>
             <XStack ai="center" gap="$2">
-              <View style={[styles.legendDot, themedStyles.questionDot]} />
-              <Paragraph fontSize={12} color="$colorMuted">질문만</Paragraph>
+              <View style={[styles.legendDot, responsiveStyles.legendDot, themedStyles.questionDot]} />
+              <Paragraph fontSize={fs(12)} color="$colorMuted">질문만</Paragraph>
             </XStack>
             <XStack ai="center" gap="$2">
-              <View style={[styles.legendRing, themedStyles.legendRing]} />
-              <Paragraph fontSize={12} color="$colorMuted">현재 보는 날</Paragraph>
+              <View style={[styles.legendRing, responsiveStyles.legendRing, themedStyles.legendRing]} />
+              <Paragraph fontSize={fs(12)} color="$colorMuted">현재 보는 날</Paragraph>
             </XStack>
           </XStack>
 
           {/* Preview Section */}
-          <View style={[styles.previewContainer, themedStyles.previewContainer]}>
+          <View style={[styles.previewContainer, responsiveStyles.previewContainer, themedStyles.previewContainer]}>
               <YStack gap="$1">
                 <XStack ai="center" jc="space-between" height={24}>
-                  <Paragraph fontSize={15} fontWeight="700" style={themedStyles.previewTitle}>
+                  <Paragraph fontSize={fs(15)} fontWeight="700" style={themedStyles.previewTitle}>
                     {formatPreviewDate(previewDate)}
                   </Paragraph>
                   <View style={[
                     styles.answeredBadge,
+                    responsiveStyles.answeredBadge,
                     themedStyles.answeredBadge,
                     !previewItem?.answer && styles.badgeHidden,
                   ]}>
-                    <Text style={styles.answeredBadgeText}>답변 완료</Text>
+                    <Text style={[styles.answeredBadgeText, responsiveStyles.answeredBadgeText]}>답변 완료</Text>
                   </View>
                 </XStack>
 
-                <View style={styles.previewContent}>
+                <View style={[styles.previewContent, responsiveStyles.previewContent]}>
                   {previewItem ? (
                     <Text
                       style={themedStyles.previewText}
@@ -429,7 +489,7 @@ export function DatePickerSheet() {
                   )}
                 </View>
 
-                <View style={{ marginTop: 12 }}>
+                <View style={{ marginTop: sp(12) }}>
                   <Button
                     label="이 날짜로 이동"
                     onPress={handleNavigateToDate}
@@ -458,8 +518,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
   },
   handleContainer: {
     alignItems: 'center',
@@ -478,55 +536,26 @@ const styles = StyleSheet.create({
   calendarGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    paddingHorizontal: 16,
-    height: DAY_CELL_HEIGHT * MAX_WEEKS,
   },
   dayCell: {
     width: '14.28%',
-    height: DAY_CELL_HEIGHT,
-    padding: 2,
   },
   dayButton: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 12,
   },
   dot: {
     position: 'absolute',
-    bottom: 6,
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
   },
-  legendDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  legendRing: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    borderWidth: 2,
-  },
+  legendDot: {},
+  legendRing: {},
   previewContainer: {
     marginTop: 0,
-    marginHorizontal: 20,
-    padding: 16,
-    borderRadius: 16,
-    maxHeight: SCREEN_HEIGHT * 0.25,
   },
-  previewContent: {
-    height: 44,  // 2줄 (lineHeight 22 * 2)
-  },
-  answeredBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
+  previewContent: {},
+  answeredBadge: {},
   answeredBadgeText: {
-    fontSize: 11,
     fontWeight: '600',
     color: '#FFFFFF',
   },

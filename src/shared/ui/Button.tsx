@@ -9,25 +9,39 @@ const StyledButton = styled(TamaguiButton, {
   justifyContent: 'center',
   alignItems: 'center',
   fontWeight: '600',
-  fontSize: 17,
   borderWidth: 1.5,
+
+  // Tablet scaling (only stack-based properties)
+  $gtSm: {
+    height: 64,
+    borderRadius: 18,
+  },
 
   variants: {
     size: {
       small: {
         height: 40,
-        fontSize: 14,
         borderRadius: 12,
+        $gtSm: {
+          height: 46,
+          borderRadius: 14,
+        },
       },
       medium: {
         height: 48,
-        fontSize: 15,
         borderRadius: 14,
+        $gtSm: {
+          height: 54,
+          borderRadius: 16,
+        },
       },
       large: {
         height: 56,
-        fontSize: 17,
         borderRadius: 16,
+        $gtSm: {
+          height: 64,
+          borderRadius: 18,
+        },
       },
     },
     fullWidth: {
@@ -37,6 +51,9 @@ const StyledButton = styled(TamaguiButton, {
       false: {
         width: 'auto',
         paddingHorizontal: '$4',
+        $gtSm: {
+          paddingHorizontal: '$5',
+        },
       },
     },
   } as const,
@@ -60,9 +77,20 @@ export function Button({
   enabled = true,
   disabled,
   variant = 'filled',
+  size = 'large',
   ...props
 }: ButtonProps) {
   const accent = useAccentColors();
+
+  // Font size based on size variant
+  const fontSizes: Record<string, number> = {
+    small: 14,
+    medium: 15,
+    large: 17,
+  };
+
+  const sizeKey = typeof size === 'string' ? size : 'large';
+  const fontSize = fontSizes[sizeKey] ?? 17;
 
   const variantStyles = {
     filled: {
@@ -86,6 +114,8 @@ export function Button({
     <StyledButton
       disabled={!enabled || disabled}
       opacity={!enabled || disabled ? 0.5 : 1}
+      size={size}
+      fontSize={fontSize}
       {...variantStyles[variant]}
       pressStyle={{
         backgroundColor: variant === 'filled' ? accent.primaryHover : '$backgroundSoft',

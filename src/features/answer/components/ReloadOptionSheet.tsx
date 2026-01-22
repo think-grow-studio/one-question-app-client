@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useRef } from 'react';
-import { Pressable, StyleSheet, View, Text, Dimensions, Modal, PanResponder, BackHandler } from 'react-native';
+import { useCallback, useEffect, useRef, useMemo } from 'react';
+import { Pressable, StyleSheet, View, Text, Modal, PanResponder, BackHandler } from 'react-native';
 import { YStack, useTheme } from 'tamagui';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withSpring,
   withTiming,
   runOnJS,
 } from 'react-native-reanimated';
@@ -12,9 +11,8 @@ import { useTranslation } from 'react-i18next';
 import { useAccentColors } from '@/shared/theme';
 import { MailIcon } from '@/shared/icons/MailIcon';
 import { PastQuestionIcon } from '@/shared/icons/PastQuestionIcon';
+import { fs, sp, radius, cs, SHEET_HEIGHTS, SHEET_MAX_WIDTH } from '@/utils/responsive';
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-const SHEET_HEIGHT = SCREEN_HEIGHT * 0.5;
 const DISMISS_THRESHOLD = 100;
 
 type ReloadOptionSheetProps = {
@@ -34,6 +32,9 @@ export function ReloadOptionSheet({
   const accent = useAccentColors();
   const { t } = useTranslation(['answer', 'common']);
 
+  // Use standard sheet height constant
+  const SHEET_HEIGHT = SHEET_HEIGHTS.medium;
+
   const translateY = useSharedValue(SHEET_HEIGHT);
   const backdropOpacity = useSharedValue(0);
   const startY = useRef(0);
@@ -45,7 +46,7 @@ export function ReloadOptionSheet({
       }
     });
     backdropOpacity.value = withTiming(0, { duration: 200 });
-  }, [onClose, translateY, backdropOpacity]);
+  }, [onClose, translateY, backdropOpacity, SHEET_HEIGHT]);
 
   const openSheet = useCallback(() => {
     translateY.value = withTiming(0, { duration: 280 });
@@ -115,6 +116,67 @@ export function ReloadOptionSheet({
     closeSheet();
   };
 
+  const responsiveStyles = useMemo(() => ({
+    sheetContainer: {
+      height: SHEET_HEIGHT,
+      maxWidth: SHEET_MAX_WIDTH,
+      alignSelf: 'center' as const,
+      width: '100%' as const,
+      borderTopLeftRadius: radius(24),
+      borderTopRightRadius: radius(24),
+    },
+    handleContainer: {
+      paddingVertical: sp(16),
+      paddingHorizontal: sp(20),
+    },
+    contentContainer: {
+      paddingHorizontal: sp(16),
+    },
+    title: {
+      fontSize: fs(18),
+      marginBottom: sp(4),
+    },
+    message: {
+      fontSize: fs(14),
+      marginBottom: sp(20),
+    },
+    optionButton: {
+      padding: sp(16),
+      borderRadius: radius(16),
+    },
+    optionIcon: {
+      width: cs(44),
+      height: cs(44),
+      borderRadius: radius(12),
+    },
+    optionTextContainer: {
+      marginLeft: sp(14),
+    },
+    optionTitle: {
+      fontSize: fs(16),
+      marginBottom: sp(2),
+    },
+    optionDescription: {
+      fontSize: fs(13),
+    },
+    comingSoonBadge: {
+      paddingHorizontal: sp(10),
+      paddingVertical: sp(4),
+      borderRadius: radius(8),
+    },
+    comingSoonText: {
+      fontSize: fs(12),
+    },
+    cancelButton: {
+      marginTop: sp(12),
+      paddingVertical: sp(16),
+      borderRadius: radius(16),
+    },
+    cancelText: {
+      fontSize: fs(16),
+    },
+  }), [SHEET_HEIGHT]);
+
   if (!visible) return null;
 
   return (
@@ -128,22 +190,23 @@ export function ReloadOptionSheet({
       <Animated.View
         style={[
           styles.sheetContainer,
+          responsiveStyles.sheetContainer,
           sheetStyle,
           { backgroundColor: theme.surface?.val },
         ]}
       >
         {/* Handle - Draggable area */}
-        <View {...panResponder.panHandlers} style={styles.handleContainer}>
+        <View {...panResponder.panHandlers} style={[styles.handleContainer, responsiveStyles.handleContainer]}>
           <View style={[styles.handle, { backgroundColor: theme.borderColor?.val }]} />
         </View>
 
         {/* Content */}
-        <View style={styles.contentContainer}>
+        <View style={[styles.contentContainer, responsiveStyles.contentContainer]}>
           {/* Title */}
-          <Text style={[styles.title, { color: theme.color?.val }]}>
+          <Text style={[styles.title, responsiveStyles.title, { color: theme.color?.val }]}>
             {t('answer:reload.title')}
           </Text>
-          <Text style={[styles.message, { color: theme.colorMuted?.val }]}>
+          <Text style={[styles.message, responsiveStyles.message, { color: theme.colorMuted?.val }]}>
             {t('answer:reload.message')}
           </Text>
 
@@ -153,18 +216,19 @@ export function ReloadOptionSheet({
             <Pressable
               style={({ pressed }) => [
                 styles.optionButton,
+                responsiveStyles.optionButton,
                 { backgroundColor: pressed ? theme.backgroundSoft?.val : 'transparent' },
               ]}
               onPress={handleRandomQuestion}
             >
-              <View style={[styles.optionIcon, { backgroundColor: accent.primary }]}>
-                <MailIcon size={22} color={accent.textOnPrimary} />
+              <View style={[styles.optionIcon, responsiveStyles.optionIcon, { backgroundColor: accent.primary }]}>
+                <MailIcon size={cs(22)} color={accent.textOnPrimary} />
               </View>
-              <YStack style={styles.optionTextContainer}>
-                <Text style={[styles.optionTitle, { color: theme.color?.val }]}>
+              <YStack style={[styles.optionTextContainer, responsiveStyles.optionTextContainer]}>
+                <Text style={[styles.optionTitle, responsiveStyles.optionTitle, { color: theme.color?.val }]}>
                   {t('answer:reload.randomQuestion')}
                 </Text>
-                <Text style={[styles.optionDescription, { color: theme.colorMuted?.val }]}>
+                <Text style={[styles.optionDescription, responsiveStyles.optionDescription, { color: theme.colorMuted?.val }]}>
                   {t('answer:reload.randomQuestionDesc')}
                 </Text>
               </YStack>
@@ -174,23 +238,24 @@ export function ReloadOptionSheet({
             <Pressable
               style={({ pressed }) => [
                 styles.optionButton,
+                responsiveStyles.optionButton,
                 { backgroundColor: pressed ? theme.backgroundSoft?.val : 'transparent' },
               ]}
               onPress={handlePastQuestion}
             >
-              <View style={[styles.optionIcon, { backgroundColor: theme.backgroundSoft?.val }]}>
-                <PastQuestionIcon size={22} color={theme.colorMuted?.val} />
+              <View style={[styles.optionIcon, responsiveStyles.optionIcon, { backgroundColor: theme.backgroundSoft?.val }]}>
+                <PastQuestionIcon size={cs(22)} color={theme.colorMuted?.val} />
               </View>
-              <YStack style={styles.optionTextContainer}>
-                <Text style={[styles.optionTitle, { color: theme.color?.val }]}>
+              <YStack style={[styles.optionTextContainer, responsiveStyles.optionTextContainer]}>
+                <Text style={[styles.optionTitle, responsiveStyles.optionTitle, { color: theme.color?.val }]}>
                   {t('answer:reload.pastQuestion')}
                 </Text>
-                <Text style={[styles.optionDescription, { color: theme.colorMuted?.val }]}>
+                <Text style={[styles.optionDescription, responsiveStyles.optionDescription, { color: theme.colorMuted?.val }]}>
                   {t('answer:reload.pastQuestionDesc')}
                 </Text>
               </YStack>
-              <View style={[styles.comingSoonBadge, { backgroundColor: theme.backgroundSoft?.val }]}>
-                <Text style={[styles.comingSoonText, { color: theme.colorMuted?.val }]}>
+              <View style={[styles.comingSoonBadge, responsiveStyles.comingSoonBadge, { backgroundColor: theme.backgroundSoft?.val }]}>
+                <Text style={[styles.comingSoonText, responsiveStyles.comingSoonText, { color: theme.colorMuted?.val }]}>
                   {t('common:status.comingSoon')}
                 </Text>
               </View>
@@ -201,6 +266,7 @@ export function ReloadOptionSheet({
           <Pressable
             style={({ pressed }) => [
               styles.cancelButton,
+              responsiveStyles.cancelButton,
               {
                 backgroundColor: pressed ? theme.backgroundSoft?.val : theme.background?.val,
                 borderColor: theme.borderColor?.val,
@@ -208,7 +274,7 @@ export function ReloadOptionSheet({
             ]}
             onPress={() => closeSheet()}
           >
-            <Text style={[styles.cancelText, { color: theme.color?.val }]}>
+            <Text style={[styles.cancelText, responsiveStyles.cancelText, { color: theme.color?.val }]}>
               {t('common:buttons.cancel')}
             </Text>
           </Pressable>
@@ -231,14 +297,9 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: SHEET_HEIGHT,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
   },
   handleContainer: {
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
   },
   handle: {
     width: 40,
@@ -247,18 +308,13 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    paddingHorizontal: 16,
   },
   title: {
-    fontSize: 18,
     fontWeight: '700',
     textAlign: 'center',
-    marginBottom: 4,
   },
   message: {
-    fontSize: 14,
     textAlign: 'center',
-    marginBottom: 20,
   },
   optionsContainer: {
     gap: 8,
@@ -266,46 +322,27 @@ const styles = StyleSheet.create({
   optionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    borderRadius: 16,
   },
   optionIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   optionTextContainer: {
     flex: 1,
-    marginLeft: 14,
   },
   optionTitle: {
-    fontSize: 16,
     fontWeight: '600',
-    marginBottom: 2,
   },
-  optionDescription: {
-    fontSize: 13,
-  },
-  comingSoonBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
+  optionDescription: {},
+  comingSoonBadge: {},
   comingSoonText: {
-    fontSize: 12,
     fontWeight: '500',
   },
   cancelButton: {
-    marginTop: 12,
-    paddingVertical: 16,
-    borderRadius: 16,
     borderWidth: 1,
     alignItems: 'center',
   },
   cancelText: {
-    fontSize: 16,
     fontWeight: '600',
   },
 });
