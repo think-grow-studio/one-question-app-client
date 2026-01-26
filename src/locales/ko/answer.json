@@ -22,5 +22,12 @@
     "pastQuestionDesc": "과거에 받았던 질문을 다시 받아요",
     "pastQuestionNotReady": "과거 질문은 아직 준비 중이에요",
     "countRemaining": "{{count}}회 남음"
+  },
+  "reviewPrompt": {
+    "title": "앱을 즐기고 계신가요?",
+    "message": "리뷰를 남겨주시면 큰 힘이 됩니다!",
+    "later": "나중에",
+    "decline": "별로예요",
+    "accept": "좋아요!"
   }
 }

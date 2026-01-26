@@ -1,0 +1,33 @@
+{
+  "title": "Write Answer",
+  "titleEdit": "Edit Answer",
+  "placeholder": "Write your answer here",
+  "charCount": "{{count}} characters",
+  "submit": "Submit",
+  "submitEdit": "Save Changes",
+  "submitSuccess": "Your answer has been saved",
+  "editSuccess": "Your answer has been updated",
+  "cancelEdit": {
+    "title": "Leave",
+    "message": "Your changes will not be saved. Are you sure you want to leave?",
+    "continue": "Keep Writing",
+    "exit": "Leave"
+  },
+  "reload": {
+    "title": "Get New Question",
+    "message": "What kind of question would you like?",
+    "randomQuestion": "Random Question",
+    "randomQuestionDesc": "Get a new random question",
+    "pastQuestion": "Past Question",
+    "pastQuestionDesc": "Get a question you've received before",
+    "pastQuestionNotReady": "Past questions are not ready yet",
+    "countRemaining": "{{count}} remaining"
+  },
+  "reviewPrompt": {
+    "title": "Enjoying the app?",
+    "message": "Your review helps us improve!",
+    "later": "Later",
+    "decline": "Not really",
+    "accept": "Yes!"
+  }
+}

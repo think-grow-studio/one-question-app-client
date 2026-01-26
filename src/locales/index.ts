@@ -8,12 +8,18 @@ import koQuestion from './ko/question.json';
 import koAnswer from './ko/answer.json';
 import koSettings from './ko/settings.json';
 
+// Import English translations
+import enAnswer from './en/answer.json';
+
 const resources = {
   ko: {
     common: koCommon,
     question: koQuestion,
     answer: koAnswer,
     settings: koSettings,
+  },
+  en: {
+    answer: enAnswer,
   },
 };
 

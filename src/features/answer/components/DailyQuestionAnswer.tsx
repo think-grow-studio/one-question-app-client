@@ -18,6 +18,7 @@ import { ScreenHeader } from '@/shared/ui/ScreenHeader';
 import { AlertDialog, AlertDialogButton } from '@/shared/ui/AlertDialog';
 import { CloseIcon } from '@/shared/icons/CloseIcon';
 import { useAccentColors } from '@/shared/theme';
+import { useAppReviewPrompt } from '../hooks/useAppReviewPrompt';
 
 interface QuestionData {
   date: string;
@@ -38,6 +39,14 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
   const accent = useAccentColors();
   const { t } = useTranslation(['answer', 'question', 'common']);
   const cardStyles = useQuestionCardStyles();
+  const {
+    showPrePrompt,
+    onAnswerSubmitted,
+    handleLater,
+    handleDecline,
+    handleAccept,
+    closePrePrompt,
+  } = useAppReviewPrompt();
 
   // 답변 초기값: 수정 모드면 기존 답변, 아니면 빈 문자열
   const [answer, setAnswer] = useState(() => (isEditMode && data.existingAnswer ? data.existingAnswer : ''));
@@ -81,6 +90,11 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
 
   const handleSubmit = () => {
     if (!isSubmitEnabled) return;
+
+    // 새 답변 작성시에만 카운트 (수정 모드 제외)
+    if (!isEditMode) {
+      onAnswerSubmitted(); // 비동기로 실행, await 하지 않음
+    }
 
     // 수정 모드와 생성 모드에 따라 다른 메시지 표시
     const title = isEditMode ? t('answer:submitEdit') : t('answer:submit');
@@ -231,6 +245,19 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
         message={alertConfig.message}
         buttons={alertConfig.buttons}
         onClose={closeAlert}
+      />
+
+      {/* App Review Pre-prompt Dialog */}
+      <AlertDialog
+        visible={showPrePrompt}
+        title={t('answer:reviewPrompt.title')}
+        message={t('answer:reviewPrompt.message')}
+        buttons={[
+          { label: t('answer:reviewPrompt.later'), variant: 'default', onPress: handleLater },
+          { label: t('answer:reviewPrompt.decline'), variant: 'default', onPress: handleDecline },
+          { label: t('answer:reviewPrompt.accept'), variant: 'primary', onPress: handleAccept },
+        ]}
+        onClose={closePrePrompt}
       />
     </KeyboardAvoidingView>
   );

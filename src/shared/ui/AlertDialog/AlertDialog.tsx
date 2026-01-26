@@ -68,29 +68,29 @@ export function AlertDialog({
 
   const responsiveStyles = {
     centeredContainer: {
-      paddingHorizontal: sp(40),
-    },
-    dialogContainer: {
-      maxWidth: deviceValue(320, 480),
-      borderRadius: radius(24),
-      paddingTop: sp(28),
-      paddingBottom: sp(20),
       paddingHorizontal: sp(24),
     },
+    dialogContainer: {
+      maxWidth: deviceValue(360, 520),
+      borderRadius: radius(24),
+      paddingTop: sp(32),
+      paddingBottom: sp(24),
+      paddingHorizontal: sp(28),
+    },
     title: {
-      fontSize: fs(18),
-      marginBottom: sp(8),
+      fontSize: fs(19),
+      marginBottom: sp(12),
     },
     message: {
-      fontSize: fs(14),
-      lineHeight: fs(20),
-      marginBottom: sp(24),
+      fontSize: fs(15),
+      lineHeight: fs(22),
+      marginBottom: sp(28),
     },
     buttonContainer: {
-      gap: sp(10),
+      gap: sp(12),
     },
     button: {
-      paddingVertical: sp(14),
+      paddingVertical: sp(16),
       borderRadius: radius(14),
     },
     buttonText: {
