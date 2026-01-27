@@ -14,6 +14,7 @@ import { useQuestionCardStyles } from '@/shared/ui/QuestionCard';
 import { useHistoryStore } from '../stores/useHistoryStore';
 import { useDailyQuestion, useQuestionHistories } from '../hooks/queries/useQuestionQueries';
 import { useReloadQuestion } from '../hooks/mutations/useQuestionMutations';
+import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 import { DatePickerSheet } from './DatePickerSheet';
 import { ReloadOptionSheet } from '@/features/answer/components/ReloadOptionSheet';
 import { SCREEN } from '@/utils/responsive';
@@ -51,6 +52,9 @@ export function QuestionHistoryView() {
 
   const reloadMutation = useReloadQuestion();
 
+  // 회원 정보 조회 (joinedDate 제한용)
+  const { data: member } = useMemberMe();
+
   // 현재 날짜의 히스토리에서 답변 정보 추출
   const currentHistory = historyData?.histories?.find((h) => h.date === currentDate);
 
@@ -73,11 +77,17 @@ export function QuestionHistoryView() {
   const opacity = useRef(new Animated.Value(1)).current;
   const isAnimating = useRef(false);
   const currentDateRef = useRef(currentDate);
+  const memberJoinedDateRef = useRef(member?.joinedDate);
 
   // currentDate가 바뀔 때마다 ref 동기화
   useEffect(() => {
     currentDateRef.current = currentDate;
   }, [currentDate]);
+
+  // member.joinedDate가 바뀔 때마다 ref 동기화
+  useEffect(() => {
+    memberJoinedDateRef.current = member?.joinedDate;
+  }, [member?.joinedDate]);
 
   // 날짜 변경 시 슬라이드 인 + Fade In 애니메이션
   useEffect(() => {
@@ -99,9 +109,27 @@ export function QuestionHistoryView() {
   }, [currentDate]);
 
   const goToPreviousDay = () => {
-    const date = new Date(currentDateRef.current);
-    date.setDate(date.getDate() - 1);
-    setCurrentDate(date.toISOString().split('T')[0]);
+    const [year, month, day] = currentDateRef.current.split('-').map(Number);
+    const prevDate = new Date(year, month - 1, day - 1);
+    const prevDateStr = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}-${String(prevDate.getDate()).padStart(2, '0')}`;
+
+    // joinedDate 이전으로 이동 불가
+    if (memberJoinedDateRef.current && prevDateStr < memberJoinedDateRef.current) {
+      return;
+    }
+
+    setCurrentDate(prevDateStr);
+  };
+
+  const canGoToPreviousDay = () => {
+    const [year, month, day] = currentDateRef.current.split('-').map(Number);
+    const prevDate = new Date(year, month - 1, day - 1);
+    const prevDateStr = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}-${String(prevDate.getDate()).padStart(2, '0')}`;
+
+    if (memberJoinedDateRef.current && prevDateStr < memberJoinedDateRef.current) {
+      return false;
+    }
+    return true;
   };
 
   const goToNextDay = () => {
@@ -171,6 +199,17 @@ export function QuestionHistoryView() {
           });
         } else if (gestureState.dx > SWIPE_THRESHOLD) {
           // 오른쪽으로 스와이프 -> 이전 날
+          // joinedDate 이전으로 이동 불가
+          if (!canGoToPreviousDay()) {
+            Animated.spring(translateX, {
+              toValue: 0,
+              useNativeDriver: true,
+              friction: 7,
+              tension: 40,
+            }).start();
+            return;
+          }
+
           isAnimating.current = true;
           Animated.parallel([
             Animated.timing(translateX, {

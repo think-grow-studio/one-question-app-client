@@ -9,6 +9,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useHistoryStore } from '../stores/useHistoryStore';
 import { useQuestionHistories } from '../hooks/queries/useQuestionQueries';
+import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 import { Button } from '@/shared/ui/Button';
 import { useAccentColors } from '@/shared/theme';
 import { fs, sp, radius, cs, SCREEN, SHEET_HEIGHTS, SHEET_MAX_WIDTH } from '@/utils/responsive';
@@ -53,6 +54,9 @@ export function DatePickerSheet() {
     45, // 한 달 + 여유분
     { enabled: isDatePickerVisible }
   );
+
+  // 회원 정보 조회 (joinedDate 제한용)
+  const { data: member } = useMemberMe();
 
   // 히스토리 데이터를 날짜별 맵으로 변환
   const historyMap = useMemo(() => {
@@ -289,6 +293,17 @@ export function DatePickerSheet() {
   };
 
   const goToPrevMonth = () => {
+    // joinedDate 이전 월로 이동 불가
+    if (member?.joinedDate) {
+      const [joinedYear, joinedMonth] = member.joinedDate.split('-').map(Number);
+      const prevMonth = viewMonth === 0 ? 11 : viewMonth - 1;
+      const prevYear = viewMonth === 0 ? viewYear - 1 : viewYear;
+
+      if (prevYear < joinedYear || (prevYear === joinedYear && prevMonth < joinedMonth - 1)) {
+        return;
+      }
+    }
+
     if (viewMonth === 0) {
       setViewMonth(11);
       setViewYear(viewYear - 1);
@@ -319,6 +334,15 @@ export function DatePickerSheet() {
   const isNextDisabled =
     viewYear > today.getFullYear() ||
     (viewYear === today.getFullYear() && viewMonth >= today.getMonth());
+
+  // 이전 달 버튼 비활성화 여부 (joinedDate 기준)
+  const isPrevDisabled = useMemo(() => {
+    if (!member?.joinedDate) return false;
+    const [joinedYear, joinedMonth] = member.joinedDate.split('-').map(Number);
+    const prevMonth = viewMonth === 0 ? 11 : viewMonth - 1;
+    const prevYear = viewMonth === 0 ? viewYear - 1 : viewYear;
+    return prevYear < joinedYear || (prevYear === joinedYear && prevMonth < joinedMonth - 1);
+  }, [member?.joinedDate, viewYear, viewMonth]);
 
   // 달력 데이터 생성
   const generateCalendarDays = () => {
@@ -362,6 +386,15 @@ export function DatePickerSheet() {
     return getDateString(day) > todayStr;
   };
 
+  const isBeforeJoinDate = (day: number) => {
+    if (!member?.joinedDate) return false;
+    return getDateString(day) < member.joinedDate;
+  };
+
+  const isDateDisabled = (day: number) => {
+    return isFutureDate(day) || isBeforeJoinDate(day);
+  };
+
   const isSelected = (day: number) => {
     return getDateString(day) === previewDate;
   };
@@ -403,8 +436,8 @@ export function DatePickerSheet() {
 
           {/* Month Navigation */}
           <XStack ai="center" jc="space-between" px="$5" pb="$4">
-            <Pressable onPress={goToPrevMonth} hitSlop={12}>
-              <Text style={themedStyles.navArrow}>{'<'}</Text>
+            <Pressable onPress={goToPrevMonth} hitSlop={12} disabled={isPrevDisabled}>
+              <Text style={[themedStyles.navArrow, isPrevDisabled && themedStyles.navArrowDisabled]}>{'<'}</Text>
             </Pressable>
             <XStack ai="center" gap="$2">
               <Paragraph fontSize={fs(20)} fontWeight="700" letterSpacing={-0.3} color="$color">
@@ -440,8 +473,8 @@ export function DatePickerSheet() {
               <View key={index} style={[styles.dayCell, responsiveStyles.dayCell]}>
                 {day !== null && (
                   <Pressable
-                    onPress={() => !isFutureDate(day) && handleDayPress(getDateString(day))}
-                    disabled={isFutureDate(day)}
+                    onPress={() => !isDateDisabled(day) && handleDayPress(getDateString(day))}
+                    disabled={isDateDisabled(day)}
                     style={[
                       styles.dayButton,
                       responsiveStyles.dayButton,
@@ -454,7 +487,7 @@ export function DatePickerSheet() {
                       themedStyles.dayText,
                       index % 7 === 0 && themedStyles.sundayText,
                       index % 7 === 6 && themedStyles.saturdayText,
-                      isFutureDate(day) && themedStyles.dayTextDisabled,
+                      isDateDisabled(day) && themedStyles.dayTextDisabled,
                       isSelected(day) && themedStyles.dayTextSelected,
                       isCurrentDate(day) && !isSelected(day) && themedStyles.dayTextCurrent,
                       isToday(day) && !isSelected(day) && !isCurrentDate(day) && themedStyles.dayTextCurrent,
