@@ -1,6 +1,8 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import * as Localization from 'expo-localization';
 import { config } from '@/constants/config';
 import { storage } from './storage';
+import i18n from '@/locales';
 import { useApiErrorStore } from '@/stores/useApiErrorStore';
 import { ApiErrorResponse } from '@/types/api';
 
@@ -13,13 +15,23 @@ export const apiClient = axios.create({
   },
 });
 
-// Request Interceptor - 토큰 주입
+// Request Interceptor - 토큰, Locale, Timezone 주입
 apiClient.interceptors.request.use(
   async (requestConfig: InternalAxiosRequestConfig) => {
+    // 토큰 주입
     const token = await storage.getAccessToken();
     if (token) {
       requestConfig.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Locale 주입 (i18n 현재 언어 사용)
+    requestConfig.headers['Accept-Language'] = i18n.language;
+
+    // Timezone 주입
+    requestConfig.headers['Timezone'] =
+      Localization.getCalendars()[0]?.timeZone ??
+      Intl.DateTimeFormat().resolvedOptions().timeZone;
+
     return requestConfig;
   },
   (error) => Promise.reject(error)
