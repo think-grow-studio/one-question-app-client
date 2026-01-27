@@ -1,0 +1,26 @@
+{
+  "app": {
+    "name": "Daily Question"
+  },
+  "buttons": {
+    "cancel": "Cancel",
+    "confirm": "OK",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit"
+  },
+  "status": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "preparing": "Preparing",
+    "comingSoon": "Coming Soon"
+  },
+  "tabs": {
+    "home": "Home",
+    "settings": "Settings"
+  },
+  "error": {
+    "title": "Error",
+    "unknown": "An unknown error occurred."
+  }
+}

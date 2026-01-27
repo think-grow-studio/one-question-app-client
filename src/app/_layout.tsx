@@ -10,6 +10,7 @@ import { queryClient } from '@/services/queryClient';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { ThemeTransitionProvider } from '@/shared/ui/ThemeTransitionProvider';
 import '@/locales'; // i18n 초기화
+import { GlobalErrorHandler } from '@/shared/error/GlobalErrorHandler';
 
 export default function RootLayout() {
   const { mode } = useThemeStore();
@@ -52,6 +53,7 @@ export default function RootLayout() {
                   }}
                 />
               </Stack>
+              <GlobalErrorHandler />
             </QueryClientProvider>
           </ThemeTransitionProvider>
         </Theme>
