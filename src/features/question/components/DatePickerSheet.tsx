@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import { Modal, Pressable, StyleSheet, View, Text, PanResponder, BackHandler } from 'react-native';
+import { Modal, Pressable, StyleSheet, View, Text, PanResponder, BackHandler, ActivityIndicator } from 'react-native';
 import { YStack, XStack, Paragraph, useTheme } from 'tamagui';
 import Animated, {
   useSharedValue,
@@ -8,9 +8,11 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { useHistoryStore } from '../stores/useHistoryStore';
+import { useQuestionHistories } from '../hooks/queries/useQuestionQueries';
 import { Button } from '@/shared/ui/Button';
 import { useAccentColors } from '@/shared/theme';
 import { fs, sp, radius, cs, SCREEN, SHEET_HEIGHTS, SHEET_MAX_WIDTH } from '@/utils/responsive';
+import type { QuestionHistoryItemDto } from '@/types/api';
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 const MAX_WEEKS = 6;
@@ -19,7 +21,7 @@ const DISMISS_THRESHOLD = 100;
 export function DatePickerSheet() {
   const theme = useTheme();
   const accent = useAccentColors();
-  const { isDatePickerVisible, setIsDatePickerVisible, history, currentDate, setCurrentDate } =
+  const { isDatePickerVisible, setIsDatePickerVisible, currentDate, setCurrentDate } =
     useHistoryStore();
 
   // Responsive values (static)
@@ -38,6 +40,30 @@ export function DatePickerSheet() {
 
   // 선택한 날짜 (미리보기용) - 기본값은 현재 보고 있는 날짜
   const [previewDate, setPreviewDate] = useState<string>(currentDate);
+
+  // API: 현재 보고 있는 달의 히스토리 데이터 가져오기
+  // 달의 중간 날짜를 기준으로 BOTH 방향으로 가져옴
+  const baseDate = useMemo(() => {
+    return `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-15`;
+  }, [viewYear, viewMonth]);
+
+  const { data: historyData, isLoading: isHistoryLoading } = useQuestionHistories(
+    baseDate,
+    'BOTH',
+    45, // 한 달 + 여유분
+    { enabled: isDatePickerVisible }
+  );
+
+  // 히스토리 데이터를 날짜별 맵으로 변환
+  const historyMap = useMemo(() => {
+    const map = new Map<string, QuestionHistoryItemDto>();
+    if (historyData?.histories) {
+      historyData.histories.forEach((item) => {
+        map.set(item.date, item);
+      });
+    }
+    return map;
+  }, [historyData]);
 
   // Animation state
   const translateY = useSharedValue(SHEET_HEIGHT);
@@ -318,17 +344,18 @@ export function DatePickerSheet() {
     return `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
   };
 
-  const getQuestionItem = (dateStr: string) => {
-    return history.find((h) => h.date === dateStr) || null;
+  const getHistoryItem = (dateStr: string) => {
+    return historyMap.get(dateStr) || null;
   };
 
   const hasAnswer = (day: number) => {
-    const item = getQuestionItem(getDateString(day));
-    return item?.answer ? true : false;
+    const item = getHistoryItem(getDateString(day));
+    return item?.status === 'ANSWERED';
   };
 
   const hasQuestion = (day: number) => {
-    return getQuestionItem(getDateString(day)) !== null;
+    const item = getHistoryItem(getDateString(day));
+    return item?.status === 'ANSWERED' || item?.status === 'UNANSWERED';
   };
 
   const isFutureDate = (day: number) => {
@@ -348,7 +375,7 @@ export function DatePickerSheet() {
   };
 
   // 미리보기 데이터
-  const previewItem = getQuestionItem(previewDate);
+  const previewItem = getHistoryItem(previewDate);
 
   const formatPreviewDate = (dateStr: string) => {
     const [year, month, day] = dateStr.split('-').map(Number);
@@ -379,9 +406,14 @@ export function DatePickerSheet() {
             <Pressable onPress={goToPrevMonth} hitSlop={12}>
               <Text style={themedStyles.navArrow}>{'<'}</Text>
             </Pressable>
-            <Paragraph fontSize={fs(20)} fontWeight="700" letterSpacing={-0.3} color="$color">
-              {viewYear}년 {viewMonth + 1}월
-            </Paragraph>
+            <XStack ai="center" gap="$2">
+              <Paragraph fontSize={fs(20)} fontWeight="700" letterSpacing={-0.3} color="$color">
+                {viewYear}년 {viewMonth + 1}월
+              </Paragraph>
+              {isHistoryLoading && (
+                <ActivityIndicator size="small" color={theme.colorMuted?.val} />
+              )}
+            </XStack>
             <Pressable onPress={goToNextMonth} hitSlop={12} disabled={isNextDisabled}>
               <Text style={[themedStyles.navArrow, isNextDisabled && themedStyles.navArrowDisabled]}>{'>'}</Text>
             </Pressable>
@@ -468,19 +500,19 @@ export function DatePickerSheet() {
                     styles.answeredBadge,
                     responsiveStyles.answeredBadge,
                     themedStyles.answeredBadge,
-                    !previewItem?.answer && styles.badgeHidden,
+                    previewItem?.status !== 'ANSWERED' && styles.badgeHidden,
                   ]}>
                     <Text style={[styles.answeredBadgeText, responsiveStyles.answeredBadgeText]}>답변 완료</Text>
                   </View>
                 </XStack>
 
                 <View style={[styles.previewContent, responsiveStyles.previewContent]}>
-                  {previewItem ? (
+                  {previewItem?.question ? (
                     <Text
                       style={themedStyles.previewText}
                       numberOfLines={2}
                     >
-                      {previewItem.question}
+                      {previewItem.question.content}
                     </Text>
                   ) : (
                     <Text style={themedStyles.previewEmpty}>

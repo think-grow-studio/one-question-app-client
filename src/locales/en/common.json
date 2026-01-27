@@ -7,7 +7,8 @@
     "confirm": "OK",
     "save": "Save",
     "delete": "Delete",
-    "edit": "Edit"
+    "edit": "Edit",
+    "retry": "Retry"
   },
   "status": {
     "loading": "Loading...",
@@ -22,5 +23,8 @@
   "error": {
     "title": "Error",
     "unknown": "An unknown error occurred."
+  },
+  "errors": {
+    "loadFailed": "Failed to load data."
   }
 }

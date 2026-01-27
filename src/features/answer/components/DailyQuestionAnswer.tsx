@@ -19,6 +19,7 @@ import { AlertDialog, AlertDialogButton } from '@/shared/ui/AlertDialog';
 import { CloseIcon } from '@/shared/icons/CloseIcon';
 import { useAccentColors } from '@/shared/theme';
 import { useAppReviewPrompt } from '../hooks/useAppReviewPrompt';
+import { useCreateAnswer, useUpdateAnswer } from '@/features/question/hooks/mutations/useQuestionMutations';
 
 interface QuestionData {
   date: string;
@@ -47,6 +48,10 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
     handleAccept,
     closePrePrompt,
   } = useAppReviewPrompt();
+
+  // API Mutations
+  const createAnswerMutation = useCreateAnswer();
+  const updateAnswerMutation = useUpdateAnswer();
 
   // 답변 초기값: 수정 모드면 기존 답변, 아니면 빈 문자열
   const [answer, setAnswer] = useState(() => (isEditMode && data.existingAnswer ? data.existingAnswer : ''));
@@ -87,25 +92,32 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
   }, [answer, isEditMode, isDirty]);
 
   const isSubmitEnabled = answer.trim().length > 0;
+  const isPending = createAnswerMutation.isPending || updateAnswerMutation.isPending;
 
-  const handleSubmit = () => {
-    if (!isSubmitEnabled) return;
+  const handleSubmit = async () => {
+    if (!isSubmitEnabled || isPending) return;
 
-    // 새 답변 작성시에만 카운트 (수정 모드 제외)
-    if (!isEditMode) {
-      onAnswerSubmitted(); // 비동기로 실행, await 하지 않음
+    try {
+      if (isEditMode) {
+        await updateAnswerMutation.mutateAsync({ date: data.date, answer: answer.trim() });
+      } else {
+        await createAnswerMutation.mutateAsync({ date: data.date, answer: answer.trim() });
+        onAnswerSubmitted(); // 새 답변 작성시에만 카운트
+      }
+
+      // 성공 메시지 표시
+      const title = isEditMode ? t('answer:submitEdit') : t('answer:submit');
+      const message = isEditMode ? t('answer:editSuccess') : t('answer:submitSuccess');
+
+      setAlertConfig({
+        visible: true,
+        title,
+        message,
+        buttons: [{ label: t('common:buttons.confirm'), variant: 'primary', onPress: () => router.back() }],
+      });
+    } catch {
+      // 에러는 전역 에러 핸들러에서 처리됨
     }
-
-    // 수정 모드와 생성 모드에 따라 다른 메시지 표시
-    const title = isEditMode ? t('answer:submitEdit') : t('answer:submit');
-    const message = isEditMode ? t('answer:editSuccess') : t('answer:submitSuccess');
-
-    setAlertConfig({
-      visible: true,
-      title,
-      message,
-      buttons: [{ label: t('common:buttons.confirm'), variant: 'primary', onPress: () => router.back() }],
-    });
   };
 
   const closeAlert = () => {
@@ -207,6 +219,7 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
                     placeholder={t('answer:placeholder')}
                     placeholderTextColor={theme.colorMuted?.val}
                     textAlignVertical="top"
+                    editable={!isPending}
                   />
                   <Text style={cardStyles.charCount}>
                     {t('answer:charCount', { count: answer.length })}
@@ -221,18 +234,22 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
             <Pressable
               style={[
                 cardStyles.submitButton,
-                isSubmitEnabled ? cardStyles.submitButtonEnabled : cardStyles.submitButtonDisabled,
+                isSubmitEnabled && !isPending ? cardStyles.submitButtonEnabled : cardStyles.submitButtonDisabled,
               ]}
               onPress={handleSubmit}
-              disabled={!isSubmitEnabled}
+              disabled={!isSubmitEnabled || isPending}
             >
               <Text
                 style={[
                   cardStyles.submitButtonText,
-                  isSubmitEnabled ? cardStyles.submitTextEnabled : cardStyles.submitTextDisabled,
+                  isSubmitEnabled && !isPending ? cardStyles.submitTextEnabled : cardStyles.submitTextDisabled,
                 ]}
               >
-                {isEditMode ? t('answer:submitEdit') : t('answer:submit')}
+                {isPending
+                  ? t('common:status.loading')
+                  : isEditMode
+                    ? t('answer:submitEdit')
+                    : t('answer:submit')}
               </Text>
             </Pressable>
           </View>

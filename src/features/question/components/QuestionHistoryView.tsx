@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
-import { StyleSheet, Pressable, View, Text, PanResponder, Animated } from 'react-native';
+import { StyleSheet, Pressable, View, Text, PanResponder, Animated, ActivityIndicator } from 'react-native';
 import { YStack, XStack, Paragraph, useTheme } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -12,6 +12,8 @@ import { EditIcon } from '@/shared/icons/EditIcon';
 import { ReloadIcon } from '@/shared/icons/ReloadIcon';
 import { useQuestionCardStyles } from '@/shared/ui/QuestionCard';
 import { useHistoryStore } from '../stores/useHistoryStore';
+import { useDailyQuestion, useQuestionHistories } from '../hooks/queries/useQuestionQueries';
+import { useReloadQuestion } from '../hooks/mutations/useQuestionMutations';
 import { DatePickerSheet } from './DatePickerSheet';
 import { ReloadOptionSheet } from '@/features/answer/components/ReloadOptionSheet';
 import { SCREEN } from '@/utils/responsive';
@@ -22,24 +24,51 @@ export function QuestionHistoryView() {
   const router = useRouter();
   const theme = useTheme();
   const { t } = useTranslation(['question', 'common']);
-  const {
-    currentDate,
-    setCurrentDate,
-    getQuestionByDate,
-    getReloadCount,
-    setIsDatePickerVisible,
-    addQuestion,
-    decrementReloadCount,
-  } = useHistoryStore();
+  const { currentDate, setCurrentDate, setIsDatePickerVisible } = useHistoryStore();
   const cardStyles = useQuestionCardStyles();
   const [isAlertVisible, setIsAlertVisible] = useState(false);
   const [isReloadSheetVisible, setIsReloadSheetVisible] = useState(false);
 
-  const reloadCount = getReloadCount(currentDate);
+  // API Hooks
+  const {
+    data: dailyQuestion,
+    isLoading: isQuestionLoading,
+    isError: isQuestionError,
+    refetch: refetchQuestion,
+  } = useDailyQuestion(currentDate);
 
-  const randomQuestions = t('random', { returnObjects: true }) as { question: string; description?: string }[];
+  // 현재 날짜의 히스토리 데이터 (답변 정보 포함)
+  const { data: historyData, isLoading: isHistoryLoading, refetch: refetchHistory } = useQuestionHistories(
+    currentDate,
+    'BOTH',
+    1 // 현재 날짜만 가져옴
+  );
 
-  const currentItem = getQuestionByDate(currentDate);
+  const handleRetry = () => {
+    refetchQuestion();
+    refetchHistory();
+  };
+
+  const reloadMutation = useReloadQuestion();
+
+  // 현재 날짜의 히스토리에서 답변 정보 추출
+  const currentHistory = historyData?.histories?.find((h) => h.date === currentDate);
+
+  // 현재 질문/답변 데이터 (API 응답 기반)
+  const currentItem = dailyQuestion
+    ? {
+        question: dailyQuestion.content,
+        description: dailyQuestion.description,
+        answer: currentHistory?.answer?.content,
+        answeredAt: currentHistory?.answer?.answeredAt,
+        reloadCount: dailyQuestion.changeCount,
+      }
+    : null;
+
+  const isLoading = isQuestionLoading || isHistoryLoading;
+  const isError = isQuestionError;
+  const reloadCount = currentItem?.reloadCount ?? 0;
+
   const translateX = useRef(new Animated.Value(0)).current;
   const opacity = useRef(new Animated.Value(1)).current;
   const isAnimating = useRef(false);
@@ -198,8 +227,8 @@ export function QuestionHistoryView() {
   };
 
   const handleDrawRandomQuestion = () => {
-    const randomItem = randomQuestions[Math.floor(Math.random() * randomQuestions.length)];
-    addQuestion(currentDate, randomItem.question, randomItem.description);
+    // TODO: 이 기능은 reload API를 사용하도록 변경
+    setIsAlertVisible(true);
   };
 
   const handleDrawYearAgoQuestion = () => {
@@ -213,9 +242,7 @@ export function QuestionHistoryView() {
 
   const handleRandomQuestion = () => {
     if (reloadCount > 0) {
-      const randomItem = randomQuestions[Math.floor(Math.random() * randomQuestions.length)];
-      addQuestion(currentDate, randomItem.question, randomItem.description);
-      decrementReloadCount(currentDate);
+      reloadMutation.mutate(currentDate);
     }
   };
 
@@ -238,6 +265,49 @@ export function QuestionHistoryView() {
       },
     });
   };
+
+  // 로딩 상태
+  if (isLoading) {
+    return (
+      <YStack flex={1}>
+        <ScreenHeader
+          title={formatDate(currentDate)}
+          rightIcon={<CalendarIcon size={28} color={theme.color?.val} />}
+          onRightPress={handleOpenDatePicker}
+          rightButtonStyle="plain"
+        />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.color?.val} />
+        </View>
+        <DatePickerSheet />
+      </YStack>
+    );
+  }
+
+  // 에러 상태
+  if (isError) {
+    return (
+      <YStack flex={1}>
+        <ScreenHeader
+          title={formatDate(currentDate)}
+          rightIcon={<CalendarIcon size={28} color={theme.color?.val} />}
+          onRightPress={handleOpenDatePicker}
+          rightButtonStyle="plain"
+        />
+        <View style={styles.errorContainer}>
+          <Text style={[styles.errorText, { color: theme.error?.val }]}>
+            {t('common:errors.loadFailed')}
+          </Text>
+          <Button
+            label={t('common:buttons.retry')}
+            onPress={handleRetry}
+            accessibilityLabel={t('common:buttons.retry')}
+          />
+        </View>
+        <DatePickerSheet />
+      </YStack>
+    );
+  }
 
   return (
     <YStack flex={1}>
@@ -277,9 +347,12 @@ export function QuestionHistoryView() {
                           onPress={handleReloadPress}
                           style={cardStyles.reloadButton}
                           hitSlop={8}
-                          disabled={reloadCount === 0}
+                          disabled={reloadCount === 0 || reloadMutation.isPending}
                         >
-                          <ReloadIcon size={18} color={reloadCount > 0 ? theme.color?.val : theme.colorMuted?.val} />
+                          <ReloadIcon
+                            size={18}
+                            color={reloadCount > 0 ? theme.color?.val : theme.colorMuted?.val}
+                          />
                         </Pressable>
                       </XStack>
                     )}
@@ -319,7 +392,7 @@ export function QuestionHistoryView() {
                         </Pressable>
                       </XStack>
                       <Text style={[cardStyles.writtenDateText, { marginTop: 0, marginBottom: 12 }]}>
-                        {t('writtenDate', { date: formatDate(currentDate) })}
+                        {t('writtenDate', { date: currentItem.answeredAt ? formatDate(currentItem.answeredAt.split('T')[0]) : formatDate(currentDate) })}
                       </Text>
                       <Text style={cardStyles.answerText}>{currentItem.answer}</Text>
                     </>
@@ -340,16 +413,10 @@ export function QuestionHistoryView() {
               <MailIcon size={140} color={theme.colorSubtle?.val} />
               <Text style={cardStyles.emptyText}>{t('empty.noQuestion')}</Text>
               <View style={styles.emptyButtonsContainer}>
-                <Pressable
-                  style={cardStyles.emptyButton}
-                  onPress={handleDrawRandomQuestion}
-                >
+                <Pressable style={cardStyles.emptyButton} onPress={handleDrawRandomQuestion}>
                   <Text style={cardStyles.emptyButtonText}>{t('empty.drawQuestion')}</Text>
                 </Pressable>
-                <Pressable
-                  style={cardStyles.emptyButton}
-                  onPress={handleDrawYearAgoQuestion}
-                >
+                <Pressable style={cardStyles.emptyButton} onPress={handleDrawYearAgoQuestion}>
                   <Text style={cardStyles.emptyButtonText}>{t('empty.yearAgo')}</Text>
                 </Pressable>
               </View>
@@ -434,5 +501,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
     marginTop: 8,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+    paddingHorizontal: 24,
+  },
+  errorText: {
+    fontSize: 16,
+    textAlign: 'center',
   },
 });
