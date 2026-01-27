@@ -7,9 +7,13 @@ import koCommon from './ko/common.json';
 import koQuestion from './ko/question.json';
 import koAnswer from './ko/answer.json';
 import koSettings from './ko/settings.json';
+import koAuth from './ko/auth.json';
 
 // Import English translations
+import enCommon from './en/common.json';
 import enAnswer from './en/answer.json';
+import enSettings from './en/settings.json';
+import enAuth from './en/auth.json';
 
 const resources = {
   ko: {
@@ -17,9 +21,13 @@ const resources = {
     question: koQuestion,
     answer: koAnswer,
     settings: koSettings,
+    auth: koAuth,
   },
   en: {
+    common: enCommon,
     answer: enAnswer,
+    settings: enSettings,
+    auth: enAuth,
   },
 };
 

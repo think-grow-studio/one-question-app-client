@@ -26,5 +26,9 @@
     "title": "앱 정보",
     "version": "버전",
     "language": "언어"
+  },
+  "account": {
+    "title": "계정",
+    "logout": "로그아웃"
   }
 }

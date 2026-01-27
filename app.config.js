@@ -43,6 +43,7 @@ export default {
     plugins: [
       'expo-router',
       'expo-localization',
+      'expo-web-browser',
       [
         'expo-splash-screen',
         {
@@ -72,6 +73,10 @@ export default {
       // Environment variables (can be accessed via expo-constants)
       apiUrl: process.env.API_URL || 'https://api.example.com',
       environment: process.env.NODE_ENV || 'development',
+      // Google OAuth Client IDs
+      googleClientIdWeb: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB,
+      googleClientIdIos: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS,
+      googleClientIdAndroid: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_ANDROID,
       eas: {
         projectId: 'd2581480-0979-4cc5-9dac-01c48af69bf2',
       },

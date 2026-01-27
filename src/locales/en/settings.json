@@ -1,0 +1,34 @@
+{
+  "title": "Settings",
+  "appearance": {
+    "title": "Appearance",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "darkMode": "Dark Mode",
+    "lightMode": "Light Mode",
+    "darkModeDescription": "Reduce eye strain with dark background",
+    "lightModeDescription": "Improve readability with light background"
+  },
+  "notification": {
+    "title": "Notifications",
+    "sectionTitle": "Notification Settings",
+    "description": "Get reminded at your preferred time daily",
+    "time": "Notification Time",
+    "done": "Done",
+    "am": "AM",
+    "pm": "PM",
+    "pushTitle": "One Question",
+    "pushBody": "Answer today's question."
+  },
+  "appInfo": {
+    "title": "App Info",
+    "version": "Version",
+    "language": "Language"
+  },
+  "account": {
+    "title": "Account",
+    "logout": "Log Out"
+  }
+}

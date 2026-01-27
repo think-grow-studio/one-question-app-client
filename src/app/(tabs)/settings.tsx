@@ -1,4 +1,4 @@
-import { View } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
 import { YStack, useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { Screen } from '@/shared/layout/Screen';
@@ -6,10 +6,16 @@ import { Text } from '@/shared/ui/Text';
 import { ThemeToggle } from '@/features/settings/components/ThemeToggle';
 import { AccentColorPicker } from '@/features/settings/components/AccentColorPicker';
 import { NotificationSettings } from '@/features/settings/components/NotificationSettings';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 export default function SettingsScreen() {
   const theme = useTheme();
   const { t } = useTranslation('settings');
+  const { logout } = useAuthStore();
+
+  const handleLogout = async () => {
+    await logout();
+  };
 
   return (
     <Screen>
@@ -70,8 +76,38 @@ export default function SettingsScreen() {
               </View>
             </YStack>
           </YStack>
+
+          {/* Account Section */}
+          <YStack gap="$2" mt="$4">
+            <Text variant="caption" muted px="$1">
+              {t('account.title')}
+            </Text>
+            <Pressable
+              onPress={handleLogout}
+              style={({ pressed }) => [
+                styles.logoutButton,
+                {
+                  backgroundColor: theme.backgroundSoft?.val,
+                  opacity: pressed ? 0.7 : 1,
+                },
+              ]}
+            >
+              <Text variant="body" color="$red10">
+                {t('account.logout')}
+              </Text>
+            </Pressable>
+          </YStack>
         </YStack>
       </YStack>
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  logoutButton: {
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+});
