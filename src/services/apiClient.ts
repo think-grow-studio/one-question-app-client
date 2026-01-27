@@ -4,7 +4,7 @@ import { config } from '@/constants/config';
 import { storage } from './storage';
 import i18n from '@/locales';
 import { useApiErrorStore } from '@/stores/useApiErrorStore';
-import { ApiErrorResponse } from '@/types/api';
+import { ApiErrorResponse, AuthResponse } from '@/types/api';
 
 // Axios 인스턴스 생성
 export const apiClient = axios.create({
@@ -24,8 +24,9 @@ apiClient.interceptors.request.use(
       requestConfig.headers.Authorization = `Bearer ${token}`;
     }
 
-    // Locale 주입 (i18n 현재 언어 사용)
-    requestConfig.headers['Accept-Language'] = i18n.language;
+    // Locale 주입 (ko-KR 형식 사용)
+    requestConfig.headers['Accept-Language'] =
+      Localization.getLocales()[0]?.languageTag ?? i18n.language;
 
     // Timezone 주입
     requestConfig.headers['Timezone'] =
@@ -37,26 +38,51 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response Interceptor - 에러 처리 + 팝업 표시
+// Response Interceptor - 에러 처리 + 토큰 자동 갱신
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<ApiErrorResponse>) => {
-    const originalRequest = error.config;
+    const originalRequest = error.config as InternalAxiosRequestConfig & {
+      _retry?: boolean;
+    };
 
-    // 401 처리 (토큰 만료)
-    if (error.response?.status === 401 && originalRequest) {
-      // TODO: Token refresh 로직 구현
-      // const newToken = await authService.refreshAccessToken();
-      // if (newToken) {
-      //   originalRequest.headers.Authorization = `Bearer ${newToken}`;
-      //   return apiClient(originalRequest);
-      // }
+    // 401 처리 (토큰 만료) - reissue-token 요청은 제외
+    if (
+      error.response?.status === 401 &&
+      originalRequest &&
+      !originalRequest._retry &&
+      !originalRequest.url?.includes('/auth/reissue-token')
+    ) {
+      originalRequest._retry = true;
+
+      try {
+        const refreshToken = await storage.getRefreshToken();
+        if (refreshToken) {
+          // apiClient 대신 axios 직접 사용 (인터셉터 무한 루프 방지)
+          const response = await axios.post<AuthResponse>(
+            `${config.apiUrl}/api/v1/auth/reissue-token`,
+            { refreshToken },
+            { headers: { 'Content-Type': 'application/json' } }
+          );
+
+          const { accessToken, refreshToken: newRefreshToken } = response.data;
+          await storage.setAccessToken(accessToken);
+          await storage.setRefreshToken(newRefreshToken);
+
+          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+          return apiClient(originalRequest);
+        }
+      } catch {
+        // 리프레시 실패 -> 토큰 삭제
+        await storage.clearTokens();
+      }
     }
 
     // 서버에서 전달한 에러 메시지 사용 (fallback: 기본 메시지)
-    const errorMessage = error.response?.data?.message
-      || error.message
-      || '알 수 없는 오류가 발생했습니다.';
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      '알 수 없는 오류가 발생했습니다.';
 
     // 전역 에러 스토어를 통해 팝업 표시
     useApiErrorStore.getState().showError(errorMessage);
