@@ -4,6 +4,7 @@ import { requestAppReview } from '@/services/appReview';
 
 export function useAppReviewPrompt() {
   const [showPrePrompt, setShowPrePrompt] = useState(false);
+  const [isButtonsDisabled, setIsButtonsDisabled] = useState(false);
   const { incrementAnswerCount, shouldShowReviewPrompt, setReviewStatus } =
     useAppReviewStore();
 
@@ -11,34 +12,43 @@ export function useAppReviewPrompt() {
     incrementAnswerCount();
 
     if (shouldShowReviewPrompt()) {
-      setTimeout(() => setShowPrePrompt(true), 500);
+      setTimeout(() => {
+        setShowPrePrompt(true);
+        setIsButtonsDisabled(true);
+        setTimeout(() => setIsButtonsDisabled(false), 500);
+      }, 500);
     }
   }, [incrementAnswerCount, shouldShowReviewPrompt]);
 
   const handleLater = useCallback(() => {
+    if (isButtonsDisabled) return;
     setReviewStatus('postponed');
     setShowPrePrompt(false);
-  }, [setReviewStatus]);
+  }, [setReviewStatus, isButtonsDisabled]);
 
   const handleDecline = useCallback(() => {
+    if (isButtonsDisabled) return;
     setReviewStatus('declined');
     setShowPrePrompt(false);
-  }, [setReviewStatus]);
+  }, [setReviewStatus, isButtonsDisabled]);
 
   const handleAccept = useCallback(async () => {
+    if (isButtonsDisabled) return;
     setShowPrePrompt(false);
     const success = await requestAppReview();
     if (success) {
       setReviewStatus('completed');
     }
-  }, [setReviewStatus]);
+  }, [setReviewStatus, isButtonsDisabled]);
 
   const closePrePrompt = useCallback(() => {
+    if (isButtonsDisabled) return;
     setShowPrePrompt(false);
-  }, []);
+  }, [isButtonsDisabled]);
 
   return {
     showPrePrompt,
+    isButtonsDisabled,
     onAnswerSubmitted,
     handleLater,
     handleDecline,
