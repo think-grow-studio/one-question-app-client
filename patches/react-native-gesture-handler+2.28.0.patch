@@ -2,25 +2,7 @@ diff --git a/node_modules/react-native-gesture-handler/android/build.gradle b/no
 index ac149a0..7a31d09 100644
 --- a/node_modules/react-native-gesture-handler/android/build.gradle
 +++ b/node_modules/react-native-gesture-handler/android/build.gradle
-@@ -82,15 +82,8 @@ def getExternalLibVersion(project){
- 
- // Check whether Reanimated 2.3 or higher is installed alongside Gesture Handler
- def shouldUseCommonInterfaceFromReanimated() {
--    def reanimated = rootProject.subprojects.find { it.name == 'react-native-reanimated' }
--
--    if (reanimated == null) {
--        return false
--    }
--
--    def (major, minor, patch) = getExternalLibVersion(reanimated)
--    
--    return (major == 2 && minor >= 3) || major >= 3
-+    // Disabled to avoid circular dependency with reanimated
-+    return false
- }
- 
- def shouldUseCommonInterfaceFromRNSVG() {
-@@ -236,7 +229,7 @@ dependencies {
+@@ -236,7 +236,7 @@ dependencies {
  
      if (shouldUseCommonInterfaceFromReanimated()) {
          // Include Reanimated as dependency to load the common interface
