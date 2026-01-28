@@ -25,7 +25,10 @@ export const useHistoryStore = create<HistoryStore>((set, get) => ({
   currentDate: new Date().toISOString().split('T')[0], // 'YYYY-MM-DD' 형식
   history: [],
   isDatePickerVisible: false,
-  setCurrentDate: (date) => set({ currentDate: date }),
+  setCurrentDate: (date) => {
+    console.log('[useHistoryStore] setCurrentDate called:', date, new Error().stack);
+    set({ currentDate: date });
+  },
   setIsDatePickerVisible: (visible) => set({ isDatePickerVisible: visible }),
   getQuestionByDate: (date) => {
     const { history } = get();

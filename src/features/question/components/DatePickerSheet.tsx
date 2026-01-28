@@ -59,7 +59,7 @@ export function DatePickerSheet() {
     { enabled: isDatePickerVisible }
   );
 
-  // 회원 정보 조회 (joinedDate 제한용)
+  // 회원 정보 조회 (cycleStartDate 제한용)
   const { data: member } = useMemberMe();
 
   // 히스토리 데이터를 날짜별 맵으로 변환
@@ -93,9 +93,15 @@ export function DatePickerSheet() {
     backdropOpacity.value = withTiming(0.5, { duration: 250 });
   }, [translateY, backdropOpacity]);
 
+  // 시트가 "처음 열릴 때만" openSheet 호출하도록 중복 호출 방지
+  const wasVisibleRef = useRef(false);
+
   useEffect(() => {
-    if (isDatePickerVisible) {
+    if (isDatePickerVisible && !wasVisibleRef.current) {
+      wasVisibleRef.current = true;
       openSheet();
+    } else if (!isDatePickerVisible) {
+      wasVisibleRef.current = false;
     }
   }, [isDatePickerVisible, openSheet]);
 
@@ -306,8 +312,8 @@ export function DatePickerSheet() {
       return;
     }
 
-    // 가입일 이전이면 오류 메시지 표시 (이동 안함)
-    if (isBeforeJoinDate(day)) {
+    // cycleStartDate 이전이면 오류 메시지 표시 (이동 안함)
+    if (isBeforeCycleStartDate(day)) {
       if (!joinDateError) {
         setJoinDateError(true);
       }
@@ -318,15 +324,18 @@ export function DatePickerSheet() {
   };
 
   const goToPrevMonth = () => {
-    // joinedDate 이전 월로 이동 불가
-    if (member?.joinedDate) {
-      const [joinedYear, joinedMonth] = member.joinedDate.split('-').map(Number);
-      const prevMonth = viewMonth === 0 ? 11 : viewMonth - 1;
-      const prevYear = viewMonth === 0 ? viewYear - 1 : viewYear;
+    // cycleStartDate가 없으면 (로딩 중이거나 오류) 이동 불가
+    if (!member?.cycleStartDate) {
+      return;
+    }
 
-      if (prevYear < joinedYear || (prevYear === joinedYear && prevMonth < joinedMonth - 1)) {
-        return;
-      }
+    // cycleStartDate 이전 월로 이동 불가
+    const [cycleStartYear, cycleStartMonth] = member.cycleStartDate.split('-').map(Number);
+    const prevMonth = viewMonth === 0 ? 11 : viewMonth - 1;
+    const prevYear = viewMonth === 0 ? viewYear - 1 : viewYear;
+
+    if (prevYear < cycleStartYear || (prevYear === cycleStartYear && prevMonth < cycleStartMonth - 1)) {
+      return;
     }
 
     if (viewMonth === 0) {
@@ -360,14 +369,15 @@ export function DatePickerSheet() {
     viewYear > today.getFullYear() ||
     (viewYear === today.getFullYear() && viewMonth >= today.getMonth());
 
-  // 이전 달 버튼 비활성화 여부 (joinedDate 기준)
+  // 이전 달 버튼 비활성화 여부 (cycleStartDate 기준)
   const isPrevDisabled = useMemo(() => {
-    if (!member?.joinedDate) return false;
-    const [joinedYear, joinedMonth] = member.joinedDate.split('-').map(Number);
+    // cycleStartDate가 없으면 (로딩 중이거나 오류) 안전하게 비활성화
+    if (!member?.cycleStartDate) return true;
+    const [cycleStartYear, cycleStartMonth] = member.cycleStartDate.split('-').map(Number);
     const prevMonth = viewMonth === 0 ? 11 : viewMonth - 1;
     const prevYear = viewMonth === 0 ? viewYear - 1 : viewYear;
-    return prevYear < joinedYear || (prevYear === joinedYear && prevMonth < joinedMonth - 1);
-  }, [member?.joinedDate, viewYear, viewMonth]);
+    return prevYear < cycleStartYear || (prevYear === cycleStartYear && prevMonth < cycleStartMonth - 1);
+  }, [member?.cycleStartDate, viewYear, viewMonth]);
 
   // 달력 데이터 생성
   const generateCalendarDays = () => {
@@ -411,13 +421,14 @@ export function DatePickerSheet() {
     return getDateString(day) > todayStr;
   };
 
-  const isBeforeJoinDate = (day: number) => {
-    if (!member?.joinedDate) return false;
-    return getDateString(day) < member.joinedDate;
+  const isBeforeCycleStartDate = (day: number) => {
+    // cycleStartDate가 없으면 (로딩 중이거나 오류) 안전하게 true 반환 → 선택 불가
+    if (!member?.cycleStartDate) return true;
+    return getDateString(day) < member.cycleStartDate;
   };
 
   const isDateDisabled = (day: number) => {
-    return isFutureDate(day) || isBeforeJoinDate(day);
+    return isFutureDate(day) || isBeforeCycleStartDate(day);
   };
 
   const isSelected = (day: number) => {
@@ -434,6 +445,9 @@ export function DatePickerSheet() {
 
   // 미리보기 데이터
   const previewItem = getHistoryItem(previewDate);
+
+  // previewDate가 cycleStartDate 이전인지 확인 (이동 버튼 비활성화용)
+  const isPreviewBeforeCycleStartDate = !member?.cycleStartDate || previewDate < member.cycleStartDate;
 
   const formatPreviewDate = (dateStr: string) => {
     const [year, month, day] = dateStr.split('-').map(Number);
@@ -583,6 +597,7 @@ export function DatePickerSheet() {
                   <Button
                     label="이 날짜로 이동"
                     onPress={handleNavigateToDate}
+                    disabled={isPreviewBeforeCycleStartDate}
                     accessibilityLabel={`${formatPreviewDate(previewDate)}로 이동`}
                   />
                 </View>

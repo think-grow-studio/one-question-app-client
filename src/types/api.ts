@@ -58,6 +58,7 @@ export interface GetMemberResponse {
   permission: MemberPermission;
   status: MemberStatus;
   joinedDate: string;
+  cycleStartDate: string;
 }
 
 export interface UpdateMemberRequest {

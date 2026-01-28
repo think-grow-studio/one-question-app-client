@@ -12,7 +12,10 @@ export const questionQueryKeys = {
 export function useDailyQuestion(date: string, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: questionQueryKeys.daily(date),
-    queryFn: () => questionApi.getDailyQuestion(date).then((res) => res.data),
+    queryFn: () => {
+      console.log('[useDailyQuestion] API 호출 날짜:', date);
+      return questionApi.serveDailyQuestion(date).then((res) => res.data);
+    },
     staleTime: 1000 * 60 * 5, // 5분
     enabled: options?.enabled ?? true,
   });
@@ -29,7 +32,15 @@ export function useQuestionHistories(
     queryFn: () =>
       questionApi
         .getHistories({ baseDate, historyDirection: direction, size })
-        .then((res) => res.data),
+        .then((res) => {
+          console.log('[useQuestionHistories] API Response:', {
+            baseDate,
+            direction,
+            size,
+            data: res.data,
+          });
+          return res.data;
+        }),
     staleTime: 1000 * 60 * 5, // 5분
     enabled: options?.enabled ?? true,
   });

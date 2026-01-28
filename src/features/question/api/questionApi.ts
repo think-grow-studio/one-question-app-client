@@ -18,7 +18,7 @@ export async function fetchQuestionCategories(): Promise<QuestionCategory[]> {
 
 // Question API
 export const questionApi = {
-  getDailyQuestion: (date: string) =>
+  serveDailyQuestion: (date: string) =>
     apiClient.get<ServeDailyQuestionResponse>(`/api/v1/questions/daily/${date}`),
 
   reloadDailyQuestion: (date: string) =>

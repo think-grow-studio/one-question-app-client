@@ -12,8 +12,8 @@ import { EditIcon } from '@/shared/icons/EditIcon';
 import { ReloadIcon } from '@/shared/icons/ReloadIcon';
 import { useQuestionCardStyles } from '@/shared/ui/QuestionCard';
 import { useHistoryStore } from '../stores/useHistoryStore';
-import { useDailyQuestion, useQuestionHistories } from '../hooks/queries/useQuestionQueries';
-import { useReloadQuestion } from '../hooks/mutations/useQuestionMutations';
+import { useQuestionHistories } from '../hooks/queries/useQuestionQueries';
+import { useServeDailyQuestion, useReloadQuestion } from '../hooks/mutations/useQuestionMutations';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 import { DatePickerSheet } from './DatePickerSheet';
 import { ReloadOptionSheet } from '@/features/answer/components/ReloadOptionSheet';
@@ -30,8 +30,15 @@ export function QuestionHistoryView() {
   const [isAlertVisible, setIsAlertVisible] = useState(false);
   const [isReloadSheetVisible, setIsReloadSheetVisible] = useState(false);
 
-  // 사용자가 질문을 선택했는지 여부 (랜덤질문 버튼 클릭 시 true)
-  const [hasSelectedQuestion, setHasSelectedQuestion] = useState(false);
+  // 컴포넌트 마운트 시 오늘 날짜로 초기화
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0];
+    console.log('[QuestionHistoryView] Initializing currentDate to today:', today);
+    setCurrentDate(today);
+  }, []); // 마운트 시 1회만 실행
+
+  // currentDate 변경 로그
+  console.log('[QuestionHistoryView] currentDate:', currentDate);
 
   // 현재 날짜의 히스토리 데이터 (답변 정보 포함)
   const { data: historyData, isLoading: isHistoryLoading, refetch: refetchHistory } = useQuestionHistories(
@@ -40,24 +47,19 @@ export function QuestionHistoryView() {
     1 // 현재 날짜만 가져옴
   );
 
-  // API Hooks - 랜덤질문 클릭 시에만 API 호출
-  const {
-    data: dailyQuestion,
-    isLoading: isQuestionLoading,
-    isError: isQuestionError,
-    refetch: refetchQuestion,
-  } = useDailyQuestion(currentDate, {
-    enabled: hasSelectedQuestion,
+  // Mutations
+  const serveDailyQuestionMutation = useServeDailyQuestion({
+    onSuccess: () => {
+      refetchHistory();
+    },
   });
+  const reloadMutation = useReloadQuestion();
 
   const handleRetry = () => {
-    refetchQuestion();
     refetchHistory();
   };
 
-  const reloadMutation = useReloadQuestion();
-
-  // 회원 정보 조회 (joinedDate 제한용)
+  // 회원 정보 조회 (cycleStartDate 제한용)
   const { data: member } = useMemberMe();
 
   // 현재 날짜의 히스토리에서 질문/답변 정보 추출
@@ -75,15 +77,15 @@ export function QuestionHistoryView() {
     : null;
 
   // 히스토리 로딩 중이거나, 랜덤질문 요청 중일 때 로딩 표시
-  const isLoading = isHistoryLoading || (hasSelectedQuestion && isQuestionLoading);
-  const isError = hasSelectedQuestion && isQuestionError;
+  const isLoading = isHistoryLoading || serveDailyQuestionMutation.isPending;
+  const isError = serveDailyQuestionMutation.isError;
   const reloadCount = currentItem?.reloadCount ?? 0;
 
   const translateX = useRef(new Animated.Value(0)).current;
   const opacity = useRef(new Animated.Value(1)).current;
   const isAnimating = useRef(false);
   const currentDateRef = useRef(currentDate);
-  const memberJoinedDateRef = useRef(member?.joinedDate);
+  const memberCycleStartDateRef = useRef(member?.cycleStartDate);
   const canGoToPreviousDayRef = useRef<() => boolean>(() => true);
 
   // currentDate가 바뀔 때마다 ref 동기화
@@ -91,24 +93,10 @@ export function QuestionHistoryView() {
     currentDateRef.current = currentDate;
   }, [currentDate]);
 
-  // 날짜 변경 시 선택 상태 초기화
+  // member.cycleStartDate가 바뀔 때마다 ref 동기화
   useEffect(() => {
-    if (isHistoryLoading) return;
-    setHasSelectedQuestion(false);
-  }, [currentDate, isHistoryLoading]);
-
-  // member.joinedDate가 바뀔 때마다 ref 동기화
-  useEffect(() => {
-    memberJoinedDateRef.current = member?.joinedDate;
-  }, [member?.joinedDate]);
-
-  // 랜덤질문 성공 시 히스토리 refetch 후 선택 상태 리셋
-  useEffect(() => {
-    if (dailyQuestion && hasSelectedQuestion) {
-      refetchHistory();
-      setHasSelectedQuestion(false);
-    }
-  }, [dailyQuestion, hasSelectedQuestion, refetchHistory]);
+    memberCycleStartDateRef.current = member?.cycleStartDate;
+  }, [member?.cycleStartDate]);
 
   // 날짜 변경 시 슬라이드 인 + Fade In 애니메이션
   useEffect(() => {
@@ -130,10 +118,14 @@ export function QuestionHistoryView() {
   }, [currentDate]);
 
   const goToPreviousDay = () => {
-    const joinedDate = memberJoinedDateRef.current;
+    const cycleStartDate = memberCycleStartDateRef.current;
 
-    // joinedDate가 없으면 (로드 중이거나 없음) 이전으로 이동 불가
-    if (!joinedDate) {
+    // cycleStartDate가 없으면 (로드 중이거나 없음) 이전으로 이동 불가
+    if (!cycleStartDate) {
+      // 애니메이션 값 원복
+      translateX.setValue(0);
+      opacity.setValue(1);
+      isAnimating.current = false;
       return;
     }
 
@@ -141,8 +133,12 @@ export function QuestionHistoryView() {
     const prevDate = new Date(year, month - 1, day - 1);
     const prevDateStr = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}-${String(prevDate.getDate()).padStart(2, '0')}`;
 
-    // joinedDate 이전으로 이동 불가
-    if (prevDateStr < joinedDate) {
+    // cycleStartDate 이전으로 이동 불가
+    if (prevDateStr < cycleStartDate) {
+      // 애니메이션 값 원복
+      translateX.setValue(0);
+      opacity.setValue(1);
+      isAnimating.current = false;
       return;
     }
 
@@ -150,10 +146,10 @@ export function QuestionHistoryView() {
   };
 
   const canGoToPreviousDay = () => {
-    const joinedDate = memberJoinedDateRef.current;
+    const cycleStartDate = memberCycleStartDateRef.current;
 
-    // joinedDate가 없으면 (로드 중이거나 없음) 이전으로 이동 불가
-    if (!joinedDate) {
+    // cycleStartDate가 없으면 (로드 중이거나 없음) 이전으로 이동 불가
+    if (!cycleStartDate) {
       return false;
     }
 
@@ -161,7 +157,7 @@ export function QuestionHistoryView() {
     const prevDate = new Date(year, month - 1, day - 1);
     const prevDateStr = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}-${String(prevDate.getDate()).padStart(2, '0')}`;
 
-    if (prevDateStr < joinedDate) {
+    if (prevDateStr < cycleStartDate) {
       return false;
     }
     return true;
@@ -182,6 +178,11 @@ export function QuestionHistoryView() {
 
     if (nextDateStr <= todayStr) {
       setCurrentDate(nextDateStr);
+    } else {
+      // 오늘 이후로 이동 불가 - 애니메이션 값 원복
+      translateX.setValue(0);
+      opacity.setValue(1);
+      isAnimating.current = false;
     }
   };
 
@@ -304,8 +305,7 @@ export function QuestionHistoryView() {
   };
 
   const handleDrawRandomQuestion = () => {
-    // hasSelectedQuestion을 true로 설정하면 useDailyQuestion이 활성화되어 API 호출
-    setHasSelectedQuestion(true);
+    serveDailyQuestionMutation.mutate(currentDate);
   };
 
   const handleDrawYearAgoQuestion = () => {
@@ -343,34 +343,20 @@ export function QuestionHistoryView() {
     });
   };
 
-  // 로딩 상태
-  if (isLoading) {
-    return (
-      <YStack flex={1}>
-        <ScreenHeader
-          title={formatDate(currentDate)}
-          rightIcon={<CalendarIcon size={28} color={theme.color?.val} />}
-          onRightPress={handleOpenDatePicker}
-          rightButtonStyle="plain"
-        />
+  // 내부 콘텐츠 렌더링 함수
+  const renderContent = () => {
+    // 로딩 상태
+    if (isLoading) {
+      return (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.color?.val} />
         </View>
-        <DatePickerSheet />
-      </YStack>
-    );
-  }
+      );
+    }
 
-  // 에러 상태
-  if (isError) {
-    return (
-      <YStack flex={1}>
-        <ScreenHeader
-          title={formatDate(currentDate)}
-          rightIcon={<CalendarIcon size={28} color={theme.color?.val} />}
-          onRightPress={handleOpenDatePicker}
-          rightButtonStyle="plain"
-        />
+    // 에러 상태
+    if (isError) {
+      return (
         <View style={styles.errorContainer}>
           <Text style={[styles.errorText, { color: theme.error?.val }]}>
             {t('common:errors.loadFailed')}
@@ -381,10 +367,107 @@ export function QuestionHistoryView() {
             accessibilityLabel={t('common:buttons.retry')}
           />
         </View>
-        <DatePickerSheet />
-      </YStack>
+      );
+    }
+
+    // 정상 상태 - 질문이 있는 경우
+    if (currentItem) {
+      return (
+        <View style={styles.contentWrapper}>
+          <View style={[cardStyles.card, cardStyles.cardFull]}>
+            <View style={styles.questionSection}>
+              <XStack ai="center" jc="space-between" mb="$3">
+                <Text style={cardStyles.labelText}>{t('labels.question')}</Text>
+                {/* 답변이 없을 때만 reload 버튼 표시 */}
+                {!currentItem.answer && (
+                  <XStack ai="center" gap="$2">
+                    <View style={cardStyles.reloadCountBadge}>
+                      <Text style={cardStyles.reloadCountText}>{reloadCount}</Text>
+                    </View>
+                    <Pressable
+                      onPress={handleReloadPress}
+                      style={cardStyles.reloadButton}
+                      hitSlop={8}
+                      disabled={reloadCount === 0 || reloadMutation.isPending}
+                    >
+                      <ReloadIcon
+                        size={18}
+                        color={reloadCount > 0 ? theme.color?.val : theme.colorMuted?.val}
+                      />
+                    </Pressable>
+                  </XStack>
+                )}
+              </XStack>
+              <Text
+                style={cardStyles.questionText}
+                numberOfLines={2}
+                adjustsFontSizeToFit
+                minimumFontScale={0.8}
+              >
+                {currentItem.question}
+              </Text>
+              {currentItem.description && (
+                <Text
+                  style={cardStyles.questionDescription}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.85}
+                >
+                  {currentItem.description}
+                </Text>
+              )}
+            </View>
+
+            {/* Answer Section - 항상 동일한 레이아웃 유지 */}
+            <View style={cardStyles.divider} />
+            <View style={styles.answerSection}>
+              {currentItem.answer ? (
+                <>
+                  <XStack ai="center" jc="space-between" mb="$2">
+                    <Text style={cardStyles.labelText}>{t('labels.answer')}</Text>
+                    <Pressable onPress={handleEditAnswer} style={styles.editButton} hitSlop={8}>
+                      <EditIcon size={14} color={theme.colorMuted?.val} />
+                      <Text style={[styles.editButtonText, { color: theme.colorMuted?.val }]}>
+                        {t('actions.edit')}
+                      </Text>
+                    </Pressable>
+                  </XStack>
+                  <Text style={[cardStyles.writtenDateText, { marginTop: 0, marginBottom: 12 }]}>
+                    {t('writtenDate', { date: currentItem.answeredAt ? formatDate(currentItem.answeredAt.split('T')[0]) : formatDate(currentDate) })}
+                  </Text>
+                  <Text style={cardStyles.answerText}>{currentItem.answer}</Text>
+                </>
+              ) : (
+                <View style={styles.noAnswerContainer}>
+                  <Button
+                    label={t('actions.goToAnswer')}
+                    onPress={handleGoToAnswer}
+                    accessibilityLabel={t('actions.goToAnswer')}
+                  />
+                </View>
+              )}
+            </View>
+          </View>
+        </View>
+      );
+    }
+
+    // 정상 상태 - 질문이 없는 경우 (빈 상태)
+    return (
+      <View style={styles.emptyState}>
+        <MailIcon size={140} color={theme.colorSubtle?.val} />
+        <Text style={cardStyles.emptyText}>{t('empty.noQuestion')}</Text>
+        <View style={styles.emptyButtonsContainer}>
+          <Pressable style={cardStyles.emptyButton} onPress={handleDrawRandomQuestion}>
+            <Text style={cardStyles.emptyButtonText}>{t('empty.drawQuestion')}</Text>
+          </Pressable>
+          <Pressable style={cardStyles.emptyButton} onPress={handleDrawYearAgoQuestion}>
+            <Text style={cardStyles.emptyButtonText}>{t('empty.yearAgo')}</Text>
+          </Pressable>
+        </View>
+      </View>
     );
-  }
+  };
 
   return (
     <YStack flex={1}>
@@ -396,7 +479,7 @@ export function QuestionHistoryView() {
         rightButtonStyle="plain"
       />
 
-      {/* Swipeable Card */}
+      {/* Swipeable Card - Animated.View는 항상 렌더링 */}
       <View style={styles.cardContainer}>
         <Animated.View
           style={[
@@ -408,97 +491,7 @@ export function QuestionHistoryView() {
           ]}
           {...panResponder.panHandlers}
         >
-          {currentItem ? (
-            <View style={styles.contentWrapper}>
-              <View style={[cardStyles.card, cardStyles.cardFull]}>
-                <View style={styles.questionSection}>
-                  <XStack ai="center" jc="space-between" mb="$3">
-                    <Text style={cardStyles.labelText}>{t('labels.question')}</Text>
-                    {/* 답변이 없을 때만 reload 버튼 표시 */}
-                    {!currentItem.answer && (
-                      <XStack ai="center" gap="$2">
-                        <View style={cardStyles.reloadCountBadge}>
-                          <Text style={cardStyles.reloadCountText}>{reloadCount}</Text>
-                        </View>
-                        <Pressable
-                          onPress={handleReloadPress}
-                          style={cardStyles.reloadButton}
-                          hitSlop={8}
-                          disabled={reloadCount === 0 || reloadMutation.isPending}
-                        >
-                          <ReloadIcon
-                            size={18}
-                            color={reloadCount > 0 ? theme.color?.val : theme.colorMuted?.val}
-                          />
-                        </Pressable>
-                      </XStack>
-                    )}
-                  </XStack>
-                  <Text
-                    style={cardStyles.questionText}
-                    numberOfLines={2}
-                    adjustsFontSizeToFit
-                    minimumFontScale={0.8}
-                  >
-                    {currentItem.question}
-                  </Text>
-                  {currentItem.description && (
-                    <Text
-                      style={cardStyles.questionDescription}
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.85}
-                    >
-                      {currentItem.description}
-                    </Text>
-                  )}
-                </View>
-
-                {/* Answer Section - 항상 동일한 레이아웃 유지 */}
-                <View style={cardStyles.divider} />
-                <View style={styles.answerSection}>
-                  {currentItem.answer ? (
-                    <>
-                      <XStack ai="center" jc="space-between" mb="$2">
-                        <Text style={cardStyles.labelText}>{t('labels.answer')}</Text>
-                        <Pressable onPress={handleEditAnswer} style={styles.editButton} hitSlop={8}>
-                          <EditIcon size={14} color={theme.colorMuted?.val} />
-                          <Text style={[styles.editButtonText, { color: theme.colorMuted?.val }]}>
-                            {t('actions.edit')}
-                          </Text>
-                        </Pressable>
-                      </XStack>
-                      <Text style={[cardStyles.writtenDateText, { marginTop: 0, marginBottom: 12 }]}>
-                        {t('writtenDate', { date: currentItem.answeredAt ? formatDate(currentItem.answeredAt.split('T')[0]) : formatDate(currentDate) })}
-                      </Text>
-                      <Text style={cardStyles.answerText}>{currentItem.answer}</Text>
-                    </>
-                  ) : (
-                    <View style={styles.noAnswerContainer}>
-                      <Button
-                        label={t('actions.goToAnswer')}
-                        onPress={handleGoToAnswer}
-                        accessibilityLabel={t('actions.goToAnswer')}
-                      />
-                    </View>
-                  )}
-                </View>
-              </View>
-            </View>
-          ) : (
-            <View style={styles.emptyState}>
-              <MailIcon size={140} color={theme.colorSubtle?.val} />
-              <Text style={cardStyles.emptyText}>{t('empty.noQuestion')}</Text>
-              <View style={styles.emptyButtonsContainer}>
-                <Pressable style={cardStyles.emptyButton} onPress={handleDrawRandomQuestion}>
-                  <Text style={cardStyles.emptyButtonText}>{t('empty.drawQuestion')}</Text>
-                </Pressable>
-                <Pressable style={cardStyles.emptyButton} onPress={handleDrawYearAgoQuestion}>
-                  <Text style={cardStyles.emptyButtonText}>{t('empty.yearAgo')}</Text>
-                </Pressable>
-              </View>
-            </View>
-          )}
+          {renderContent()}
         </Animated.View>
       </View>
 

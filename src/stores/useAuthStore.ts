@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { storage } from '@/services/storage';
+import { queryClient } from '@/services/queryClient';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -32,6 +33,7 @@ export const useAuthStore = create<AuthState>()((set) => ({
 
   logout: async () => {
     await storage.clearTokens();
+    queryClient.clear(); // 모든 캐시 데이터 삭제
     set({ isAuthenticated: false });
   },
 }));

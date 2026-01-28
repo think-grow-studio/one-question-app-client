@@ -2,6 +2,19 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { questionApi } from '../../api/questionApi';
 import { questionQueryKeys } from '../queries/useQuestionQueries';
 
+export function useServeDailyQuestion(options?: { onSuccess?: () => void }) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (date: string) => questionApi.serveDailyQuestion(date).then((res) => res.data),
+    onSuccess: (_, date) => {
+      // 히스토리 캐시 무효화하여 새 질문이 반영되도록
+      queryClient.invalidateQueries({ queryKey: questionQueryKeys.all });
+      options?.onSuccess?.();
+    },
+  });
+}
+
 export function useReloadQuestion() {
   const queryClient = useQueryClient();
 
