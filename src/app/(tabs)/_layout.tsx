@@ -5,11 +5,15 @@ import { useTranslation } from 'react-i18next';
 import { HomeIcon } from '@/shared/icons/HomeIcon';
 import { SettingsIcon } from '@/shared/icons/SettingsIcon';
 import { useAccentColors } from '@/shared/theme';
+import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 
 export default function TabLayout() {
   const theme = useTheme();
   const accent = useAccentColors();
   const { t } = useTranslation();
+
+  // member 데이터 prefetch (하위 화면에서 캐시된 데이터 사용)
+  useMemberMe();
 
   return (
     <Tabs

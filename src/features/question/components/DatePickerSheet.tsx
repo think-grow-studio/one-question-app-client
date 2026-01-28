@@ -11,6 +11,7 @@ import { useHistoryStore } from '../stores/useHistoryStore';
 import { useQuestionHistories } from '../hooks/queries/useQuestionQueries';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 import { Button } from '@/shared/ui/Button';
+import { AlertDialog } from '@/shared/ui/AlertDialog';
 import { useAccentColors } from '@/shared/theme';
 import { fs, sp, radius, cs, SCREEN, SHEET_HEIGHTS, SHEET_MAX_WIDTH } from '@/utils/responsive';
 import type { QuestionHistoryItemDto } from '@/types/api';
@@ -41,6 +42,9 @@ export function DatePickerSheet() {
 
   // 선택한 날짜 (미리보기용) - 기본값은 현재 보고 있는 날짜
   const [previewDate, setPreviewDate] = useState<string>(currentDate);
+
+  // 가입일 이전 날짜 클릭 시 오류 메시지 상태
+  const [joinDateError, setJoinDateError] = useState(false);
 
   // API: 현재 보고 있는 달의 히스토리 데이터 가져오기
   // 달의 중간 날짜를 기준으로 BOTH 방향으로 가져옴
@@ -84,6 +88,7 @@ export function DatePickerSheet() {
   }, [setIsDatePickerVisible, translateY, backdropOpacity, SHEET_HEIGHT]);
 
   const openSheet = useCallback(() => {
+    setJoinDateError(false); // 시트 열 때 오류 상태 초기화
     translateY.value = withTiming(0, { duration: 280 });
     backdropOpacity.value = withTiming(0.5, { duration: 250 });
   }, [translateY, backdropOpacity]);
@@ -292,6 +297,26 @@ export function DatePickerSheet() {
     setPreviewDate(dateStr);
   };
 
+  // 가입일 이전 날짜 클릭 시 오류 메시지 표시 (1번만)
+  const handleDayPressWithValidation = (day: number) => {
+    const dateStr = getDateString(day);
+
+    // 미래 날짜는 disabled로 처리되므로 무시
+    if (isFutureDate(day)) {
+      return;
+    }
+
+    // 가입일 이전이면 오류 메시지 표시 (이동 안함)
+    if (isBeforeJoinDate(day)) {
+      if (!joinDateError) {
+        setJoinDateError(true);
+      }
+      return;
+    }
+
+    handleDayPress(dateStr);
+  };
+
   const goToPrevMonth = () => {
     // joinedDate 이전 월로 이동 불가
     if (member?.joinedDate) {
@@ -473,8 +498,8 @@ export function DatePickerSheet() {
               <View key={index} style={[styles.dayCell, responsiveStyles.dayCell]}>
                 {day !== null && (
                   <Pressable
-                    onPress={() => !isDateDisabled(day) && handleDayPress(getDateString(day))}
-                    disabled={isDateDisabled(day)}
+                    onPress={() => handleDayPressWithValidation(day)}
+                    disabled={isFutureDate(day)}
                     style={[
                       styles.dayButton,
                       responsiveStyles.dayButton,
@@ -565,6 +590,14 @@ export function DatePickerSheet() {
           </View>
         </YStack>
       </Animated.View>
+
+      <AlertDialog
+        visible={joinDateError}
+        title="이동 불가"
+        message="가입일 이전 날짜로는 이동할 수 없습니다."
+        buttons={[{ label: '확인', variant: 'primary' }]}
+        onClose={() => setJoinDateError(false)}
+      />
     </Modal>
   );
 }

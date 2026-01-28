@@ -84,6 +84,7 @@ export function QuestionHistoryView() {
   const isAnimating = useRef(false);
   const currentDateRef = useRef(currentDate);
   const memberJoinedDateRef = useRef(member?.joinedDate);
+  const canGoToPreviousDayRef = useRef<() => boolean>(() => true);
 
   // currentDate가 바뀔 때마다 ref 동기화
   useEffect(() => {
@@ -129,12 +130,19 @@ export function QuestionHistoryView() {
   }, [currentDate]);
 
   const goToPreviousDay = () => {
+    const joinedDate = memberJoinedDateRef.current;
+
+    // joinedDate가 없으면 (로드 중이거나 없음) 이전으로 이동 불가
+    if (!joinedDate) {
+      return;
+    }
+
     const [year, month, day] = currentDateRef.current.split('-').map(Number);
     const prevDate = new Date(year, month - 1, day - 1);
     const prevDateStr = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}-${String(prevDate.getDate()).padStart(2, '0')}`;
 
     // joinedDate 이전으로 이동 불가
-    if (memberJoinedDateRef.current && prevDateStr < memberJoinedDateRef.current) {
+    if (prevDateStr < joinedDate) {
       return;
     }
 
@@ -142,15 +150,25 @@ export function QuestionHistoryView() {
   };
 
   const canGoToPreviousDay = () => {
+    const joinedDate = memberJoinedDateRef.current;
+
+    // joinedDate가 없으면 (로드 중이거나 없음) 이전으로 이동 불가
+    if (!joinedDate) {
+      return false;
+    }
+
     const [year, month, day] = currentDateRef.current.split('-').map(Number);
     const prevDate = new Date(year, month - 1, day - 1);
     const prevDateStr = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}-${String(prevDate.getDate()).padStart(2, '0')}`;
 
-    if (memberJoinedDateRef.current && prevDateStr < memberJoinedDateRef.current) {
+    if (prevDateStr < joinedDate) {
       return false;
     }
     return true;
   };
+
+  // canGoToPreviousDay 함수를 ref에 저장 (PanResponder 클로저 문제 해결)
+  canGoToPreviousDayRef.current = canGoToPreviousDay;
 
   const goToNextDay = () => {
     // 현재 날짜 문자열에서 다음 날 계산
@@ -220,7 +238,7 @@ export function QuestionHistoryView() {
         } else if (gestureState.dx > SWIPE_THRESHOLD) {
           // 오른쪽으로 스와이프 -> 이전 날
           // joinedDate 이전으로 이동 불가
-          if (!canGoToPreviousDay()) {
+          if (!canGoToPreviousDayRef.current()) {
             Animated.spring(translateX, {
               toValue: 0,
               useNativeDriver: true,
