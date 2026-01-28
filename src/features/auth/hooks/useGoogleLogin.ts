@@ -1,39 +1,45 @@
 import { useMutation } from '@tanstack/react-query';
-import * as Google from 'expo-auth-session/providers/google';
-import * as WebBrowser from 'expo-web-browser';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import {
+  GoogleSignin,
+  isSuccessResponse,
+  isErrorWithCode,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
+import Constants from 'expo-constants';
 import { authApi } from '@/features/auth/api/authApi';
 import { useAuthStore } from '@/stores/useAuthStore';
-import Constants from 'expo-constants';
+import { GoogleAuthRequest } from '@/types/api';
 
-// Expo Go에서 OAuth 리다이렉트 처리를 위해 필요
-WebBrowser.maybeCompleteAuthSession();
-
-// 환경 변수에서 Client ID 가져오기
-const getGoogleClientIds = () => {
+// Google Sign-In 설정
+const configureGoogleSignIn = () => {
   const expoConfig = Constants.expoConfig;
   const extra = expoConfig?.extra || {};
 
-  return {
-    webClientId: extra.googleClientIdWeb || process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB,
-    iosClientId: extra.googleClientIdIos || process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS,
-    androidClientId: extra.googleClientIdAndroid || process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_ANDROID,
-  };
+  // Web Client ID는 idToken을 받기 위해 필요 (백엔드 검증용)
+  const webClientId =
+    extra.googleClientIdWeb || process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB;
+
+  GoogleSignin.configure({
+    webClientId,
+    offlineAccess: true, // refresh token 획득
+    scopes: ['email', 'profile'],
+  });
 };
 
 export function useGoogleLogin() {
   const { login } = useAuthStore();
-  const clientIds = getGoogleClientIds();
+  const [isReady, setIsReady] = useState(false);
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    webClientId: clientIds.webClientId,
-    iosClientId: clientIds.iosClientId,
-    androidClientId: clientIds.androidClientId,
-  });
+  // 컴포넌트 마운트 시 Google Sign-In 설정
+  useEffect(() => {
+    configureGoogleSignIn();
+    setIsReady(true);
+  }, []);
 
   const mutation = useMutation({
-    mutationFn: async (idToken: string) => {
-      const { data } = await authApi.googleLogin({ idToken });
+    mutationFn: async (params: GoogleAuthRequest) => {
+      const { data } = await authApi.googleLogin(params);
       return data;
     },
     onSuccess: async (data) => {
@@ -41,26 +47,54 @@ export function useGoogleLogin() {
     },
   });
 
-  // OAuth 응답 처리
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const { authentication } = response;
-      if (authentication?.idToken) {
-        mutation.mutate(authentication.idToken);
+  const handleLogin = async () => {
+    try {
+      // Google Play Services 확인 (Android)
+      await GoogleSignin.hasPlayServices();
+
+      // Google Sign-In 실행
+      const response = await GoogleSignin.signIn();
+
+      if (isSuccessResponse(response)) {
+        const { idToken, user } = response.data;
+
+        if (idToken) {
+          mutation.mutate({
+            idToken,
+            email: user.email,
+            name: user.name ?? undefined,
+          });
+        }
+      }
+    } catch (error) {
+      if (isErrorWithCode(error)) {
+        switch (error.code) {
+          case statusCodes.IN_PROGRESS:
+            // 이미 로그인 진행 중
+            console.log('Sign in is in progress');
+            break;
+          case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
+            // Google Play Services 사용 불가
+            console.log('Play services not available');
+            break;
+          case statusCodes.SIGN_IN_CANCELLED:
+            // 사용자가 취소
+            console.log('Sign in cancelled');
+            break;
+          default:
+            console.log('Google Sign-In error:', error.code, error.message);
+        }
+      } else {
+        console.log('Unknown error during Google Sign-In:', error);
       }
     }
-  }, [response]);
-
-  const handleLogin = () => {
-    promptAsync();
   };
 
   return {
     mutate: handleLogin,
-    isPending: mutation.isPending || (response?.type === 'success' && mutation.isPending),
+    isPending: mutation.isPending,
     isError: mutation.isError,
     error: mutation.error,
-    isReady: !!request,
+    isReady,
   };
 }

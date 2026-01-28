@@ -84,8 +84,11 @@ apiClient.interceptors.response.use(
       error.message ||
       '알 수 없는 오류가 발생했습니다.';
 
-    // 전역 에러 스토어를 통해 팝업 표시
-    useApiErrorStore.getState().showError(errorMessage);
+    // 401 에러는 팝업 표시하지 않음 (로그인 필요 상태에서 불필요한 팝업 방지)
+    // 다른 에러(400, 500 등)는 기존대로 팝업 표시
+    if (error.response?.status !== 401) {
+      useApiErrorStore.getState().showError(errorMessage);
+    }
 
     // 에러 정규화 후 reject
     const normalizedError: ApiErrorResponse = {

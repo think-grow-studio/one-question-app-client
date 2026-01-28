@@ -24,7 +24,7 @@ export default {
       supportsTablet: true,
       bundleIdentifier: 'com.onequestion.app',
       buildNumber: APP_VERSIONS.ios.buildNumber,
-      // 실제 빌드 시 version은 APP_VERSIONS.ios.version 사용
+      // Google Sign-In URL scheme은 @react-native-google-signin plugin이 자동 처리
     },
     android: {
       adaptiveIcon: {
@@ -44,6 +44,12 @@ export default {
       'expo-router',
       'expo-localization',
       'expo-web-browser',
+      [
+        '@react-native-google-signin/google-signin',
+        {
+          iosUrlScheme: `com.googleusercontent.apps.${(process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS || '').split('.')[0]}`,
+        },
+      ],
       [
         'expo-splash-screen',
         {
