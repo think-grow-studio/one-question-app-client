@@ -30,13 +30,8 @@ export function QuestionHistoryView() {
   const [isAlertVisible, setIsAlertVisible] = useState(false);
   const [isReloadSheetVisible, setIsReloadSheetVisible] = useState(false);
 
-  // API Hooks
-  const {
-    data: dailyQuestion,
-    isLoading: isQuestionLoading,
-    isError: isQuestionError,
-    refetch: refetchQuestion,
-  } = useDailyQuestion(currentDate);
+  // 사용자가 질문을 선택했는지 여부 (랜덤질문 버튼 클릭 시 true)
+  const [hasSelectedQuestion, setHasSelectedQuestion] = useState(false);
 
   // 현재 날짜의 히스토리 데이터 (답변 정보 포함)
   const { data: historyData, isLoading: isHistoryLoading, refetch: refetchHistory } = useQuestionHistories(
@@ -44,6 +39,16 @@ export function QuestionHistoryView() {
     'BOTH',
     1 // 현재 날짜만 가져옴
   );
+
+  // API Hooks - 랜덤질문 클릭 시에만 API 호출
+  const {
+    data: dailyQuestion,
+    isLoading: isQuestionLoading,
+    isError: isQuestionError,
+    refetch: refetchQuestion,
+  } = useDailyQuestion(currentDate, {
+    enabled: hasSelectedQuestion,
+  });
 
   const handleRetry = () => {
     refetchQuestion();
@@ -55,22 +60,23 @@ export function QuestionHistoryView() {
   // 회원 정보 조회 (joinedDate 제한용)
   const { data: member } = useMemberMe();
 
-  // 현재 날짜의 히스토리에서 답변 정보 추출
+  // 현재 날짜의 히스토리에서 질문/답변 정보 추출
   const currentHistory = historyData?.histories?.find((h) => h.date === currentDate);
 
-  // 현재 질문/답변 데이터 (API 응답 기반)
-  const currentItem = dailyQuestion
+  // 현재 질문/답변 데이터 (히스토리 기반)
+  const currentItem = currentHistory?.question
     ? {
-        question: dailyQuestion.content,
-        description: dailyQuestion.description,
-        answer: currentHistory?.answer?.content,
-        answeredAt: currentHistory?.answer?.answeredAt,
-        reloadCount: dailyQuestion.changeCount,
+        question: currentHistory.question.content,
+        description: currentHistory.question.description,
+        answer: currentHistory.answer?.content,
+        answeredAt: currentHistory.answer?.answeredAt,
+        reloadCount: currentHistory.question.changeCount,
       }
     : null;
 
-  const isLoading = isQuestionLoading || isHistoryLoading;
-  const isError = isQuestionError;
+  // 히스토리 로딩 중이거나, 랜덤질문 요청 중일 때 로딩 표시
+  const isLoading = isHistoryLoading || (hasSelectedQuestion && isQuestionLoading);
+  const isError = hasSelectedQuestion && isQuestionError;
   const reloadCount = currentItem?.reloadCount ?? 0;
 
   const translateX = useRef(new Animated.Value(0)).current;
@@ -84,10 +90,24 @@ export function QuestionHistoryView() {
     currentDateRef.current = currentDate;
   }, [currentDate]);
 
+  // 날짜 변경 시 선택 상태 초기화
+  useEffect(() => {
+    if (isHistoryLoading) return;
+    setHasSelectedQuestion(false);
+  }, [currentDate, isHistoryLoading]);
+
   // member.joinedDate가 바뀔 때마다 ref 동기화
   useEffect(() => {
     memberJoinedDateRef.current = member?.joinedDate;
   }, [member?.joinedDate]);
+
+  // 랜덤질문 성공 시 히스토리 refetch 후 선택 상태 리셋
+  useEffect(() => {
+    if (dailyQuestion && hasSelectedQuestion) {
+      refetchHistory();
+      setHasSelectedQuestion(false);
+    }
+  }, [dailyQuestion, hasSelectedQuestion, refetchHistory]);
 
   // 날짜 변경 시 슬라이드 인 + Fade In 애니메이션
   useEffect(() => {
@@ -266,8 +286,8 @@ export function QuestionHistoryView() {
   };
 
   const handleDrawRandomQuestion = () => {
-    // TODO: 이 기능은 reload API를 사용하도록 변경
-    setIsAlertVisible(true);
+    // hasSelectedQuestion을 true로 설정하면 useDailyQuestion이 활성화되어 API 호출
+    setHasSelectedQuestion(true);
   };
 
   const handleDrawYearAgoQuestion = () => {

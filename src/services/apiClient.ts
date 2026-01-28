@@ -4,6 +4,7 @@ import { config } from '@/constants/config';
 import { storage } from './storage';
 import i18n from '@/locales';
 import { useApiErrorStore } from '@/stores/useApiErrorStore';
+import { useAuthStore } from '@/stores/useAuthStore';
 import { ApiErrorResponse, AuthResponse } from '@/types/api';
 
 // Axios 인스턴스 생성
@@ -73,8 +74,8 @@ apiClient.interceptors.response.use(
           return apiClient(originalRequest);
         }
       } catch {
-        // 리프레시 실패 -> 토큰 삭제
-        await storage.clearTokens();
+        // 리프레시 실패 -> 로그아웃 처리 (isAuthenticated = false → 로그인 화면으로 리다이렉트)
+        await useAuthStore.getState().logout();
       }
     }
 
