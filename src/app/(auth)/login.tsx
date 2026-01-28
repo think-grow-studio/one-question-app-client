@@ -7,6 +7,10 @@ import { useGoogleLogin } from '@/features/auth/hooks/useGoogleLogin';
 import { Pressable, ActivityIndicator } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { sp, cs, radius } from '@/utils/responsive';
+import { useThemeStore } from '@/stores/useThemeStore';
+
+const logoLight = require('@/assets/images/one-question-light.png');
+const logoDark = require('@/assets/images/one-question-dark.png');
 
 function GoogleIcon() {
   return (
@@ -34,7 +38,9 @@ function GoogleIcon() {
 export default function LoginScreen() {
   const theme = useTheme();
   const { t } = useTranslation('auth');
+  const { mode } = useThemeStore();
   const { mutate: googleLogin, isPending } = useGoogleLogin();
+  const isDark = mode === 'dark';
 
   const handleGoogleLogin = () => {
     googleLogin();
@@ -46,7 +52,7 @@ export default function LoginScreen() {
         {/* Logo / App Title */}
         <YStack ai="center" gap="$4" mb="$10">
           <Image
-            source={require('@/assets/images/one-question-light.png')}
+            source={isDark ? logoDark : logoLight}
             style={styles.logoImage}
           />
           <YStack ai="center" gap="$2">
