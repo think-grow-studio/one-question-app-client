@@ -1,12 +1,12 @@
-import { View, StyleSheet, Platform } from 'react-native';
+import { StyleSheet, Platform, Image } from 'react-native';
 import { YStack, XStack, useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { Screen } from '@/shared/layout/Screen';
 import { Text } from '@/shared/ui/Text';
 import { useGoogleLogin } from '@/features/auth/hooks/useGoogleLogin';
 import { Pressable, ActivityIndicator } from 'react-native';
-import { useThemeStore, getAccentColors } from '@/stores/useThemeStore';
 import Svg, { Path } from 'react-native-svg';
+import { sp, cs, radius } from '@/utils/responsive';
 
 function GoogleIcon() {
   return (
@@ -34,8 +34,6 @@ function GoogleIcon() {
 export default function LoginScreen() {
   const theme = useTheme();
   const { t } = useTranslation('auth');
-  const { mode, accentColor } = useThemeStore();
-  const colors = getAccentColors(mode, accentColor);
   const { mutate: googleLogin, isPending } = useGoogleLogin();
 
   const handleGoogleLogin = () => {
@@ -47,18 +45,10 @@ export default function LoginScreen() {
       <YStack flex={1} bg="$background" jc="center" ai="center" px="$6">
         {/* Logo / App Title */}
         <YStack ai="center" gap="$4" mb="$10">
-          <View
-            style={[
-              styles.logoContainer,
-              { backgroundColor: colors.primary },
-            ]}
-          >
-            <Text
-              style={[styles.logoText, { color: colors.textOnPrimary }]}
-            >
-              ?
-            </Text>
-          </View>
+          <Image
+            source={require('@/assets/images/one-question-light.png')}
+            style={styles.logoImage}
+          />
           <YStack ai="center" gap="$2">
             <Text variant="heading" center>
               {t('appTitle')}
@@ -70,7 +60,7 @@ export default function LoginScreen() {
         </YStack>
 
         {/* Login Buttons */}
-        <YStack w="100%" maxWidth={320} gap="$3">
+        <YStack w="100%" maxWidth={cs(320)} gap="$3">
           {/* Google Login Button */}
           <Pressable
             onPress={handleGoogleLogin}
@@ -135,21 +125,15 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  logoContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  logoText: {
-    fontSize: 40,
-    fontWeight: '700',
+  logoImage: {
+    width: cs(80),
+    height: cs(80),
+    borderRadius: radius(20),
   },
   loginButton: {
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 12,
+    paddingVertical: sp(14),
+    paddingHorizontal: sp(24),
+    borderRadius: radius(12),
     borderWidth: 1,
   },
   disabledButton: {

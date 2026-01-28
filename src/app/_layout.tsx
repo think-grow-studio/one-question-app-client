@@ -75,7 +75,7 @@ function RootLayoutNav() {
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen
-          name="answer"
+          name="answer/index"
           options={{
             presentation: 'modal',
             animation: 'slide_from_bottom',
