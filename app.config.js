@@ -1,20 +1,16 @@
 // 플랫폼별 버전 관리
+
 const APP_VERSIONS = {
-  ios: {
     version: '0.1.0',
-    buildNumber: '1',
-  },
-  android: {
-    version: '0.1.0',
-    versionCode: 1,
-  },
+    androidVersion: 1,
+    iosVersion: '1',
 };
 
 export default {
   expo: {
     name: 'One Question',
     slug: 'one-question',
-    version: APP_VERSIONS.ios.version, // 기본값 (Expo에서 요구)
+    version: APP_VERSIONS.version, // 기본값 (Expo에서 요구)
     scheme: 'onequestion',
     orientation: 'portrait',
     icon: './assets/one-question-light.png',
@@ -23,7 +19,7 @@ export default {
     ios: {
       supportsTablet: true,
       bundleIdentifier: 'com.onequestion.app',
-      buildNumber: APP_VERSIONS.ios.buildNumber,
+      buildNumber: APP_VERSIONS.iosVersion,
       // Google Sign-In URL scheme은 @react-native-google-signin plugin이 자동 처리
     },
     android: {
@@ -32,7 +28,7 @@ export default {
         backgroundColor: '#ffffff',
       },
       package: 'com.onequestion.app',
-      versionCode: APP_VERSIONS.android.versionCode,
+      versionCode: APP_VERSIONS.androidVersion,
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
     },
