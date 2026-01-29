@@ -11,8 +11,9 @@ import { CalendarIcon } from '@/shared/icons/CalendarIcon';
 import { EditIcon } from '@/shared/icons/EditIcon';
 import { ReloadIcon } from '@/shared/icons/ReloadIcon';
 import { useQuestionCardStyles } from '@/shared/ui/QuestionCard';
-import { useHistoryStore } from '../stores/useHistoryStore';
-import { useQuestionHistories } from '../hooks/queries/useQuestionQueries';
+import { useDatePickerStore } from '../stores/useDatePickerStore';
+import { useSlideDirectionStore } from '../stores/useSlideDirectionStore';
+import { useDailyHistory } from '../hooks/queries/useQuestionQueries';
 import { useServeDailyQuestion, useReloadQuestion } from '../hooks/mutations/useQuestionMutations';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 import { DatePickerSheet } from './DatePickerSheet';
@@ -25,34 +26,27 @@ export function QuestionHistoryView() {
   const router = useRouter();
   const theme = useTheme();
   const { t } = useTranslation(['question', 'common']);
-  const { currentDate, setCurrentDate, setIsDatePickerVisible } = useHistoryStore();
+  const { currentDate, setCurrentDate, setIsDatePickerVisible } = useDatePickerStore();
+  const { direction, setDirectionForNextDay, setDirectionForPreviousDay } = useSlideDirectionStore();
   const cardStyles = useQuestionCardStyles();
   const [isAlertVisible, setIsAlertVisible] = useState(false);
   const [isReloadSheetVisible, setIsReloadSheetVisible] = useState(false);
 
-  // 컴포넌트 마운트 시 오늘 날짜로 초기화
-  useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
-    console.log('[QuestionHistoryView] Initializing currentDate to today:', today);
-    setCurrentDate(today);
-  }, []); // 마운트 시 1회만 실행
-
   // currentDate 변경 로그
   console.log('[QuestionHistoryView] currentDate:', currentDate);
 
-  // 현재 날짜의 히스토리 데이터 (답변 정보 포함)
-  const { data: historyData, isLoading: isHistoryLoading, refetch: refetchHistory } = useQuestionHistories(
-    currentDate,
-    'BOTH',
-    1 // 현재 날짜만 가져옴
-  );
+  // 현재 날짜의 질문/답변 데이터 조회 (direction에 따라 히스토리 캐싱 방향 동적 변경)
+  const {
+    data: currentHistory,
+    isLoading: isHistoryLoading,
+    refetch: refetchHistory,
+    isError: isHistoryError,
+  } = useDailyHistory(currentDate, direction, {
+    enabled: Boolean(currentDate),
+  });
 
   // Mutations
-  const serveDailyQuestionMutation = useServeDailyQuestion({
-    onSuccess: () => {
-      refetchHistory();
-    },
-  });
+  const serveDailyQuestionMutation = useServeDailyQuestion();
   const reloadMutation = useReloadQuestion();
 
   const handleRetry = () => {
@@ -61,9 +55,6 @@ export function QuestionHistoryView() {
 
   // 회원 정보 조회 (cycleStartDate 제한용)
   const { data: member } = useMemberMe();
-
-  // 현재 날짜의 히스토리에서 질문/답변 정보 추출
-  const currentHistory = historyData?.histories?.find((h) => h.date === currentDate);
 
   // 현재 질문/답변 데이터 (히스토리 기반)
   const currentItem = currentHistory?.question
@@ -78,7 +69,7 @@ export function QuestionHistoryView() {
 
   // 히스토리 로딩 중이거나, 랜덤질문 요청 중일 때 로딩 표시
   const isLoading = isHistoryLoading || serveDailyQuestionMutation.isPending;
-  const isError = serveDailyQuestionMutation.isError;
+  const isError = isHistoryError || serveDailyQuestionMutation.isError;
   const reloadCount = currentItem?.reloadCount ?? 0;
 
   const translateX = useRef(new Animated.Value(0)).current;
@@ -203,13 +194,9 @@ export function QuestionHistoryView() {
         if (isAnimating.current) return;
 
         if (gestureState.dx < -SWIPE_THRESHOLD) {
-          // 왼쪽으로 스와이프 -> 다음 날
-          // 오늘 날짜인지 확인 (문자열 비교로 타임존 이슈 방지)
-          const today = new Date();
-          const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-
-          // 오늘 날짜면 스와이프 불가
-          if (currentDateRef.current >= todayStr) {
+          // 왼쪽으로 스와이프 -> 이전 날 (과거로)
+          // joinedDate 이전으로 이동 불가
+          if (!canGoToPreviousDayRef.current()) {
             Animated.spring(translateX, {
               toValue: 0,
               useNativeDriver: true,
@@ -234,12 +221,17 @@ export function QuestionHistoryView() {
           ]).start(() => {
             translateX.setValue(SCREEN.width);
             opacity.setValue(0);
-            goToNextDay();
+            goToPreviousDay();
+            setDirectionForPreviousDay();
           });
         } else if (gestureState.dx > SWIPE_THRESHOLD) {
-          // 오른쪽으로 스와이프 -> 이전 날
-          // joinedDate 이전으로 이동 불가
-          if (!canGoToPreviousDayRef.current()) {
+          // 오른쪽으로 스와이프 -> 다음 날 (미래로)
+          // 오늘 날짜인지 확인 (문자열 비교로 타임존 이슈 방지)
+          const today = new Date();
+          const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+          // 오늘 날짜면 스와이프 불가
+          if (currentDateRef.current >= todayStr) {
             Animated.spring(translateX, {
               toValue: 0,
               useNativeDriver: true,
@@ -264,7 +256,8 @@ export function QuestionHistoryView() {
           ]).start(() => {
             translateX.setValue(-SCREEN.width);
             opacity.setValue(0);
-            goToPreviousDay();
+            goToNextDay();
+            setDirectionForNextDay();
           });
         } else {
           // 임계값 미달 -> 원위치로 스프링 애니메이션

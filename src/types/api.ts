@@ -95,7 +95,7 @@ export interface UpdateAnswerRequest {
 export interface UpdateAnswerResponse {
   dailyAnswerId: number;
   content: string;
-  updatedAt: string;
+  answeredAt: string;
 }
 
 export type HistoryStatus = 'ANSWERED' | 'UNANSWERED' | 'NO_QUESTION';

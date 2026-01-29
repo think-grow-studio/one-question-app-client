@@ -7,7 +7,8 @@ import Animated, {
   withTiming,
   runOnJS,
 } from 'react-native-reanimated';
-import { useHistoryStore } from '../stores/useHistoryStore';
+import { useDatePickerStore } from '../stores/useDatePickerStore';
+import { useSlideDirectionStore } from '../stores/useSlideDirectionStore';
 import { useQuestionHistories } from '../hooks/queries/useQuestionQueries';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 import { Button } from '@/shared/ui/Button';
@@ -24,7 +25,8 @@ export function DatePickerSheet() {
   const theme = useTheme();
   const accent = useAccentColors();
   const { isDatePickerVisible, setIsDatePickerVisible, currentDate, setCurrentDate } =
-    useHistoryStore();
+    useDatePickerStore();
+  const { setDirectionForCalendar } = useSlideDirectionStore();
 
   // Responsive values (static)
   const DAY_CELL_HEIGHT = cs(52);
@@ -55,7 +57,6 @@ export function DatePickerSheet() {
   const { data: historyData, isLoading: isHistoryLoading } = useQuestionHistories(
     baseDate,
     'BOTH',
-    45, // 한 달 + 여유분
     { enabled: isDatePickerVisible }
   );
 
@@ -295,6 +296,7 @@ export function DatePickerSheet() {
   };
 
   const handleNavigateToDate = () => {
+    setDirectionForCalendar();
     setCurrentDate(previewDate);
     handleClose();
   };

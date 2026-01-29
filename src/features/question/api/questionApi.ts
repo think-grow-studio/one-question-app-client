@@ -1,6 +1,4 @@
 import { apiClient } from '@/services/apiClient';
-import { CATEGORIES } from '../constants/categories';
-import { QuestionCategory } from '../types/category';
 import type {
   ServeDailyQuestionResponse,
   CreateAnswerRequest,
@@ -10,11 +8,6 @@ import type {
   GetQuestionHistoryResponse,
   HistoryDirection,
 } from '@/types/api';
-
-// 카테고리 API (Mock - 추후 백엔드 연동)
-export async function fetchQuestionCategories(): Promise<QuestionCategory[]> {
-  return Promise.resolve([...CATEGORIES]);
-}
 
 // Question API
 export const questionApi = {

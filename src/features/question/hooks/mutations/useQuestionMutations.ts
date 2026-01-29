@@ -1,16 +1,23 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { questionApi } from '../../api/questionApi';
 import { questionQueryKeys } from '../queries/useQuestionQueries';
+import type { ServeDailyQuestionResponse } from '@/types/api';
+import { fromServeDailyQuestion } from '../../domain/questionDomain';
 
-export function useServeDailyQuestion(options?: { onSuccess?: () => void }) {
+export function useServeDailyQuestion(options?: {
+  onSuccess?: (data: ServeDailyQuestionResponse, variables: string) => void
+}) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (date: string) => questionApi.serveDailyQuestion(date).then((res) => res.data),
-    onSuccess: (_, date) => {
-      // 히스토리 캐시 무효화하여 새 질문이 반영되도록
-      queryClient.invalidateQueries({ queryKey: questionQueryKeys.all });
-      options?.onSuccess?.();
+    onSuccess: (data, date) => {
+      // API 응답을 도메인 모델로 변환하여 캐시 업데이트
+      const domainData = fromServeDailyQuestion(date, data);
+      queryClient.setQueryData(questionQueryKeys.daily(date), domainData);
+
+      // 외부 콜백 호출 (추가 작업이 필요한 경우)
+      options?.onSuccess?.(data, date);
     },
   });
 }
