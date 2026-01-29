@@ -194,9 +194,13 @@ export function QuestionHistoryView() {
         if (isAnimating.current) return;
 
         if (gestureState.dx < -SWIPE_THRESHOLD) {
-          // 왼쪽으로 스와이프 -> 이전 날 (과거로)
-          // joinedDate 이전으로 이동 불가
-          if (!canGoToPreviousDayRef.current()) {
+          // 왼쪽으로 스와이프 -> 다음 날 (미래로)
+          // 오늘 날짜인지 확인 (문자열 비교로 타임존 이슈 방지)
+          const today = new Date();
+          const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+          // 오늘 날짜면 스와이프 불가
+          if (currentDateRef.current >= todayStr) {
             Animated.spring(translateX, {
               toValue: 0,
               useNativeDriver: true,
@@ -221,17 +225,13 @@ export function QuestionHistoryView() {
           ]).start(() => {
             translateX.setValue(SCREEN.width);
             opacity.setValue(0);
-            goToPreviousDay();
-            setDirectionForPreviousDay();
+            goToNextDay();
+            setDirectionForNextDay();
           });
         } else if (gestureState.dx > SWIPE_THRESHOLD) {
-          // 오른쪽으로 스와이프 -> 다음 날 (미래로)
-          // 오늘 날짜인지 확인 (문자열 비교로 타임존 이슈 방지)
-          const today = new Date();
-          const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-
-          // 오늘 날짜면 스와이프 불가
-          if (currentDateRef.current >= todayStr) {
+          // 오른쪽으로 스와이프 -> 이전 날 (과거로)
+          // joinedDate 이전으로 이동 불가
+          if (!canGoToPreviousDayRef.current()) {
             Animated.spring(translateX, {
               toValue: 0,
               useNativeDriver: true,
@@ -256,8 +256,8 @@ export function QuestionHistoryView() {
           ]).start(() => {
             translateX.setValue(-SCREEN.width);
             opacity.setValue(0);
-            goToNextDay();
-            setDirectionForNextDay();
+            goToPreviousDay();
+            setDirectionForPreviousDay();
           });
         } else {
           // 임계값 미달 -> 원위치로 스프링 애니메이션
