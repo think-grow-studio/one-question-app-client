@@ -26,7 +26,7 @@ export function useDailyQuestion(date: string, options?: { enabled?: boolean }) 
 }
 
 const HISTORY_FETCH_SIZE = 7;
-const CALENDAR_HISTORY_FETCH_SIZE = 60; // 달력용: 약 2달치 데이터
+const CALENDAR_HISTORY_FETCH_SIZE = 35; // 달력용: 한 달 + 여유
 
 /**
  * 히스토리 목록 조회 (달력용)
@@ -38,6 +38,8 @@ export function useQuestionHistories(
   direction?: HistoryDirection,
   options?: { enabled?: boolean }
 ): UseQueryResult<GetQuestionHistoryResponse> {
+  const queryClient = useQueryClient();
+
   return useQuery({
     queryKey: questionQueryKeys.histories({ baseDate, direction }),
     queryFn: async () => {
@@ -53,6 +55,14 @@ export function useQuestionHistories(
         baseDate,
         direction,
         count: res.data.histories.length,
+      });
+
+      // 받은 모든 날짜를 도메인 모델로 변환하여 개별 캐시에 저장
+      res.data.histories.forEach((history) => {
+        queryClient.setQueryData(
+          questionQueryKeys.daily(history.date),
+          fromHistoryItem(history)
+        );
       });
 
       return res.data;
