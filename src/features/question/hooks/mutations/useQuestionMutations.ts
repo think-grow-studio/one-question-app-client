@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { questionApi } from '../../api/questionApi';
-import { questionQueryKeys } from '../queries/useQuestionQueries';
+import { questionQueryKeys, getCalendarBaseDate } from '../queries/useQuestionQueries';
 import type { ServeDailyQuestionResponse } from '@/types/api';
 import { fromServeDailyQuestion } from '../../domain/questionDomain';
 
@@ -17,7 +17,8 @@ export function useServeDailyQuestion(options?: {
       queryClient.setQueryData(questionQueryKeys.daily(date), domainData);
 
       // 달력 데이터 갱신 (해당 날짜가 포함된 월의 캐시만)
-      queryClient.invalidateQueries({ queryKey: ['calendar'] });
+      const calendarBaseDate = getCalendarBaseDate(date);
+      queryClient.invalidateQueries({ queryKey: questionQueryKeys.calendar(calendarBaseDate) });
 
       // 외부 콜백 호출 (추가 작업이 필요한 경우)
       options?.onSuccess?.(data, date);
@@ -33,7 +34,8 @@ export function useReloadQuestion() {
     onSuccess: (_, date) => {
       queryClient.invalidateQueries({ queryKey: questionQueryKeys.daily(date) });
       // 달력 데이터 갱신 (해당 날짜가 포함된 월의 캐시만)
-      queryClient.invalidateQueries({ queryKey: ['calendar'] });
+      const calendarBaseDate = getCalendarBaseDate(date);
+      queryClient.invalidateQueries({ queryKey: questionQueryKeys.calendar(calendarBaseDate) });
     },
   });
 }
@@ -47,7 +49,8 @@ export function useCreateAnswer() {
     onSuccess: (_, { date }) => {
       queryClient.invalidateQueries({ queryKey: questionQueryKeys.daily(date) });
       // 달력 데이터 갱신 (답변 상태 반영)
-      queryClient.invalidateQueries({ queryKey: ['calendar'] });
+      const calendarBaseDate = getCalendarBaseDate(date);
+      queryClient.invalidateQueries({ queryKey: questionQueryKeys.calendar(calendarBaseDate) });
     },
   });
 }
@@ -61,7 +64,8 @@ export function useUpdateAnswer() {
     onSuccess: (_, { date }) => {
       queryClient.invalidateQueries({ queryKey: questionQueryKeys.daily(date) });
       // 달력 데이터 갱신 (답변 수정 반영)
-      queryClient.invalidateQueries({ queryKey: ['calendar'] });
+      const calendarBaseDate = getCalendarBaseDate(date);
+      queryClient.invalidateQueries({ queryKey: questionQueryKeys.calendar(calendarBaseDate) });
     },
   });
 }

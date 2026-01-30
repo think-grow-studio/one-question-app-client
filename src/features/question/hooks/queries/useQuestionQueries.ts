@@ -5,9 +5,21 @@ import { questionApi } from '../../api/questionApi';
 import type { HistoryDirection } from '@/types/api';
 import { fromHistoryItem, type DailyQuestionDomain } from '../../domain/questionDomain';
 
+/**
+ * 날짜를 달력 캐시 키의 baseDate로 변환
+ * @param date 'YYYY-MM-DD' 형식의 날짜
+ * @returns 'YYYY-MM-15' 형식의 baseDate (해당 월의 15일)
+ * @example getCalendarBaseDate('2025-01-20') // '2025-01-15'
+ */
+export function getCalendarBaseDate(date: string): string {
+  const [year, month] = date.split('-');
+  return `${year}-${month}-15`;
+}
+
 export const questionQueryKeys = {
   all: ['question'] as const,
   daily: (date: string) => [...questionQueryKeys.all, 'daily', date] as const,
+  calendar: (baseDate: string) => ['calendar', 'month', baseDate] as const,
 };
 
 export function useDailyQuestion(date: string, options?: { enabled?: boolean }) {
@@ -97,7 +109,7 @@ export function useCalendarHistory(
   }, [viewYear, viewMonth]);
 
   return useQuery({
-    queryKey: ['calendar', 'month', baseDate],
+    queryKey: questionQueryKeys.calendar(baseDate),
 
     queryFn: async () => {
       console.log('[useCalendarHistory] Fetching calendar data for month:', baseDate);
