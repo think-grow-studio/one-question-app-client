@@ -31,8 +31,11 @@ export function useReloadQuestion() {
 
   return useMutation({
     mutationFn: (date: string) => questionApi.reloadDailyQuestion(date).then((res) => res.data),
-    onSuccess: (_, date) => {
-      queryClient.invalidateQueries({ queryKey: questionQueryKeys.daily(date) });
+    onSuccess: (data, date) => {
+      // API 응답을 도메인 모델로 변환하여 캐시 업데이트
+      const domainData = fromServeDailyQuestion(date, data);
+      queryClient.setQueryData(questionQueryKeys.daily(date), domainData);
+
       // 달력 데이터 갱신 (해당 날짜가 포함된 월의 캐시만)
       const calendarBaseDate = getCalendarBaseDate(date);
       queryClient.invalidateQueries({ queryKey: questionQueryKeys.calendar(calendarBaseDate) });

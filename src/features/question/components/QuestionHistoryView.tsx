@@ -25,6 +25,7 @@ import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 import { DatePickerSheet } from './DatePickerSheet';
 import { ReloadOptionSheet } from '@/features/answer/components/ReloadOptionSheet';
 import { SCREEN } from '@/utils/responsive';
+import { canReloadQuestion, getReloadCountDisplay } from '../constants/limits';
 
 const SWIPE_THRESHOLD = SCREEN.width * 0.3;
 
@@ -77,6 +78,11 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
   const isLoading = isHistoryLoading || serveDailyQuestionMutation.isPending;
   const isError = isHistoryError || serveDailyQuestionMutation.isError;
   const reloadCount = currentItem?.reloadCount ?? 0;
+
+  // Permission 정보 가져오기
+  const memberPermission = member?.permission ?? 'FREE';
+  const reloadInfo = getReloadCountDisplay(reloadCount, memberPermission);
+  const canReload = canReloadQuestion(reloadCount, memberPermission);
 
   const translateX = useSharedValue(0);
   const opacity = useSharedValue(1);
@@ -292,10 +298,17 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
   }, []);
 
   const handleRandomQuestion = useCallback(() => {
-    if (reloadCount > 0) {
-      reloadMutation.mutate(currentDate);
+    if (!canReloadQuestion(reloadCount, memberPermission)) {
+      console.warn('[QuestionHistoryView] Cannot reload: no reloads remaining');
+      return;
     }
-  }, [reloadCount, reloadMutation, currentDate]);
+
+    reloadMutation.mutate(currentDate, {
+      onSuccess: () => {
+        setIsReloadSheetVisible(false);
+      },
+    });
+  }, [reloadCount, memberPermission, reloadMutation, currentDate]);
 
   const handlePastQuestion = useCallback(() => {
     setIsAlertVisible(true);
@@ -356,17 +369,19 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
                 {!currentItem.answer && (
                   <XStack ai="center" gap="$2">
                     <View style={cardStyles.reloadCountBadge}>
-                      <Text style={cardStyles.reloadCountText}>{reloadCount}</Text>
+                      <Text style={cardStyles.reloadCountText}>
+                        {reloadInfo.remaining}/{reloadInfo.max}
+                      </Text>
                     </View>
                     <Pressable
                       onPress={handleReloadPress}
                       style={cardStyles.reloadButton}
                       hitSlop={8}
-                      disabled={reloadCount === 0 || reloadMutation.isPending}
+                      disabled={!canReload || reloadMutation.isPending}
                     >
                       <ReloadIcon
                         size={18}
-                        color={reloadCount > 0 ? theme.color?.val : theme.colorMuted?.val}
+                        color={canReload ? theme.color?.val : theme.colorMuted?.val}
                       />
                     </Pressable>
                   </XStack>
