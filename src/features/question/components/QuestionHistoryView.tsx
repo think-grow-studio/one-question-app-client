@@ -1,5 +1,11 @@
-import { useRef, useEffect, useState } from 'react';
-import { StyleSheet, Pressable, View, Text, PanResponder, Animated, ActivityIndicator } from 'react-native';
+import { useRef, useEffect, useState, useCallback, memo } from 'react';
+import { StyleSheet, Pressable, View, Text, PanResponder, ActivityIndicator } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  runOnJS,
+} from 'react-native-reanimated';
 import { YStack, XStack, Paragraph, useTheme } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -22,7 +28,7 @@ import { SCREEN } from '@/utils/responsive';
 
 const SWIPE_THRESHOLD = SCREEN.width * 0.3;
 
-export function QuestionHistoryView() {
+export const QuestionHistoryView = memo(function QuestionHistoryView() {
   const router = useRouter();
   const theme = useTheme();
   const { t } = useTranslation(['question', 'common']);
@@ -49,9 +55,9 @@ export function QuestionHistoryView() {
   const serveDailyQuestionMutation = useServeDailyQuestion();
   const reloadMutation = useReloadQuestion();
 
-  const handleRetry = () => {
+  const handleRetry = useCallback(() => {
     refetchHistory();
-  };
+  }, [refetchHistory]);
 
   // 회원 정보 조회 (cycleStartDate 제한용)
   const { data: member } = useMemberMe();
@@ -72,8 +78,8 @@ export function QuestionHistoryView() {
   const isError = isHistoryError || serveDailyQuestionMutation.isError;
   const reloadCount = currentItem?.reloadCount ?? 0;
 
-  const translateX = useRef(new Animated.Value(0)).current;
-  const opacity = useRef(new Animated.Value(1)).current;
+  const translateX = useSharedValue(0);
+  const opacity = useSharedValue(1);
   const isAnimating = useRef(false);
   const currentDateRef = useRef(currentDate);
   const memberCycleStartDateRef = useRef(member?.cycleStartDate);
@@ -92,21 +98,16 @@ export function QuestionHistoryView() {
   // 날짜 변경 시 슬라이드 인 + Fade In 애니메이션
   useEffect(() => {
     isAnimating.current = true;
-    Animated.parallel([
-      Animated.timing(translateX, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(opacity, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
+    const finishAnimation = () => {
       isAnimating.current = false;
+    };
+    translateX.value = withTiming(0, { duration: 250 }, (finished) => {
+      if (finished) {
+        runOnJS(finishAnimation)();
+      }
     });
-  }, [currentDate]);
+    opacity.value = withTiming(1, { duration: 250 });
+  }, [currentDate, translateX, opacity]);
 
   const goToPreviousDay = () => {
     const cycleStartDate = memberCycleStartDateRef.current;
@@ -114,8 +115,8 @@ export function QuestionHistoryView() {
     // cycleStartDate가 없으면 (로드 중이거나 없음) 이전으로 이동 불가
     if (!cycleStartDate) {
       // 애니메이션 값 원복
-      translateX.setValue(0);
-      opacity.setValue(1);
+      translateX.value = 0;
+      opacity.value = 1;
       isAnimating.current = false;
       return;
     }
@@ -127,8 +128,8 @@ export function QuestionHistoryView() {
     // cycleStartDate 이전으로 이동 불가
     if (prevDateStr < cycleStartDate) {
       // 애니메이션 값 원복
-      translateX.setValue(0);
-      opacity.setValue(1);
+      translateX.value = 0;
+      opacity.value = 1;
       isAnimating.current = false;
       return;
     }
@@ -171,8 +172,8 @@ export function QuestionHistoryView() {
       setCurrentDate(nextDateStr);
     } else {
       // 오늘 이후로 이동 불가 - 애니메이션 값 원복
-      translateX.setValue(0);
-      opacity.setValue(1);
+      translateX.value = 0;
+      opacity.value = 1;
       isAnimating.current = false;
     }
   };
@@ -187,7 +188,7 @@ export function QuestionHistoryView() {
         // 애니메이션 중이면 무시
         if (isAnimating.current) return;
         // 스와이프 중 카드가 손가락 따라 움직임
-        translateX.setValue(gestureState.dx);
+        translateX.value = gestureState.dx;
       },
       onPanResponderRelease: (_, gestureState) => {
         // 애니메이션 중이면 무시
@@ -201,91 +202,71 @@ export function QuestionHistoryView() {
 
           // 오늘 날짜면 스와이프 불가
           if (currentDateRef.current >= todayStr) {
-            Animated.spring(translateX, {
-              toValue: 0,
-              useNativeDriver: true,
-              friction: 7,
-              tension: 40,
-            }).start();
+            translateX.value = withTiming(0, { duration: 150 });
             return;
           }
 
           isAnimating.current = true;
-          Animated.parallel([
-            Animated.timing(translateX, {
-              toValue: -SCREEN.width,
-              duration: 250,
-              useNativeDriver: true,
-            }),
-            Animated.timing(opacity, {
-              toValue: 0,
-              duration: 200,
-              useNativeDriver: true,
-            }),
-          ]).start(() => {
-            translateX.setValue(SCREEN.width);
-            opacity.setValue(0);
+          const handleNextDayComplete = () => {
+            translateX.value = SCREEN.width;
+            opacity.value = 0;
             goToNextDay();
             setDirectionForNextDay();
+          };
+          translateX.value = withTiming(-SCREEN.width, { duration: 200 }, (finished) => {
+            if (finished) {
+              runOnJS(handleNextDayComplete)();
+            }
           });
+          opacity.value = withTiming(0, { duration: 150 });
         } else if (gestureState.dx > SWIPE_THRESHOLD) {
           // 오른쪽으로 스와이프 -> 이전 날 (과거로)
           // joinedDate 이전으로 이동 불가
           if (!canGoToPreviousDayRef.current()) {
-            Animated.spring(translateX, {
-              toValue: 0,
-              useNativeDriver: true,
-              friction: 7,
-              tension: 40,
-            }).start();
+            translateX.value = withTiming(0, { duration: 150 });
             return;
           }
 
           isAnimating.current = true;
-          Animated.parallel([
-            Animated.timing(translateX, {
-              toValue: SCREEN.width,
-              duration: 250,
-              useNativeDriver: true,
-            }),
-            Animated.timing(opacity, {
-              toValue: 0,
-              duration: 200,
-              useNativeDriver: true,
-            }),
-          ]).start(() => {
-            translateX.setValue(-SCREEN.width);
-            opacity.setValue(0);
+          const handlePreviousDayComplete = () => {
+            translateX.value = -SCREEN.width;
+            opacity.value = 0;
             goToPreviousDay();
             setDirectionForPreviousDay();
+          };
+          translateX.value = withTiming(SCREEN.width, { duration: 200 }, (finished) => {
+            if (finished) {
+              runOnJS(handlePreviousDayComplete)();
+            }
           });
+          opacity.value = withTiming(0, { duration: 150 });
         } else {
-          // 임계값 미달 -> 원위치로 스프링 애니메이션
-          Animated.spring(translateX, {
-            toValue: 0,
-            useNativeDriver: true,
-            friction: 7,
-            tension: 40,
-          }).start();
+          // 임계값 미달 -> 원위치로 직선 애니메이션
+          translateX.value = withTiming(0, { duration: 150 });
         }
       },
     })
   ).current;
 
-  const formatDate = (dateString: string) => {
+  const animatedCardStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+    opacity: opacity.value,
+  }));
+
+  const formatDate = useCallback((dateString: string) => {
     const date = new Date(dateString);
     const month = date.getMonth() + 1;
     const day = date.getDate();
     const weekdayKeys = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
     const weekday = t(`weekdays.${weekdayKeys[date.getDay()]}`);
     return t('dateFormat', { month, day, weekday });
-  };
+  }, [t]);
 
-  const handleOpenDatePicker = () => {
+  const handleOpenDatePicker = useCallback(() => {
     setIsDatePickerVisible(true);
-  };
+  }, [setIsDatePickerVisible]);
 
-  const handleGoToAnswer = () => {
+  const handleGoToAnswer = useCallback(() => {
     if (!currentItem) return;
     router.push({
       pathname: '/answer',
@@ -295,33 +276,33 @@ export function QuestionHistoryView() {
         description: currentItem.description || '',
       },
     });
-  };
+  }, [currentItem, currentDate, router]);
 
-  const handleDrawRandomQuestion = () => {
+  const handleDrawRandomQuestion = useCallback(() => {
     serveDailyQuestionMutation.mutate(currentDate);
-  };
+  }, [serveDailyQuestionMutation, currentDate]);
 
-  const handleDrawYearAgoQuestion = () => {
+  const handleDrawYearAgoQuestion = useCallback(() => {
     setIsAlertVisible(true);
-  };
+  }, []);
 
   // Reload 관련 핸들러
-  const handleReloadPress = () => {
+  const handleReloadPress = useCallback(() => {
     setIsReloadSheetVisible(true);
-  };
+  }, []);
 
-  const handleRandomQuestion = () => {
+  const handleRandomQuestion = useCallback(() => {
     if (reloadCount > 0) {
       reloadMutation.mutate(currentDate);
     }
-  };
+  }, [reloadCount, reloadMutation, currentDate]);
 
-  const handlePastQuestion = () => {
+  const handlePastQuestion = useCallback(() => {
     setIsAlertVisible(true);
-  };
+  }, []);
 
   // 답변 수정 화면으로 이동
-  const handleEditAnswer = () => {
+  const handleEditAnswer = useCallback(() => {
     if (!currentItem?.answer) return;
 
     router.push({
@@ -334,7 +315,7 @@ export function QuestionHistoryView() {
         existingAnswer: currentItem.answer,
       },
     });
-  };
+  }, [currentItem, currentDate, router]);
 
   // 내부 콘텐츠 렌더링 함수
   const renderContent = () => {
@@ -475,13 +456,7 @@ export function QuestionHistoryView() {
       {/* Swipeable Card - Animated.View는 항상 렌더링 */}
       <View style={styles.cardContainer}>
         <Animated.View
-          style={[
-            styles.cardWrapper,
-            {
-              transform: [{ translateX }],
-              opacity,
-            },
-          ]}
+          style={[styles.cardWrapper, animatedCardStyle]}
           {...panResponder.panHandlers}
         >
           {renderContent()}
@@ -513,7 +488,7 @@ export function QuestionHistoryView() {
       />
     </YStack>
   );
-}
+});
 
 const styles = StyleSheet.create({
   cardContainer: {

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback, memo } from 'react';
 import { Modal, Pressable, StyleSheet, View, Text, PanResponder, BackHandler, ActivityIndicator } from 'react-native';
 import { YStack, XStack, Paragraph, useTheme } from 'tamagui';
 import Animated, {
@@ -21,7 +21,7 @@ const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 const MAX_WEEKS = 6;
 const DISMISS_THRESHOLD = 100;
 
-export function DatePickerSheet() {
+export const DatePickerSheet = memo(function DatePickerSheet() {
   const theme = useTheme();
   const accent = useAccentColors();
   const { isDatePickerVisible, setIsDatePickerVisible, currentDate, setCurrentDate } =
@@ -291,41 +291,17 @@ export function DatePickerSheet() {
     },
   }), [SHEET_HEIGHT, DAY_CELL_HEIGHT]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     closeSheet();
-  };
+  }, [closeSheet]);
 
-  const handleNavigateToDate = () => {
+  const handleNavigateToDate = useCallback(() => {
     setDirectionForCalendar();
     setCurrentDate(previewDate);
-    handleClose();
-  };
+    closeSheet();
+  }, [setDirectionForCalendar, setCurrentDate, previewDate, closeSheet]);
 
-  const handleDayPress = (dateStr: string) => {
-    setPreviewDate(dateStr);
-  };
-
-  // 가입일 이전 날짜 클릭 시 오류 메시지 표시 (1번만)
-  const handleDayPressWithValidation = (day: number) => {
-    const dateStr = getDateString(day);
-
-    // 미래 날짜는 disabled로 처리되므로 무시
-    if (isFutureDate(day)) {
-      return;
-    }
-
-    // cycleStartDate 이전이면 오류 메시지 표시 (이동 안함)
-    if (isBeforeCycleStartDate(day)) {
-      if (!joinDateError) {
-        setJoinDateError(true);
-      }
-      return;
-    }
-
-    handleDayPress(dateStr);
-  };
-
-  const goToPrevMonth = () => {
+  const goToPrevMonth = useCallback(() => {
     // cycleStartDate가 없으면 (로딩 중이거나 오류) 이동 불가
     if (!member?.cycleStartDate) {
       return;
@@ -346,9 +322,9 @@ export function DatePickerSheet() {
     } else {
       setViewMonth(viewMonth - 1);
     }
-  };
+  }, [member?.cycleStartDate, viewMonth, viewYear]);
 
-  const goToNextMonth = () => {
+  const goToNextMonth = useCallback(() => {
     const today = new Date();
     const nextMonth = viewMonth === 11 ? 0 : viewMonth + 1;
     const nextYear = viewMonth === 11 ? viewYear + 1 : viewYear;
@@ -360,11 +336,51 @@ export function DatePickerSheet() {
 
     setViewMonth(nextMonth);
     setViewYear(nextYear);
-  };
+  }, [viewMonth, viewYear]);
 
   // 오늘 날짜
   const today = new Date();
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+  // getDateString 함수
+  const getDateString = useCallback((day: number) => {
+    return `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  }, [viewYear, viewMonth]);
+
+  // isFutureDate 함수
+  const isFutureDate = useCallback((day: number) => {
+    return getDateString(day) > todayStr;
+  }, [getDateString, todayStr]);
+
+  // isBeforeCycleStartDate 함수
+  const isBeforeCycleStartDate = useCallback((day: number) => {
+    if (!member?.cycleStartDate) return true;
+    return getDateString(day) < member.cycleStartDate;
+  }, [getDateString, member?.cycleStartDate]);
+
+  const handleDayPress = useCallback((dateStr: string) => {
+    setPreviewDate(dateStr);
+  }, []);
+
+  // 가입일 이전 날짜 클릭 시 오류 메시지 표시 (1번만)
+  const handleDayPressWithValidation = useCallback((day: number) => {
+    const dateStr = getDateString(day);
+
+    // 미래 날짜는 disabled로 처리되므로 무시
+    if (isFutureDate(day)) {
+      return;
+    }
+
+    // cycleStartDate 이전이면 오류 메시지 표시 (이동 안함)
+    if (isBeforeCycleStartDate(day)) {
+      if (!joinDateError) {
+        setJoinDateError(true);
+      }
+      return;
+    }
+
+    handleDayPress(dateStr);
+  }, [getDateString, isFutureDate, isBeforeCycleStartDate, joinDateError, handleDayPress]);
 
   // 다음 달 버튼 비활성화 여부
   const isNextDisabled =
@@ -381,8 +397,8 @@ export function DatePickerSheet() {
     return prevYear < cycleStartYear || (prevYear === cycleStartYear && prevMonth < cycleStartMonth - 1);
   }, [member?.cycleStartDate, viewYear, viewMonth]);
 
-  // 달력 데이터 생성
-  const generateCalendarDays = () => {
+  // 달력 데이터 생성 (memoized)
+  const calendarDays = useMemo(() => {
     const firstDay = new Date(viewYear, viewMonth, 1).getDay();
     const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
 
@@ -397,66 +413,53 @@ export function DatePickerSheet() {
     }
 
     return days;
-  };
+  }, [viewYear, viewMonth]);
 
-  const calendarDays = generateCalendarDays();
-
-  const getDateString = (day: number) => {
-    return `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-  };
-
-  const getHistoryItem = (dateStr: string) => {
+  const getHistoryItem = useCallback((dateStr: string) => {
     return historyMap.get(dateStr) || null;
-  };
+  }, [historyMap]);
 
-  const hasAnswer = (day: number) => {
+  const hasAnswer = useCallback((day: number) => {
     const item = getHistoryItem(getDateString(day));
     return item?.status === 'ANSWERED';
-  };
+  }, [getHistoryItem, getDateString]);
 
-  const hasQuestion = (day: number) => {
+  const hasQuestion = useCallback((day: number) => {
     const item = getHistoryItem(getDateString(day));
     return item?.status === 'ANSWERED' || item?.status === 'UNANSWERED';
-  };
+  }, [getHistoryItem, getDateString]);
 
-  const isFutureDate = (day: number) => {
-    return getDateString(day) > todayStr;
-  };
-
-  const isBeforeCycleStartDate = (day: number) => {
-    // cycleStartDate가 없으면 (로딩 중이거나 오류) 안전하게 true 반환 → 선택 불가
-    if (!member?.cycleStartDate) return true;
-    return getDateString(day) < member.cycleStartDate;
-  };
-
-  const isDateDisabled = (day: number) => {
+  const isDateDisabled = useCallback((day: number) => {
     return isFutureDate(day) || isBeforeCycleStartDate(day);
-  };
+  }, [isFutureDate, isBeforeCycleStartDate]);
 
-  const isSelected = (day: number) => {
+  const isSelected = useCallback((day: number) => {
     return getDateString(day) === previewDate;
-  };
+  }, [getDateString, previewDate]);
 
-  const isCurrentDate = (day: number) => {
+  const isCurrentDate = useCallback((day: number) => {
     return getDateString(day) === currentDate;
-  };
+  }, [getDateString, currentDate]);
 
-  const isToday = (day: number) => {
+  const isToday = useCallback((day: number) => {
     return getDateString(day) === todayStr;
-  };
+  }, [getDateString, todayStr]);
 
   // 미리보기 데이터
-  const previewItem = getHistoryItem(previewDate);
+  const previewItem = useMemo(() => getHistoryItem(previewDate), [getHistoryItem, previewDate]);
 
   // previewDate가 cycleStartDate 이전인지 확인 (이동 버튼 비활성화용)
-  const isPreviewBeforeCycleStartDate = !member?.cycleStartDate || previewDate < member.cycleStartDate;
+  const isPreviewBeforeCycleStartDate = useMemo(
+    () => !member?.cycleStartDate || previewDate < member.cycleStartDate,
+    [member?.cycleStartDate, previewDate]
+  );
 
-  const formatPreviewDate = (dateStr: string) => {
+  const formatPreviewDate = useCallback((dateStr: string) => {
     const [year, month, day] = dateStr.split('-').map(Number);
     const date = new Date(year, month - 1, day);
     const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
     return `${month}월 ${day}일 ${weekdays[date.getDay()]}요일`;
-  };
+  }, []);
 
   if (!isDatePickerVisible) return null;
 
@@ -617,7 +620,7 @@ export function DatePickerSheet() {
       />
     </Modal>
   );
-}
+});
 
 const styles = StyleSheet.create({
   backdrop: {
