@@ -9,13 +9,13 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useDatePickerStore } from '../stores/useDatePickerStore';
 import { useSlideDirectionStore } from '../stores/useSlideDirectionStore';
-import { useQuestionHistories } from '../hooks/queries/useQuestionQueries';
+import { useCalendarHistory } from '../hooks/queries/useQuestionQueries';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 import { Button } from '@/shared/ui/Button';
 import { AlertDialog } from '@/shared/ui/AlertDialog';
 import { useAccentColors } from '@/shared/theme';
 import { fs, sp, radius, cs, SCREEN, SHEET_HEIGHTS, SHEET_MAX_WIDTH } from '@/utils/responsive';
-import type { QuestionHistoryItemDto } from '@/types/api';
+import type { DailyQuestionDomain } from '../domain/questionDomain';
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 const MAX_WEEKS = 6;
@@ -48,15 +48,10 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
   // 가입일 이전 날짜 클릭 시 오류 메시지 상태
   const [joinDateError, setJoinDateError] = useState(false);
 
-  // API: 현재 보고 있는 달의 히스토리 데이터 가져오기
-  // 달의 중간 날짜를 기준으로 BOTH 방향으로 가져옴
-  const baseDate = useMemo(() => {
-    return `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-15`;
-  }, [viewYear, viewMonth]);
-
-  const { data: historyData, isLoading: isHistoryLoading } = useQuestionHistories(
-    baseDate,
-    'BOTH',
+  // API: 달력 전용 히스토리 조회 (35일치 도메인 객체 배열)
+  const { data: historyList, isLoading: isHistoryLoading } = useCalendarHistory(
+    viewYear,
+    viewMonth,
     { enabled: isDatePickerVisible }
   );
 
@@ -64,15 +59,12 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
   const { data: member } = useMemberMe();
 
   // 히스토리 데이터를 날짜별 맵으로 변환
+  // historyList에서 도메인 객체 배열을 받아서 바로 Map으로 변환
   const historyMap = useMemo(() => {
-    const map = new Map<string, QuestionHistoryItemDto>();
-    if (historyData?.histories) {
-      historyData.histories.forEach((item) => {
-        map.set(item.date, item);
-      });
-    }
+    const map = new Map<string, DailyQuestionDomain>();
+    historyList?.forEach(item => map.set(item.date, item));
     return map;
-  }, [historyData]);
+  }, [historyList]);
 
   // Animation state
   const translateY = useSharedValue(SHEET_HEIGHT);

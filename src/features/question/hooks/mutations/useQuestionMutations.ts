@@ -16,6 +16,9 @@ export function useServeDailyQuestion(options?: {
       const domainData = fromServeDailyQuestion(date, data);
       queryClient.setQueryData(questionQueryKeys.daily(date), domainData);
 
+      // 달력 데이터 갱신 (해당 날짜가 포함된 월의 캐시만)
+      queryClient.invalidateQueries({ queryKey: ['calendar'] });
+
       // 외부 콜백 호출 (추가 작업이 필요한 경우)
       options?.onSuccess?.(data, date);
     },
@@ -29,6 +32,8 @@ export function useReloadQuestion() {
     mutationFn: (date: string) => questionApi.reloadDailyQuestion(date).then((res) => res.data),
     onSuccess: (_, date) => {
       queryClient.invalidateQueries({ queryKey: questionQueryKeys.daily(date) });
+      // 달력 데이터 갱신 (해당 날짜가 포함된 월의 캐시만)
+      queryClient.invalidateQueries({ queryKey: ['calendar'] });
     },
   });
 }
@@ -41,8 +46,8 @@ export function useCreateAnswer() {
       questionApi.createAnswer(date, { answer }).then((res) => res.data),
     onSuccess: (_, { date }) => {
       queryClient.invalidateQueries({ queryKey: questionQueryKeys.daily(date) });
-      // 히스토리 전체 무효화 (날짜 범위에 따라 다를 수 있으므로)
-      queryClient.invalidateQueries({ queryKey: questionQueryKeys.all });
+      // 달력 데이터 갱신 (답변 상태 반영)
+      queryClient.invalidateQueries({ queryKey: ['calendar'] });
     },
   });
 }
@@ -55,7 +60,8 @@ export function useUpdateAnswer() {
       questionApi.updateAnswer(date, { answer }).then((res) => res.data),
     onSuccess: (_, { date }) => {
       queryClient.invalidateQueries({ queryKey: questionQueryKeys.daily(date) });
-      queryClient.invalidateQueries({ queryKey: questionQueryKeys.all });
+      // 달력 데이터 갱신 (답변 수정 반영)
+      queryClient.invalidateQueries({ queryKey: ['calendar'] });
     },
   });
 }

@@ -1,16 +1,13 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
+import { useMemo } from 'react';
 import { questionApi } from '../../api/questionApi';
-import type { HistoryDirection, GetQuestionHistoryResponse } from '@/types/api';
+import type { HistoryDirection } from '@/types/api';
 import { fromHistoryItem, type DailyQuestionDomain } from '../../domain/questionDomain';
 
 export const questionQueryKeys = {
   all: ['question'] as const,
   daily: (date: string) => [...questionQueryKeys.all, 'daily', date] as const,
-  histories: (params: { baseDate: string; direction?: HistoryDirection }) =>
-    [...questionQueryKeys.all, 'histories', params] as const,
-  // 날짜별 개별 캐싱
-  historyByDate: (date: string) => [...questionQueryKeys.all, 'history', date] as const,
 };
 
 export function useDailyQuestion(date: string, options?: { enabled?: boolean }) {
@@ -26,51 +23,6 @@ export function useDailyQuestion(date: string, options?: { enabled?: boolean }) 
 }
 
 const HISTORY_FETCH_SIZE = 7;
-const CALENDAR_HISTORY_FETCH_SIZE = 35; // 달력용: 한 달 + 여유
-
-/**
- * 히스토리 목록 조회 (달력용)
- * - DatePickerSheet에서 사용
- * - 원시 히스토리 데이터를 그대로 반환
- */
-export function useQuestionHistories(
-  baseDate: string,
-  direction?: HistoryDirection,
-  options?: { enabled?: boolean }
-): UseQueryResult<GetQuestionHistoryResponse> {
-  const queryClient = useQueryClient();
-
-  return useQuery({
-    queryKey: questionQueryKeys.histories({ baseDate, direction }),
-    queryFn: async () => {
-      console.log('[useQuestionHistories] Fetching histories for baseDate:', baseDate, 'direction:', direction);
-
-      const res = await questionApi.getHistories({
-        baseDate,
-        historyDirection: direction,
-        size: CALENDAR_HISTORY_FETCH_SIZE,
-      });
-
-      console.log('[useQuestionHistories] API Response:', {
-        baseDate,
-        direction,
-        count: res.data.histories.length,
-      });
-
-      // 받은 모든 날짜를 도메인 모델로 변환하여 개별 캐시에 저장
-      res.data.histories.forEach((history) => {
-        queryClient.setQueryData(
-          questionQueryKeys.daily(history.date),
-          fromHistoryItem(history)
-        );
-      });
-
-      return res.data;
-    },
-    staleTime: 1000 * 60 * 30, // 30분
-    enabled: options?.enabled ?? true,
-  });
-}
 
 /**
  * 특정 날짜의 질문/답변 데이터 조회
@@ -114,6 +66,67 @@ export function useDailyHistory(
       return found ? fromHistoryItem(found) : null;
     },
     staleTime: 1000 * 60 * 30, // 30분
+    enabled: options?.enabled ?? true,
+  });
+}
+
+/**
+ * 달력(DatePickerSheet) 전용 히스토리 조회 훅
+ *
+ * 특징:
+ * - 현재 월의 15일 기준 35일 범위 조회
+ * - 배열 반환 (DailyQuestionDomain[])
+ * - 각 날짜를 daily(date) 캐시에 저장 (부작용)
+ * - refetchOnMount: 'always'로 달력 열 때마다 최신 데이터 보장
+ *
+ * 캐시 키 설계:
+ * - queryKey: ['calendar', 'month', baseDate] (별도 키!)
+ * - daily(baseDate) 사용 시 타입 충돌 (배열 vs 단일 객체)
+ * - queryFn의 return 값이 최종 캐시 값이므로 분리 필수
+ */
+export function useCalendarHistory(
+  viewYear: number,
+  viewMonth: number,
+  options?: { enabled?: boolean }
+): UseQueryResult<DailyQuestionDomain[]> {
+  const queryClient = useQueryClient();
+
+  // 현재 보고 있는 월의 15일 계산
+  const baseDate = useMemo(() => {
+    return `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-15`;
+  }, [viewYear, viewMonth]);
+
+  return useQuery({
+    queryKey: ['calendar', 'month', baseDate],
+
+    queryFn: async () => {
+      console.log('[useCalendarHistory] Fetching calendar data for month:', baseDate);
+
+      const res = await questionApi.getHistories({
+        baseDate,
+        historyDirection: 'BOTH',
+        size: 35,
+      });
+
+      console.log('[useCalendarHistory] API Response:', {
+        baseDate,
+        count: res.data.histories.length,
+      });
+
+      // 각 날짜를 daily 캐시에 저장 (부작용)
+      res.data.histories.forEach((history) => {
+        queryClient.setQueryData(
+          questionQueryKeys.daily(history.date),
+          fromHistoryItem(history)
+        );
+      });
+
+      // 도메인 객체 배열 반환
+      return res.data.histories.map(history => fromHistoryItem(history));
+    },
+
+    staleTime: 1000 * 60 * 30,  // 30분 (useDailyHistory와 통일)
+    refetchOnMount: 'always',   // 달력 열 때마다 항상 새로 조회
     enabled: options?.enabled ?? true,
   });
 }
