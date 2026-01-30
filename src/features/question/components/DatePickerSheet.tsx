@@ -92,11 +92,18 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
   useEffect(() => {
     if (isDatePickerVisible && !wasVisibleRef.current) {
       wasVisibleRef.current = true;
+
+      // 달력이 열릴 때마다 현재 슬라이드에서 보고 있는 날짜의 달로 리셋
+      const [year, month] = currentDate.split('-').map(Number);
+      setViewYear(year);
+      setViewMonth(month - 1); // 0-indexed
+      setPreviewDate(currentDate);
+
       openSheet();
     } else if (!isDatePickerVisible) {
       wasVisibleRef.current = false;
     }
-  }, [isDatePickerVisible, openSheet]);
+  }, [isDatePickerVisible, currentDate, openSheet]);
 
   // Android back button handler
   useEffect(() => {
