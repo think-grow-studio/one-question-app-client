@@ -67,7 +67,7 @@ export function useQuestionHistories(
 
       return res.data;
     },
-    staleTime: 1000 * 60 * 5, // 5분
+    staleTime: 1000 * 60 * 30, // 30분
     enabled: options?.enabled ?? true,
   });
 }
@@ -113,7 +113,7 @@ export function useDailyHistory(
       const found = res.data.histories.find((h) => h.date === date);
       return found ? fromHistoryItem(found) : null;
     },
-    staleTime: 1000 * 60 * 5, // 5분
+    staleTime: 1000 * 60 * 30, // 30분
     enabled: options?.enabled ?? true,
   });
 }
