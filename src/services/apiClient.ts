@@ -6,11 +6,12 @@ import i18n from '@/locales';
 import { useApiErrorStore } from '@/stores/useApiErrorStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { ApiErrorResponse, AuthResponse } from '@/types/api';
+import { tokenRefreshService } from './tokenRefreshService';
 
 // Axios 인스턴스 생성
 export const apiClient = axios.create({
   baseURL: config.apiUrl,
-  timeout: 15000,
+  timeout: 5000, // 5초 (총 대기 시간 단축: 47초 → 27초)
   headers: {
     'Content-Type': 'application/json',
   },
@@ -57,38 +58,35 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = await storage.getRefreshToken();
-        if (refreshToken) {
-          // apiClient 대신 axios 직접 사용 (인터셉터 무한 루프 방지)
-          const response = await axios.post<AuthResponse>(
-            `${config.apiUrl}/api/v1/auth/reissue-token`,
-            { refreshToken },
-            { headers: { 'Content-Type': 'application/json' } }
-          );
+        // 🔒 Mutex: 여러 요청이 동시에 401을 받아도 갱신은 1번만 실행
+        const accessToken = await tokenRefreshService.refresh();
 
-          const { accessToken, refreshToken: newRefreshToken } = response.data;
-          await storage.setAccessToken(accessToken);
-          await storage.setRefreshToken(newRefreshToken);
-
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-          return apiClient(originalRequest);
-        }
-      } catch {
-        // 리프레시 실패 -> 로그아웃 처리 (isAuthenticated = false → 로그인 화면으로 리다이렉트)
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        return apiClient(originalRequest);
+      } catch (refreshError) {
+        // NOTE: 사용자 선택으로 조용히 로그아웃 유지
+        // 향후 개선: showWarning으로 사용자에게 알림 후 로그아웃
         await useAuthStore.getState().logout();
+        return Promise.reject(refreshError);
       }
     }
 
-    // 서버에서 전달한 에러 메시지 사용 (fallback: 기본 메시지)
+    // 서버에서 전달한 에러 메시지 사용 (fallback: i18n 메시지)
     const errorMessage =
-      error.response?.data?.message ||
-      error.message ||
-      '알 수 없는 오류가 발생했습니다.';
+      error.response?.data?.message || // 서버 메시지 우선
+      (error.code === 'ECONNABORTED' ? i18n.t('common:error.timeout') : null) ||
+      (error.code === 'ERR_NETWORK' ? i18n.t('common:error.network') : null) ||
+      (error.response?.status && error.response.status >= 500
+        ? i18n.t('common:error.server')
+        : i18n.t('common:error.unknown'));
 
     // 401 에러는 팝업 표시하지 않음 (로그인 필요 상태에서 불필요한 팝업 방지)
     // 다른 에러(400, 500 등)는 기존대로 팝업 표시
     if (error.response?.status !== 401) {
-      useApiErrorStore.getState().showError(errorMessage);
+      useApiErrorStore.getState().showError(
+        errorMessage,
+        error.response?.data?.traceId // 🆕 traceId 전달
+      );
     }
 
     // 에러 정규화 후 reject

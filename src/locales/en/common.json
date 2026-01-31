@@ -8,7 +8,8 @@
     "save": "Save",
     "delete": "Delete",
     "edit": "Edit",
-    "retry": "Retry"
+    "retry": "Retry",
+    "restart": "Restart"
   },
   "status": {
     "loading": "Loading...",
@@ -22,7 +23,12 @@
   },
   "error": {
     "title": "Error",
-    "unknown": "An unknown error occurred."
+    "unknown": "An unknown error occurred.",
+    "network": "Network error. Please try again.",
+    "timeout": "Request timed out. Please check your connection.",
+    "server": "Server error. Please try again later.",
+    "sessionExpired": "Session expired. Please log in again.",
+    "loadFailed": "Failed to load data."
   },
   "errors": {
     "loadFailed": "Failed to load data."

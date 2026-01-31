@@ -24,6 +24,13 @@ export const storage = {
     await AsyncStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, token);
   },
 
+  async setTokens(accessToken: string, refreshToken: string): Promise<void> {
+    await AsyncStorage.multiSet([
+      [STORAGE_KEYS.ACCESS_TOKEN, accessToken],
+      [STORAGE_KEYS.REFRESH_TOKEN, refreshToken],
+    ]);
+  },
+
   async clearTokens(): Promise<void> {
     await AsyncStorage.multiRemove([
       STORAGE_KEYS.ACCESS_TOKEN,

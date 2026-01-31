@@ -10,8 +10,9 @@ import { queryClient } from '@/services/queryClient';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { ThemeTransitionProvider } from '@/shared/ui/ThemeTransitionProvider';
-import '@/locales'; // i18n 초기화
+import i18n from '@/locales'; // i18n 초기화
 import { GlobalErrorHandler } from '@/shared/error/GlobalErrorHandler';
+import { AppErrorBoundary } from '@/shared/error/AppErrorBoundary';
 
 function RootLayoutNav() {
   const { mode } = useThemeStore();
@@ -93,15 +94,17 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: rootBackgroundColor }}>
-      <TamaguiProvider config={tamaguiConfig}>
-        <Theme name={mode}>
-          <ThemeTransitionProvider>
-            <QueryClientProvider client={queryClient}>
-              <RootLayoutNav />
-            </QueryClientProvider>
-          </ThemeTransitionProvider>
-        </Theme>
-      </TamaguiProvider>
+      <AppErrorBoundary>
+        <TamaguiProvider config={tamaguiConfig}>
+          <Theme name={mode}>
+            <ThemeTransitionProvider>
+              <QueryClientProvider client={queryClient}>
+                <RootLayoutNav />
+              </QueryClientProvider>
+            </ThemeTransitionProvider>
+          </Theme>
+        </TamaguiProvider>
+      </AppErrorBoundary>
     </GestureHandlerRootView>
   );
 }
