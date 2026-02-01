@@ -31,6 +31,8 @@
     "loadFailed": "데이터를 불러오는데 실패했습니다."
   },
   "errors": {
-    "loadFailed": "데이터를 불러오는데 실패했습니다."
+    "loadFailed": "데이터를 불러오는데 실패했습니다.",
+    "networkError": "연결이 원활하지 않아요",
+    "networkErrorDesc": "네트워크 연결을 확인하고 다시 시도해주세요"
   }
 }

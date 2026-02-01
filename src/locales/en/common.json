@@ -31,6 +31,8 @@
     "loadFailed": "Failed to load data."
   },
   "errors": {
-    "loadFailed": "Failed to load data."
+    "loadFailed": "Failed to load data.",
+    "networkError": "Connection issue",
+    "networkErrorDesc": "Please check your network connection and try again"
   }
 }

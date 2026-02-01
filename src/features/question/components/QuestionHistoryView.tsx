@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback, memo } from 'react';
+import { useRef, useEffect, useState, useCallback, memo, useMemo } from 'react';
 import { StyleSheet, Pressable, View, Text, PanResponder, ActivityIndicator } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -16,6 +16,7 @@ import { MailIcon } from '@/shared/icons/MailIcon';
 import { CalendarIcon } from '@/shared/icons/CalendarIcon';
 import { EditIcon } from '@/shared/icons/EditIcon';
 import { ReloadIcon } from '@/shared/icons/ReloadIcon';
+import { CloudOffIcon } from '@/shared/icons/CloudOffIcon';
 import { useQuestionCardStyles } from '@/shared/ui/QuestionCard';
 import { useDatePickerStore } from '../stores/useDatePickerStore';
 import { useSlideDirectionStore } from '../stores/useSlideDirectionStore';
@@ -24,7 +25,7 @@ import { useServeDailyQuestion, useReloadQuestion } from '../hooks/mutations/use
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 import { DatePickerSheet } from './DatePickerSheet';
 import { ReloadOptionSheet } from '@/features/answer/components/ReloadOptionSheet';
-import { SCREEN } from '@/utils/responsive';
+import { SCREEN, sp } from '@/utils/responsive';
 import { canReloadQuestion, getReloadCountDisplay } from '../constants/limits';
 
 const SWIPE_THRESHOLD = SCREEN.width * 0.3;
@@ -38,6 +39,29 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
   const cardStyles = useQuestionCardStyles();
   const [isAlertVisible, setIsAlertVisible] = useState(false);
   const [isReloadSheetVisible, setIsReloadSheetVisible] = useState(false);
+
+  const responsiveStyles = useMemo(
+    () => ({
+      cardContainer: {
+        paddingHorizontal: sp(24),
+        paddingVertical: sp(12),
+      },
+      errorContainer: {
+        gap: sp(32),
+        paddingHorizontal: sp(24),
+      },
+      errorTextContainer: {
+        gap: sp(8),
+      },
+      emptyState: {
+        gap: sp(32),
+      },
+      emptyButtonsContainer: {
+        gap: sp(12),
+      },
+    }),
+    []
+  );
 
   // currentDate 변경 로그
   console.log('[QuestionHistoryView] currentDate:', currentDate);
@@ -344,15 +368,19 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
     // 에러 상태
     if (isError) {
       return (
-        <View style={styles.errorContainer}>
-          <Text style={[styles.errorText, { color: theme.error?.val }]}>
-            {t('common:errors.loadFailed')}
-          </Text>
-          <Button
-            label={t('common:buttons.retry')}
-            onPress={handleRetry}
-            accessibilityLabel={t('common:buttons.retry')}
-          />
+        <View style={[styles.errorContainer, responsiveStyles.errorContainer]}>
+          <CloudOffIcon size={140} color={theme.colorSubtle?.val} />
+          <View style={[styles.errorTextContainer, responsiveStyles.errorTextContainer]}>
+            <Text style={[cardStyles.emptyText, { marginBottom: 8 }]}>
+              {t('common:errors.networkError')}
+            </Text>
+            <Text style={[cardStyles.questionDescription, { textAlign: 'center', color: theme.colorMuted?.val }]}>
+              {t('common:errors.networkErrorDesc')}
+            </Text>
+          </View>
+          <Pressable style={cardStyles.emptyButton} onPress={handleRetry}>
+            <Text style={cardStyles.emptyButtonText}>{t('common:buttons.retry')}</Text>
+          </Pressable>
         </View>
       );
     }
@@ -443,10 +471,10 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
 
     // 정상 상태 - 질문이 없는 경우 (빈 상태)
     return (
-      <View style={styles.emptyState}>
+      <View style={[styles.emptyState, responsiveStyles.emptyState]}>
         <MailIcon size={140} color={theme.colorSubtle?.val} />
         <Text style={cardStyles.emptyText}>{t('empty.noQuestion')}</Text>
-        <View style={styles.emptyButtonsContainer}>
+        <View style={[styles.emptyButtonsContainer, responsiveStyles.emptyButtonsContainer]}>
           <Pressable style={cardStyles.emptyButton} onPress={handleDrawRandomQuestion}>
             <Text style={cardStyles.emptyButtonText}>{t('empty.drawQuestion')}</Text>
           </Pressable>
@@ -469,7 +497,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
       />
 
       {/* Swipeable Card - Animated.View는 항상 렌더링 */}
-      <View style={styles.cardContainer}>
+      <View style={[styles.cardContainer, responsiveStyles.cardContainer]}>
         <Animated.View
           style={[styles.cardWrapper, animatedCardStyle]}
           {...panResponder.panHandlers}
@@ -510,8 +538,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
   },
   cardWrapper: {
     width: '100%',
@@ -547,12 +573,10 @@ const styles = StyleSheet.create({
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 32,
     height: SCREEN.height * 0.75,
   },
   emptyButtonsContainer: {
     flexDirection: 'row',
-    gap: 12,
     marginTop: 8,
   },
   loadingContainer: {
@@ -564,11 +588,8 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 16,
-    paddingHorizontal: 24,
   },
-  errorText: {
-    fontSize: 16,
-    textAlign: 'center',
+  errorTextContainer: {
+    alignItems: 'center',
   },
 });
