@@ -129,3 +129,15 @@ export interface GetQuestionHistoryResponse {
   startDate: string;
   endDate: string;
 }
+
+// ============================================
+// App Version Types
+// ============================================
+
+export type PlatformType = 'ios' | 'android';
+
+export interface AppVersionCheckResponse {
+  latestVersion: string;
+  minVersion: string;
+  serverLive: boolean;
+}

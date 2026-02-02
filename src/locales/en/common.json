@@ -34,5 +34,21 @@
     "loadFailed": "Failed to load data.",
     "networkError": "Connection issue",
     "networkErrorDesc": "Please check your network connection and try again"
+  },
+  "versionCheck": {
+    "forceUpdate": {
+      "title": "Update Required",
+      "message": "Version {{version}} is required. Please update to continue."
+    },
+    "optionalUpdate": {
+      "title": "Update Available",
+      "message": "Version {{version}} is now available. Update for new features!"
+    },
+    "serverDown": {
+      "title": "Server Maintenance",
+      "message": "The server is under maintenance. Please try again later."
+    },
+    "updateNow": "Update Now",
+    "skip": "Skip"
   }
 }

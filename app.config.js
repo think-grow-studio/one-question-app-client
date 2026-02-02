@@ -1,7 +1,7 @@
 // 플랫폼별 버전 관리
 
 const APP_VERSIONS = {
-    version: '0.1.0',
+    version: '1.0.0',
     androidVersion: 1,
     iosVersion: '1',
 };

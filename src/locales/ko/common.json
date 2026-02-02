@@ -34,5 +34,21 @@
     "loadFailed": "데이터를 불러오는데 실패했습니다.",
     "networkError": "연결이 원활하지 않아요",
     "networkErrorDesc": "네트워크 연결을 확인하고 다시 시도해주세요"
+  },
+  "versionCheck": {
+    "forceUpdate": {
+      "title": "업데이트 필요",
+      "message": "버전 {{version}}이 필요합니다. 업데이트 후 이용해주세요."
+    },
+    "optionalUpdate": {
+      "title": "업데이트 가능",
+      "message": "버전 {{version}}이 출시되었습니다. 새로운 기능을 경험해보세요!"
+    },
+    "serverDown": {
+      "title": "서버 점검 중",
+      "message": "서버 점검 중입니다. 잠시 후 다시 이용해주세요."
+    },
+    "updateNow": "지금 업데이트",
+    "skip": "나중에"
   }
 }

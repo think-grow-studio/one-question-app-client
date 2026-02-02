@@ -35,6 +35,18 @@ apiClient.interceptors.request.use(
       Localization.getCalendars()[0]?.timeZone ??
       Intl.DateTimeFormat().resolvedOptions().timeZone;
 
+    // 개발 모드에서 API 요청 로그
+    if (config.isDev) {
+      console.log('[API Request]', {
+        appVersion: config.appVersion,
+        method: requestConfig.method?.toUpperCase(),
+        url: requestConfig.url,
+        baseURL: requestConfig.baseURL,
+        params: requestConfig.params,
+        data: requestConfig.data,
+      });
+    }
+
     return requestConfig;
   },
   (error) => Promise.reject(error)
@@ -42,7 +54,20 @@ apiClient.interceptors.request.use(
 
 // Response Interceptor - 에러 처리 + 토큰 자동 갱신
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // 개발 모드에서 API 응답 로그
+    if (config.isDev) {
+      console.log('[API Response]', {
+        appVersion: config.appVersion,
+        method: response.config.method?.toUpperCase(),
+        url: response.config.url,
+        status: response.status,
+        statusText: response.statusText,
+        data: response.data,
+      });
+    }
+    return response;
+  },
   async (error: AxiosError<ApiErrorResponse>) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & {
       _retry?: boolean;
@@ -96,6 +121,19 @@ apiClient.interceptors.response.use(
       code: error.response?.data?.code || 'UNKNOWN_ERROR',
       message: errorMessage,
     };
+
+    // 개발 모드에서 API 에러 로그
+    if (config.isDev) {
+      console.error('[API Error]', {
+        appVersion: config.appVersion,
+        method: error.config?.method?.toUpperCase(),
+        url: error.config?.url,
+        status: error.response?.status,
+        errorCode: error.code,
+        normalizedError,
+        originalError: error.response?.data,
+      });
+    }
 
     return Promise.reject(normalizedError);
   }
