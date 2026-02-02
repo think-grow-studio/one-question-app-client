@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   TextInput,
   StyleSheet,
@@ -9,6 +9,8 @@ import {
   Text,
   ScrollView,
   BackHandler,
+  NativeSyntheticEvent,
+  TextInputContentSizeChangeEventData,
 } from 'react-native';
 import { YStack, useTheme } from 'tamagui';
 import { useRouter } from 'expo-router';
@@ -49,6 +51,10 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
     closePrePrompt,
   } = useAppReviewPrompt();
 
+  const inputMinHeight = (cardStyles.input?.minHeight as number) || 0;
+  const resolvedInputHeight = inputMinHeight > 0 ? inputMinHeight : 320;
+  const [isAnswerScrollable, setIsAnswerScrollable] = useState(false);
+
   // API Mutations
   const createAnswerMutation = useCreateAnswer();
   const updateAnswerMutation = useUpdateAnswer();
@@ -66,6 +72,17 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
     message?: string;
     buttons?: AlertDialogButton[];
   }>({ visible: false, title: '' });
+
+  const handleInputContentSizeChange = useCallback(
+    (event: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => {
+      const contentHeight = event?.nativeEvent?.contentSize?.height;
+      if (!contentHeight) return;
+
+      const shouldScroll = contentHeight > resolvedInputHeight;
+      setIsAnswerScrollable((prev) => (prev === shouldScroll ? prev : shouldScroll));
+    },
+    [resolvedInputHeight]
+  );
 
   // Android 뒤로가기 버튼 처리
   useEffect(() => {
@@ -177,6 +194,7 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
+          nestedScrollEnabled
         >
           {/* Question Card */}
           <View style={styles.cardContainer}>
@@ -212,7 +230,7 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
                 <Text style={[cardStyles.labelText, { marginBottom: 12 }]}>{t('question:labels.answer')}</Text>
                 <View style={cardStyles.inputContainer}>
                   <TextInput
-                    style={cardStyles.input}
+                    style={[cardStyles.input, { height: resolvedInputHeight }]}
                     multiline
                     value={answer}
                     onChangeText={setAnswer}
@@ -220,6 +238,8 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
                     placeholderTextColor={theme.colorMuted?.val}
                     textAlignVertical="top"
                     editable={!isPending}
+                    onContentSizeChange={handleInputContentSizeChange}
+                    scrollEnabled={isAnswerScrollable}
                   />
                   <Text style={cardStyles.charCount}>
                     {t('answer:charCount', { count: answer.length })}
