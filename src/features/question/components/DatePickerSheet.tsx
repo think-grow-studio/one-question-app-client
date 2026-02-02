@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback, memo } from 'react';
 import { Modal, Pressable, StyleSheet, View, Text, PanResponder, BackHandler, ActivityIndicator } from 'react-native';
 import { YStack, XStack, Paragraph, useTheme } from 'tamagui';
+import { useTranslation } from 'react-i18next';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -17,13 +18,14 @@ import { useAccentColors } from '@/shared/theme';
 import { fs, sp, radius, cs, SCREEN, SHEET_HEIGHTS, SHEET_MAX_WIDTH } from '@/utils/responsive';
 import type { DailyQuestionDomain } from '../domain/questionDomain';
 
-const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+const WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
 const MAX_WEEKS = 6;
 const DISMISS_THRESHOLD = 100;
 
 export const DatePickerSheet = memo(function DatePickerSheet() {
   const theme = useTheme();
   const accent = useAccentColors();
+  const { t } = useTranslation(['question', 'common']);
   const { isDatePickerVisible, setIsDatePickerVisible, currentDate, setCurrentDate } =
     useDatePickerStore();
   const { setDirectionForCalendar } = useSlideDirectionStore();
@@ -311,9 +313,9 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
       borderRadius: cs(4),
     },
     legendRing: {
-      width: cs(8),
-      height: cs(8),
-      borderRadius: cs(4),
+      width: cs(10),
+      height: cs(10),
+      borderRadius: radius(3),
       borderWidth: 2,
     },
     previewContainer: {
@@ -497,9 +499,13 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
   const formatPreviewDate = useCallback((dateStr: string) => {
     const [year, month, day] = dateStr.split('-').map(Number);
     const date = new Date(year, month - 1, day);
-    const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
-    return `${month}월 ${day}일 ${weekdays[date.getDay()]}요일`;
-  }, []);
+    const weekdayKey = WEEKDAY_KEYS[date.getDay()] ?? 'sun';
+    return t('question:dateFormat', {
+      month,
+      day,
+      weekday: t(`question:weekdays.${weekdayKey}`),
+    });
+  }, [t]);
 
   if (!isDatePickerVisible) return null;
 
@@ -525,7 +531,7 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
             </Pressable>
             <XStack ai="center" gap="$2">
               <Paragraph fontSize={fs(20)} fontWeight="700" letterSpacing={-0.3} color="$color">
-                {viewYear}년 {viewMonth + 1}월
+                {t('question:calendar.monthTitle', { year: viewYear, month: viewMonth + 1 })}
               </Paragraph>
               {showCalendarLoading && (
                 <ActivityIndicator size="small" color={theme.colorMuted?.val} />
@@ -538,14 +544,14 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
 
           {/* Weekday Headers */}
           <XStack px="$4" pb="$2">
-            {WEEKDAYS.map((day, index) => (
-              <View key={day} style={styles.weekdayCell}>
+            {WEEKDAY_KEYS.map((weekdayKey, index) => (
+              <View key={weekdayKey} style={styles.weekdayCell}>
                 <Text style={[
                   themedStyles.weekdayText,
                   index === 0 && themedStyles.sundayText,
                   index === 6 && themedStyles.saturdayText,
                 ]}>
-                  {day}
+                  {t(`question:weekdays.${weekdayKey}`)}
                 </Text>
               </View>
             ))}
@@ -563,7 +569,7 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
                       styles.dayButton,
                       responsiveStyles.dayButton,
                       isSelected(day) && themedStyles.dayButtonSelected,
-                      isCurrentDate(day) && !isSelected(day) && themedStyles.dayButtonCurrent,
+                      isCurrentDate(day) && themedStyles.dayButtonCurrent,
                       isToday(day) && !isSelected(day) && !isCurrentDate(day) && themedStyles.dayButtonToday,
                     ]}
                   >
@@ -594,15 +600,21 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
           <XStack px="$5" pt="$1" gap="$5">
             <XStack ai="center" gap="$2">
               <View style={[styles.legendDot, responsiveStyles.legendDot, themedStyles.answerDot]} />
-              <Paragraph fontSize={fs(12)} color="$colorMuted">답변 완료</Paragraph>
+              <Paragraph fontSize={fs(12)} color="$colorMuted">
+                {t('question:calendar.legend.answered')}
+              </Paragraph>
             </XStack>
             <XStack ai="center" gap="$2">
               <View style={[styles.legendDot, responsiveStyles.legendDot, themedStyles.questionDot]} />
-              <Paragraph fontSize={fs(12)} color="$colorMuted">질문만</Paragraph>
+              <Paragraph fontSize={fs(12)} color="$colorMuted">
+                {t('question:calendar.legend.questionOnly')}
+              </Paragraph>
             </XStack>
             <XStack ai="center" gap="$2">
               <View style={[styles.legendRing, responsiveStyles.legendRing, themedStyles.legendRing]} />
-              <Paragraph fontSize={fs(12)} color="$colorMuted">현재 보는 날</Paragraph>
+              <Paragraph fontSize={fs(12)} color="$colorMuted">
+                {t('question:calendar.legend.current')}
+              </Paragraph>
             </XStack>
           </XStack>
 
@@ -619,7 +631,9 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
                     themedStyles.answeredBadge,
                     previewItem?.status !== 'ANSWERED' && styles.badgeHidden,
                   ]}>
-                    <Text style={[styles.answeredBadgeText, responsiveStyles.answeredBadgeText]}>답변 완료</Text>
+                    <Text style={[styles.answeredBadgeText, responsiveStyles.answeredBadgeText]}>
+                      {t('question:status.answered')}
+                    </Text>
                   </View>
                 </XStack>
 
@@ -633,17 +647,19 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
                     </Text>
                   ) : (
                     <Text style={themedStyles.previewEmpty}>
-                      이 날의 질문이 없습니다
+                      {t('question:empty.noQuestion')}
                     </Text>
                   )}
                 </View>
 
                 <View style={{ marginTop: sp(12) }}>
                   <Button
-                    label="이 날짜로 이동"
+                    label={t('question:calendar.goToDate')}
                     onPress={handleNavigateToDate}
                     disabled={isPreviewBeforeCycleStartDate}
-                    accessibilityLabel={`${formatPreviewDate(previewDate)}로 이동`}
+                    accessibilityLabel={t('question:calendar.accessibility.goToDate', {
+                      date: formatPreviewDate(previewDate),
+                    })}
                   />
                 </View>
               </YStack>
@@ -653,9 +669,9 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
 
       <AlertDialog
         visible={joinDateError}
-        title="이동 불가"
-        message="가입일 이전 날짜로는 이동할 수 없습니다."
-        buttons={[{ label: '확인', variant: 'primary' }]}
+        title={t('question:calendar.errors.beforeCycleTitle')}
+        message={t('question:calendar.errors.beforeCycleMessage')}
+        buttons={[{ label: t('common:buttons.confirm'), variant: 'primary' }]}
         onClose={() => setJoinDateError(false)}
       />
     </Modal>

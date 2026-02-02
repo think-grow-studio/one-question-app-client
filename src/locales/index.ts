@@ -11,6 +11,7 @@ import koAuth from './ko/auth.json';
 
 // Import English translations
 import enCommon from './en/common.json';
+import enQuestion from './en/question.json';
 import enAnswer from './en/answer.json';
 import enSettings from './en/settings.json';
 import enAuth from './en/auth.json';
@@ -25,6 +26,7 @@ const resources = {
   },
   en: {
     common: enCommon,
+    question: enQuestion,
     answer: enAnswer,
     settings: enSettings,
     auth: enAuth,

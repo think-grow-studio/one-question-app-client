@@ -1,0 +1,77 @@
+{
+  "dateFormat": "{{month}}/{{day}} ({{weekday}})",
+  "weekdays": {
+    "sun": "Sun",
+    "mon": "Mon",
+    "tue": "Tue",
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "sat": "Sat"
+  },
+  "labels": {
+    "question": "Question",
+    "answer": "Answer"
+  },
+  "empty": {
+    "noQuestion": "No question for this day",
+    "drawQuestion": "Random Question",
+    "yearAgo": "Past Question"
+  },
+  "actions": {
+    "goToAnswer": "Write an answer",
+    "swipeHint": "Swipe left or right to change the date",
+    "edit": "Edit"
+  },
+  "status": {
+    "answered": "Answered",
+    "questionOnly": "Question only"
+  },
+  "calendar": {
+    "monthTitle": "{{month}}/{{year}}",
+    "goToDate": "Go to this date",
+    "accessibility": {
+      "goToDate": "Go to {{date}}"
+    },
+    "legend": {
+      "answered": "Answered",
+      "questionOnly": "Question only",
+      "current": "Currently selected day"
+    },
+    "errors": {
+      "beforeCycleTitle": "Unavailable",
+      "beforeCycleMessage": "You can't open dates before your start date."
+    }
+  },
+  "writtenDate": "Written on {{date}}",
+  "random": [
+    {
+      "question": "When were you the happiest?",
+      "description": "Recall any big or small moments of joy."
+    },
+    {
+      "question": "What are you most grateful for today?",
+      "description": "Even the smallest things count."
+    },
+    {
+      "question": "What is something new you've learned recently?",
+      "description": "It could be knowledge, a skill, or a life lesson."
+    },
+    {
+      "question": "What value matters the most to you?",
+      "description": "Family, health, freedom, growth—share what comes to mind."
+    },
+    {
+      "question": "What do you want to do most right now?",
+      "description": "It can be realistic or purely a dream."
+    },
+    {
+      "question": "What act of kindness have you received lately?",
+      "description": "Remember a small gesture that meant a lot."
+    },
+    {
+      "question": "Is there something you'd like to tell yourself today?",
+      "description": "Give yourself a warm and gentle message."
+    }
+  ]
+}

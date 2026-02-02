@@ -23,6 +23,26 @@
     "swipeHint": "좌우로 밀어서 날짜 이동",
     "edit": "수정"
   },
+  "status": {
+    "answered": "답변 완료",
+    "questionOnly": "질문만"
+  },
+  "calendar": {
+    "monthTitle": "{{year}}년 {{month}}월",
+    "goToDate": "이 날짜로 이동",
+    "accessibility": {
+      "goToDate": "{{date}}로 이동"
+    },
+    "legend": {
+      "answered": "답변 완료",
+      "questionOnly": "질문만",
+      "current": "현재 보는 날"
+    },
+    "errors": {
+      "beforeCycleTitle": "이동 불가",
+      "beforeCycleMessage": "가입일 이전 날짜로는 이동할 수 없습니다."
+    }
+  },
   "writtenDate": "작성 날짜 {{date}}",
   "random": [
     {
