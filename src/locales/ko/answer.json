@@ -18,6 +18,7 @@
     "message": "어떤 질문을 받으시겠어요?",
     "randomQuestion": "랜덤 질문",
     "randomQuestionDesc": "새로운 랜덤 질문을 받아요",
+    "randomQuestionLoading": "랜덤 질문을 불러오는 중이에요",
     "pastQuestion": "과거 질문",
     "pastQuestionDesc": "과거에 받았던 질문을 다시 받아요",
     "pastQuestionNotReady": "과거 질문은 아직 준비 중이에요",

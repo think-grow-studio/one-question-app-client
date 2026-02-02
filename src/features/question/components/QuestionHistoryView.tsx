@@ -18,6 +18,7 @@ import { EditIcon } from '@/shared/icons/EditIcon';
 import { ReloadIcon } from '@/shared/icons/ReloadIcon';
 import { CloudOffIcon } from '@/shared/icons/CloudOffIcon';
 import { useQuestionCardStyles } from '@/shared/ui/QuestionCard';
+import { LoadingOverlay } from '@/shared/ui/LoadingOverlay';
 import { useDatePickerStore } from '../stores/useDatePickerStore';
 import { useSlideDirectionStore } from '../stores/useSlideDirectionStore';
 import { useDailyHistory, questionQueryKeys } from '../hooks/queries/useQuestionQueries';
@@ -34,7 +35,7 @@ const SWIPE_THRESHOLD = SCREEN.width * 0.3;
 export const QuestionHistoryView = memo(function QuestionHistoryView() {
   const router = useRouter();
   const theme = useTheme();
-  const { t } = useTranslation(['question', 'common']);
+  const { t } = useTranslation(['question', 'common', 'answer']);
   const { currentDate, setCurrentDate, setIsDatePickerVisible } = useDatePickerStore();
   const { direction, setDirectionForNextDay, setDirectionForPreviousDay } = useSlideDirectionStore();
   const cardStyles = useQuestionCardStyles();
@@ -537,6 +538,11 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
         message={t('common:status.comingSoon')}
         buttons={[{ label: t('common:buttons.confirm'), variant: 'primary' }]}
         onClose={() => setIsAlertVisible(false)}
+      />
+
+      <LoadingOverlay
+        visible={reloadMutation.isPending}
+        message={t('answer:reload.randomQuestionLoading')}
       />
     </YStack>
   );

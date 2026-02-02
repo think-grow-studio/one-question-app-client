@@ -18,6 +18,7 @@
     "message": "What kind of question would you like?",
     "randomQuestion": "Random Question",
     "randomQuestionDesc": "Get a new random question",
+    "randomQuestionLoading": "Fetching a random question...",
     "pastQuestion": "Past Question",
     "pastQuestionDesc": "Get a question you've received before",
     "pastQuestionNotReady": "Past questions are not ready yet",
