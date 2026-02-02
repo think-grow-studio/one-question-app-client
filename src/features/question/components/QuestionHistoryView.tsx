@@ -20,9 +20,10 @@ import { CloudOffIcon } from '@/shared/icons/CloudOffIcon';
 import { useQuestionCardStyles } from '@/shared/ui/QuestionCard';
 import { useDatePickerStore } from '../stores/useDatePickerStore';
 import { useSlideDirectionStore } from '../stores/useSlideDirectionStore';
-import { useDailyHistory } from '../hooks/queries/useQuestionQueries';
+import { useDailyHistory, questionQueryKeys } from '../hooks/queries/useQuestionQueries';
 import { useServeDailyQuestion, useReloadQuestion } from '../hooks/mutations/useQuestionMutations';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
+import { useQueryClient } from '@tanstack/react-query';
 import { DatePickerSheet } from './DatePickerSheet';
 import { ReloadOptionSheet } from '@/features/answer/components/ReloadOptionSheet';
 import { SCREEN, sp } from '@/utils/responsive';
@@ -39,6 +40,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
   const cardStyles = useQuestionCardStyles();
   const [isAlertVisible, setIsAlertVisible] = useState(false);
   const [isReloadSheetVisible, setIsReloadSheetVisible] = useState(false);
+  const queryClient = useQueryClient();
 
   const responsiveStyles = useMemo(
     () => ({
@@ -81,8 +83,15 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
   const reloadMutation = useReloadQuestion();
 
   const handleRetry = useCallback(() => {
-    refetchHistory();
-  }, [refetchHistory]);
+    // 1. 뮤테이션 에러 상태 초기화
+    serveDailyQuestionMutation.reset();
+
+    // 2. 쿼리 무효화 및 자동 refetch (에러 상태도 함께 클리어됨)
+    queryClient.invalidateQueries({
+      queryKey: questionQueryKeys.daily(currentDate),
+      exact: true
+    });
+  }, [queryClient, currentDate, serveDailyQuestionMutation]);
 
   // 회원 정보 조회 (cycleStartDate 제한용)
   const { data: member } = useMemberMe();
