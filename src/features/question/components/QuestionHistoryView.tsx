@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState, useCallback, memo, useMemo } from 'react';
-import { StyleSheet, Pressable, View, Text, PanResponder, ActivityIndicator } from 'react-native';
+import { StyleSheet, Pressable, View, Text, PanResponder, ActivityIndicator, ScrollView } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -462,7 +462,14 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
                   <Text style={[cardStyles.writtenDateText, { marginTop: 0, marginBottom: 12 }]}>
                     {t('writtenDate', { date: currentItem.answeredAt ? formatDate(currentItem.answeredAt.split('T')[0]) : formatDate(currentDate) })}
                   </Text>
-                  <Text style={cardStyles.answerText}>{currentItem.answer}</Text>
+                  <ScrollView
+                    style={styles.answerScroll}
+                    contentContainerStyle={styles.answerScrollContent}
+                    showsVerticalScrollIndicator
+                    nestedScrollEnabled
+                  >
+                    <Text style={cardStyles.answerText}>{currentItem.answer}</Text>
+                  </ScrollView>
                 </>
               ) : (
                 <View style={styles.noAnswerContainer}>
@@ -568,6 +575,13 @@ const styles = StyleSheet.create({
   },
   answerSection: {
     flex: 1, // 나머지 공간 전부 차지
+  },
+  answerScroll: {
+    flex: 1,
+  },
+  answerScrollContent: {
+    flexGrow: 1,
+    paddingBottom: sp(16),
   },
   editButton: {
     flexDirection: 'row',

@@ -229,18 +229,26 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
               <View style={styles.answerSection}>
                 <Text style={[cardStyles.labelText, { marginBottom: 12 }]}>{t('question:labels.answer')}</Text>
                 <View style={cardStyles.inputContainer}>
-                  <TextInput
-                    style={[cardStyles.input, { height: resolvedInputHeight }]}
-                    multiline
-                    value={answer}
-                    onChangeText={setAnswer}
-                    placeholder={t('answer:placeholder')}
-                    placeholderTextColor={theme.colorMuted?.val}
-                    textAlignVertical="top"
-                    editable={!isPending}
-                    onContentSizeChange={handleInputContentSizeChange}
+                  <ScrollView
+                    style={[styles.answerScroll, { height: resolvedInputHeight }]}
+                    contentContainerStyle={styles.answerScrollContent}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator
+                    nestedScrollEnabled
                     scrollEnabled={isAnswerScrollable}
-                  />
+                  >
+                    <TextInput
+                      style={[cardStyles.input, { minHeight: resolvedInputHeight }]}
+                      multiline
+                      value={answer}
+                      onChangeText={setAnswer}
+                      placeholder={t('answer:placeholder')}
+                      placeholderTextColor={theme.colorMuted?.val}
+                      textAlignVertical="top"
+                      editable={!isPending}
+                      onContentSizeChange={handleInputContentSizeChange}
+                    />
+                  </ScrollView>
                   <Text style={cardStyles.charCount}>
                     {t('answer:charCount', { count: answer.length })}
                   </Text>
@@ -320,6 +328,12 @@ const styles = StyleSheet.create({
   },
   answerSection: {
     flex: 1,
+  },
+  answerScroll: {
+    flex: 1,
+  },
+  answerScrollContent: {
+    flexGrow: 1,
   },
   submitContainer: {
     paddingHorizontal: 20,
