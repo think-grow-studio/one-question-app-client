@@ -48,15 +48,60 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
   // 가입일 이전 날짜 클릭 시 오류 메시지 상태
   const [joinDateError, setJoinDateError] = useState(false);
 
+  // 오늘 정보 (다른 계산에서도 재사용)
+  const today = new Date();
+  const todayYear = today.getFullYear();
+  const todayMonth = today.getMonth();
+  const todayDay = today.getDate();
+  const todayStr = `${todayYear}-${String(todayMonth + 1).padStart(2, '0')}-${String(todayDay).padStart(2, '0')}`;
+
+  // 회원 정보 조회 (cycleStartDate 제한용)
+  const { data: member } = useMemberMe();
+
+  const calendarFetchBaseDate = useMemo(() => {
+    if (!member?.cycleStartDate) {
+      return null;
+    }
+
+    const [cycleYear, cycleMonth, cycleDay] = member.cycleStartDate
+      .split('-')
+      .map(Number);
+
+    const monthLastDay = new Date(viewYear, viewMonth + 1, 0).getDate();
+
+    let minDay = 1;
+    if (cycleYear === viewYear && cycleMonth === viewMonth + 1) {
+      minDay = cycleDay;
+    }
+
+    let maxDay = monthLastDay;
+    if (todayYear === viewYear && todayMonth === viewMonth) {
+      maxDay = todayDay;
+    }
+
+    if (minDay > maxDay) {
+      minDay = maxDay;
+    }
+
+    const clampedDay = Math.min(Math.max(15, minDay), maxDay);
+    return `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(clampedDay).padStart(2, '0')}`;
+  }, [member?.cycleStartDate, viewYear, viewMonth, todayYear, todayMonth, todayDay]);
+
+  const shouldLoadCalendar = isDatePickerVisible && Boolean(calendarFetchBaseDate);
+
   // API: 달력 전용 히스토리 조회 (35일치 도메인 객체 배열)
   const { data: historyList, isLoading: isHistoryLoading } = useCalendarHistory(
     viewYear,
     viewMonth,
-    { enabled: isDatePickerVisible }
+    {
+      enabled: shouldLoadCalendar,
+      baseDateOverride: calendarFetchBaseDate ?? undefined,
+    }
   );
 
-  // 회원 정보 조회 (cycleStartDate 제한용)
-  const { data: member } = useMemberMe();
+  const showCalendarLoading = shouldLoadCalendar
+    ? isHistoryLoading
+    : Boolean(isDatePickerVisible && !calendarFetchBaseDate);
 
   // 히스토리 데이터를 날짜별 맵으로 변환
   // historyList에서 도메인 객체 배열을 받아서 바로 Map으로 변환
@@ -337,10 +382,6 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
     setViewYear(nextYear);
   }, [viewMonth, viewYear]);
 
-  // 오늘 날짜
-  const today = new Date();
-  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-
   // getDateString 함수
   const getDateString = useCallback((day: number) => {
     return `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -486,7 +527,7 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
               <Paragraph fontSize={fs(20)} fontWeight="700" letterSpacing={-0.3} color="$color">
                 {viewYear}년 {viewMonth + 1}월
               </Paragraph>
-              {isHistoryLoading && (
+              {showCalendarLoading && (
                 <ActivityIndicator size="small" color={theme.colorMuted?.val} />
               )}
             </XStack>

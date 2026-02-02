@@ -36,6 +36,11 @@ export function useDailyQuestion(date: string, options?: { enabled?: boolean }) 
 
 const HISTORY_FETCH_SIZE = 7;
 
+type CalendarHistoryOptions = {
+  enabled?: boolean;
+  baseDateOverride?: string;
+};
+
 /**
  * 특정 날짜의 질문/답변 데이터 조회
  * - 캐시에 있으면 즉시 반환
@@ -99,29 +104,34 @@ export function useDailyHistory(
 export function useCalendarHistory(
   viewYear: number,
   viewMonth: number,
-  options?: { enabled?: boolean }
+  options?: CalendarHistoryOptions
 ): UseQueryResult<DailyQuestionDomain[]> {
   const queryClient = useQueryClient();
 
   // 현재 보고 있는 월의 15일 계산
-  const baseDate = useMemo(() => {
+  const cacheBaseDate = useMemo(() => {
     return `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-15`;
   }, [viewYear, viewMonth]);
 
+  const fetchBaseDate = options?.baseDateOverride ?? cacheBaseDate;
+
   return useQuery({
-    queryKey: questionQueryKeys.calendar(baseDate),
+    queryKey: questionQueryKeys.calendar(cacheBaseDate),
 
     queryFn: async () => {
-      console.log('[useCalendarHistory] Fetching calendar data for month:', baseDate);
+      console.log('[useCalendarHistory] Fetching calendar data for month:', {
+        cacheBaseDate,
+        fetchBaseDate,
+      });
 
       const res = await questionApi.getHistories({
-        baseDate,
+        baseDate: fetchBaseDate,
         historyDirection: 'BOTH',
         size: 35,
       });
 
       console.log('[useCalendarHistory] API Response:', {
-        baseDate,
+        baseDate: fetchBaseDate,
         count: res.data.histories.length,
       });
 
