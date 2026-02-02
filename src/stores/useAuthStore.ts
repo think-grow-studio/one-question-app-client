@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { storage } from '@/services/storage';
 import { queryClient } from '@/services/queryClient';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -41,6 +42,14 @@ export const useAuthStore = create<AuthState>()((set) => ({
     try {
       await storage.clearTokens();
       queryClient.clear(); // 모든 캐시 데이터 삭제
+
+      // 구글 계정 연결 해제 (다음 로그인 시 계정 선택 화면 표시)
+      try {
+        await GoogleSignin.signOut();
+      } catch (error) {
+        console.warn('Google sign out failed:', error);
+      }
+
       set({ isAuthenticated: false });
     } finally {
       isLoggingOut = false;

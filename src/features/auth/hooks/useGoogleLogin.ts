@@ -52,6 +52,13 @@ export function useGoogleLogin() {
       // Google Play Services 확인 (Android)
       await GoogleSignin.hasPlayServices();
 
+      // 기존 세션 클리어 (항상 계정 선택 화면 표시)
+      try {
+        await GoogleSignin.signOut();
+      } catch (error) {
+        // 로그인된 적 없으면 에러 발생 가능, 무시
+      }
+
       // Google Sign-In 실행
       const response = await GoogleSignin.signIn();
 
