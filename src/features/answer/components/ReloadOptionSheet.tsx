@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { useAccentColors } from '@/shared/theme';
 import { MailIcon } from '@/shared/icons/MailIcon';
 import { PastQuestionIcon } from '@/shared/icons/PastQuestionIcon';
+import { AdBadge } from '@/shared/ui/ads/AdBadge';
 import { fs, sp, radius, cs, SHEET_HEIGHTS, SHEET_MAX_WIDTH } from '@/utils/responsive';
 
 const DISMISS_THRESHOLD = 100;
@@ -20,6 +21,7 @@ type ReloadOptionSheetProps = {
   onClose: () => void;
   onRandomQuestion: () => void;
   onPastQuestion: () => void;
+  randomRequiresAd?: boolean;
 };
 
 export function ReloadOptionSheet({
@@ -27,6 +29,7 @@ export function ReloadOptionSheet({
   onClose,
   onRandomQuestion,
   onPastQuestion,
+  randomRequiresAd = false,
 }: ReloadOptionSheetProps) {
   const theme = useTheme();
   const accent = useAccentColors();
@@ -225,9 +228,12 @@ export function ReloadOptionSheet({
                 <MailIcon size={cs(22)} color={accent.textOnPrimary} />
               </View>
               <YStack style={[styles.optionTextContainer, responsiveStyles.optionTextContainer]}>
-                <Text style={[styles.optionTitle, responsiveStyles.optionTitle, { color: theme.color?.val }]}>
-                  {t('answer:reload.randomQuestion')}
-                </Text>
+                <View style={styles.optionTitleRow}>
+                  <Text style={[styles.optionTitle, responsiveStyles.optionTitle, { color: theme.color?.val }]}>
+                    {t('answer:reload.randomQuestion')}
+                  </Text>
+                  {randomRequiresAd && <AdBadge size="compact" />}
+                </View>
                 <Text style={[styles.optionDescription, responsiveStyles.optionDescription, { color: theme.colorMuted?.val }]}>
                   {t('answer:reload.randomQuestionDesc')}
                 </Text>
@@ -332,6 +338,11 @@ const styles = StyleSheet.create({
   },
   optionTitle: {
     fontWeight: '600',
+  },
+  optionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: sp(6),
   },
   optionDescription: {},
   comingSoonBadge: {},

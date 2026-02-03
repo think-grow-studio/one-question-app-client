@@ -19,11 +19,16 @@ import { ReloadIcon } from '@/shared/icons/ReloadIcon';
 import { CloudOffIcon } from '@/shared/icons/CloudOffIcon';
 import { useQuestionCardStyles } from '@/shared/ui/QuestionCard';
 import { LoadingOverlay } from '@/shared/ui/LoadingOverlay';
+import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
+import { AdBadge } from '@/shared/ui/ads/AdBadge';
 import { useDatePickerStore } from '../stores/useDatePickerStore';
 import { useSlideDirectionStore } from '../stores/useSlideDirectionStore';
 import { useDailyHistory, questionQueryKeys } from '../hooks/queries/useQuestionQueries';
 import { useServeDailyQuestion, useReloadQuestion } from '../hooks/mutations/useQuestionMutations';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
+import { MemberPermission } from '@/types/api';
+import { shouldHideAds } from '@/features/member/constants/permissions';
+import { useRewardedAdGate } from '@/features/admob/hooks/useRewardedAdGate';
 import { useQueryClient } from '@tanstack/react-query';
 import { DatePickerSheet } from './DatePickerSheet';
 import { ReloadOptionSheet } from '@/features/answer/components/ReloadOptionSheet';
@@ -31,6 +36,13 @@ import { SCREEN, sp } from '@/utils/responsive';
 import { canReloadQuestion, getReloadCountDisplay } from '../constants/limits';
 
 const SWIPE_THRESHOLD = SCREEN.width * 0.3;
+
+const getTodayDateString = () => {
+  const today = new Date();
+  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(
+    today.getDate()
+  ).padStart(2, '0')}`;
+};
 
 export const QuestionHistoryView = memo(function QuestionHistoryView() {
   const router = useRouter();
@@ -96,6 +108,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
 
   // 회원 정보 조회 (cycleStartDate 제한용)
   const { data: member } = useMemberMe();
+  const { requestReward } = useRewardedAdGate();
 
   // 현재 질문/답변 데이터 (히스토리 기반)
   const currentItem = currentHistory?.question
@@ -114,9 +127,29 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
   const reloadCount = currentItem?.reloadCount ?? 0;
 
   // Permission 정보 가져오기
-  const memberPermission = member?.permission ?? 'FREE';
+  const memberPermission = member?.permission ?? MemberPermission.FREE;
   const reloadInfo = getReloadCountDisplay(reloadCount, memberPermission);
   const canReload = canReloadQuestion(reloadCount, memberPermission);
+  const todayStr = useMemo(() => getTodayDateString(), []);
+  const isViewingPastDate = currentDate < todayStr;
+  const shouldGateRandomQuestion = memberPermission === MemberPermission.FREE && isViewingPastDate;
+  const shouldGateReloadQuestion = memberPermission === MemberPermission.FREE;
+  const isAdFreeMember = shouldHideAds(memberPermission);
+
+  const runRewardedAction = useCallback(
+    async (action: 'random' | 'reload') => {
+      const requiresReward = action === 'random' ? shouldGateRandomQuestion : shouldGateReloadQuestion;
+      if (!requiresReward) {
+        return true;
+      }
+      const { success } = await requestReward();
+      if (!success) {
+        console.warn('[QuestionHistoryView] Rewarded ad was not completed.');
+      }
+      return success;
+    },
+    [requestReward, shouldGateRandomQuestion, shouldGateReloadQuestion]
+  );
 
   const translateX = useSharedValue(0);
   const opacity = useSharedValue(1);
@@ -319,8 +352,17 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
   }, [currentItem, currentDate, router]);
 
   const handleDrawRandomQuestion = useCallback(() => {
-    serveDailyQuestionMutation.mutate(currentDate);
-  }, [serveDailyQuestionMutation, currentDate]);
+    runRewardedAction('random')
+      .then((allowed) => {
+        if (!allowed) {
+          return;
+        }
+        serveDailyQuestionMutation.mutate(currentDate);
+      })
+      .catch((error) => {
+        console.warn('[QuestionHistoryView] Rewarded action failed', error);
+      });
+  }, [runRewardedAction, serveDailyQuestionMutation, currentDate]);
 
   const handleDrawYearAgoQuestion = useCallback(() => {
     setIsAlertVisible(true);
@@ -337,12 +379,22 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
       return;
     }
 
-    reloadMutation.mutate(currentDate, {
-      onSuccess: () => {
-        setIsReloadSheetVisible(false);
-      },
-    });
-  }, [reloadCount, memberPermission, reloadMutation, currentDate]);
+    runRewardedAction('reload')
+      .then((allowed) => {
+        if (!allowed) {
+          return;
+        }
+
+        reloadMutation.mutate(currentDate, {
+          onSuccess: () => {
+            setIsReloadSheetVisible(false);
+          },
+        });
+      })
+      .catch((error) => {
+        console.warn('[QuestionHistoryView] Rewarded reload failed', error);
+      });
+  }, [reloadCount, memberPermission, reloadMutation, currentDate, runRewardedAction]);
 
   const handlePastQuestion = useCallback(() => {
     setIsAlertVisible(true);
@@ -493,7 +545,10 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
         <Text style={cardStyles.emptyText}>{t('empty.noQuestion')}</Text>
         <View style={[styles.emptyButtonsContainer, responsiveStyles.emptyButtonsContainer]}>
           <Pressable style={cardStyles.emptyButton} onPress={handleDrawRandomQuestion}>
-            <Text style={cardStyles.emptyButtonText}>{t('empty.drawQuestion')}</Text>
+            <XStack ai="center" gap="$2">
+              <Text style={cardStyles.emptyButtonText}>{t('empty.drawQuestion')}</Text>
+              {shouldGateRandomQuestion && <AdBadge size="compact" />}
+            </XStack>
           </Pressable>
           <Pressable style={cardStyles.emptyButton} onPress={handleDrawYearAgoQuestion}>
             <Text style={cardStyles.emptyButtonText}>{t('empty.yearAgo')}</Text>
@@ -523,11 +578,16 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
         </Animated.View>
       </View>
 
-      {/* Swipe Indicator */}
-      <YStack ai="center" pb="$6">
+      {/* Swipe Indicator + Banner */}
+      <YStack   ai="center" gap="$2">
         <Paragraph fontSize="$2" color="$gray9">
           {t('actions.swipeHint')}
         </Paragraph>
+        {!isAdFreeMember && (
+          <View style={{ width: '100%', paddingHorizontal: sp(24) }}>
+            <BannerAdSlot disableSafeAreaPadding />
+          </View>
+        )}
       </YStack>
 
       <DatePickerSheet />
@@ -537,6 +597,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
         onClose={() => setIsReloadSheetVisible(false)}
         onRandomQuestion={handleRandomQuestion}
         onPastQuestion={handlePastQuestion}
+        randomRequiresAd={shouldGateReloadQuestion}
       />
 
       <AlertDialog

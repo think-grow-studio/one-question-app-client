@@ -17,6 +17,9 @@
     "preparing": "준비 중",
     "comingSoon": "준비중"
   },
+  "ads": {
+    "adLabel": "광고"
+  },
   "tabs": {
     "home": "홈",
     "settings": "설정"

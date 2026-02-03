@@ -1,0 +1,22 @@
+diff --git a/node_modules/react-native-google-mobile-ads/android/src/main/java/io/invertase/googlemobileads/ReactNativeGoogleMobileAdsFullScreenAdModule.kt b/node_modules/react-native-google-mobile-ads/android/src/main/java/io/invertase/googlemobileads/ReactNativeGoogleMobileAdsFullScreenAdModule.kt
+index 75cd58f..9109b0b 100644
+--- a/node_modules/react-native-google-mobile-ads/android/src/main/java/io/invertase/googlemobileads/ReactNativeGoogleMobileAdsFullScreenAdModule.kt
++++ b/node_modules/react-native-google-mobile-ads/android/src/main/java/io/invertase/googlemobileads/ReactNativeGoogleMobileAdsFullScreenAdModule.kt
+@@ -34,7 +34,7 @@ import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAd
+ import io.invertase.googlemobileads.ReactNativeGoogleMobileAdsEvent.GOOGLE_MOBILE_ADS_EVENT_APP_EVENT
+ import io.invertase.googlemobileads.common.ReactNativeModule
+ 
+-abstract class ReactNativeGoogleMobileAdsFullScreenAdModule<T>(
++abstract class ReactNativeGoogleMobileAdsFullScreenAdModule<T : Any>(
+   reactContext: ReactApplicationContext?,
+   moduleName: String
+ ) : ReactNativeModule(reactContext, moduleName) {
+@@ -145,7 +145,7 @@ abstract class ReactNativeGoogleMobileAdsFullScreenAdModule<T>(
+     private val adUnitId: String,
+     private val adRequestOptions: ReadableMap
+   ) : AdLoadCallback<T>() {
+-    override fun onAdLoaded(ad: T & Any) {
++    override fun onAdLoaded(ad: T) {
+       try {
+         val adHelper = ReactNativeGoogleMobileAdsAdHelper(ad)
+         var eventType = ReactNativeGoogleMobileAdsEvent.GOOGLE_MOBILE_ADS_EVENT_LOADED

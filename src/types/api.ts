@@ -46,7 +46,11 @@ export interface ReissueTokenRequest {
 // ============================================
 
 export type AuthProvider = 'GOOGLE' | 'APPLE';
-export type MemberPermission = 'FREE' | 'PREMIUM';
+
+export enum MemberPermission {
+  FREE = 'FREE',
+  PREMIUM = 'PREMIUM',
+}
 export type MemberStatus = 'ACTIVE' | 'BLOCKED' | 'WITHDRAWAL_REQUESTED';
 
 export interface GetMemberResponse {

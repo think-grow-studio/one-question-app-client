@@ -1,4 +1,4 @@
-import type { MemberPermission } from '@/types/api';
+import { MemberPermission } from '@/types/api';
 
 /**
  * 멤버십 등급별 질문 reload 제한
@@ -6,10 +6,10 @@ import type { MemberPermission } from '@/types/api';
  * - FREE: 2회 시작 (2 → 1 → 0)
  * - PREMIUM: 4회 시작 (4 → 3 → 2 → 1 → 0)
  */
-export const QUESTION_RELOAD_LIMITS = {
-  FREE: 2,
-  PREMIUM: 4,
-} as const;
+export const QUESTION_RELOAD_LIMITS: Record<MemberPermission, number> = {
+  [MemberPermission.FREE]: 2,
+  [MemberPermission.PREMIUM]: 4,
+};
 
 /**
  * 멤버십 등급에 따른 최대 reload 횟수 반환

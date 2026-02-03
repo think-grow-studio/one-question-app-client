@@ -17,6 +17,9 @@
     "preparing": "Preparing",
     "comingSoon": "Coming Soon"
   },
+  "ads": {
+    "adLabel": "Ad"
+  },
   "tabs": {
     "home": "Home",
     "settings": "Settings"
