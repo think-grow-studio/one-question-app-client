@@ -22,6 +22,9 @@ import { CloseIcon } from '@/shared/icons/CloseIcon';
 import { useAccentColors } from '@/shared/theme';
 import { useAppReviewPrompt } from '../hooks/useAppReviewPrompt';
 import { useCreateAnswer, useUpdateAnswer } from '@/features/question/hooks/mutations/useQuestionMutations';
+import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
+import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
+import { shouldHideAds } from '@/features/member/constants/permissions';
 
 interface QuestionData {
   date: string;
@@ -50,6 +53,8 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
     handleAccept,
     closePrePrompt,
   } = useAppReviewPrompt();
+  const { data: member } = useMemberMe();
+  const isAdFreeMember = shouldHideAds(member?.permission);
 
   const inputMinHeight = (cardStyles.input?.minHeight as number) || 0;
   const resolvedInputHeight = inputMinHeight > 0 ? inputMinHeight : 320;
@@ -282,6 +287,11 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
             </Pressable>
           </View>
         </ScrollView>
+        {!isAdFreeMember && (
+          <View style={{ width: '100%', paddingHorizontal: 20 }}>
+            <BannerAdSlot disableSafeAreaPadding />
+          </View>
+        )}
       </YStack>
 
       <AlertDialog
