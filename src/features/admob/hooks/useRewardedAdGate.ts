@@ -14,6 +14,56 @@ type RewardResult = {
   success: boolean;
 };
 
+const AD_LOAD_TIMEOUT_MS = 10000;
+
+/**
+ * 광고 로드가 완료될 때까지 대기하는 헬퍼 함수
+ */
+function waitForAdLoad(rewarded: RewardedAd, timeoutMs: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    let resolved = false;
+
+    const cleanup = () => {
+      loadedListener();
+      errorListener();
+    };
+
+    const loadedListener = rewarded.addAdEventListener(
+      RewardedAdEventType.LOADED,
+      () => {
+        if (!resolved) {
+          resolved = true;
+          cleanup();
+          resolve(true);
+        }
+      }
+    );
+
+    const errorListener = rewarded.addAdEventListener(
+      AdEventType.ERROR,
+      () => {
+        if (!resolved) {
+          resolved = true;
+          cleanup();
+          resolve(false);
+        }
+      }
+    );
+
+    // 타임아웃 처리
+    setTimeout(() => {
+      if (!resolved) {
+        resolved = true;
+        cleanup();
+        resolve(false);
+      }
+    }, timeoutMs);
+
+    // 광고 로드 시작
+    rewarded.load();
+  });
+}
+
 export function useRewardedAdGate() {
   const adRef = useRef<RewardedAd | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -65,8 +115,13 @@ export function useRewardedAdGate() {
 
     if (!isLoaded) {
       setIsLoading(true);
-      rewarded.load();
-      return { success: false };
+      const loadSuccess = await waitForAdLoad(rewarded, AD_LOAD_TIMEOUT_MS);
+      setIsLoading(false);
+
+      if (!loadSuccess) {
+        console.warn('[useRewardedAdGate] Ad failed to load within timeout');
+        return { success: false };
+      }
     }
 
     return new Promise<RewardResult>((resolve) => {

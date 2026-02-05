@@ -108,7 +108,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
 
   // 회원 정보 조회 (cycleStartDate 제한용)
   const { data: member } = useMemberMe();
-  const { requestReward } = useRewardedAdGate();
+  const { requestReward, isLoading: isAdLoading } = useRewardedAdGate();
 
   // 현재 질문/답변 데이터 (히스토리 기반)
   const currentItem = currentHistory?.question
@@ -544,10 +544,20 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
         <MailIcon size={140} color={theme.colorSubtle?.val} />
         <Text style={cardStyles.emptyText}>{t('empty.noQuestion')}</Text>
         <View style={[styles.emptyButtonsContainer, responsiveStyles.emptyButtonsContainer]}>
-          <Pressable style={cardStyles.emptyButton} onPress={handleDrawRandomQuestion}>
+          <Pressable
+            style={cardStyles.emptyButton}
+            onPress={handleDrawRandomQuestion}
+            disabled={isAdLoading}
+          >
             <XStack ai="center" gap="$2">
-              <Text style={cardStyles.emptyButtonText}>{t('empty.drawQuestion')}</Text>
-              {shouldGateRandomQuestion && <AdBadge size="compact" />}
+              {isAdLoading && shouldGateRandomQuestion ? (
+                <ActivityIndicator size="small" color={theme.color?.val} />
+              ) : (
+                <>
+                  <Text style={cardStyles.emptyButtonText}>{t('empty.drawQuestion')}</Text>
+                  {shouldGateRandomQuestion && <AdBadge size="compact" />}
+                </>
+              )}
             </XStack>
           </Pressable>
           <Pressable style={cardStyles.emptyButton} onPress={handleDrawYearAgoQuestion}>
