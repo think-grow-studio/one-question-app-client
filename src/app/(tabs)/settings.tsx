@@ -1,5 +1,5 @@
-import { View, Pressable, StyleSheet } from 'react-native';
-import { YStack, useTheme } from 'tamagui';
+import { View, Pressable, StyleSheet, ScrollView } from 'react-native';
+import { YStack, XStack, useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { Screen } from '@/shared/layout/Screen';
 import { Text } from '@/shared/ui/Text';
@@ -7,11 +7,23 @@ import { ThemeToggle } from '@/features/settings/components/ThemeToggle';
 import { AccentColorPicker } from '@/features/settings/components/AccentColorPicker';
 import { NotificationSettings } from '@/features/settings/components/NotificationSettings';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
+import { GoogleIcon } from '@/shared/icons/GoogleIcon';
+import { AppleIcon } from '@/shared/icons/AppleIcon';
 
 export default function SettingsScreen() {
   const theme = useTheme();
   const { t } = useTranslation('settings');
   const { logout } = useAuthStore();
+  const { data: member } = useMemberMe();
+
+  const isGoogleProvider = member?.provider === 'GOOGLE';
+  const isAppleProvider = member?.provider === 'APPLE';
+  const providerLabel = isGoogleProvider
+    ? t('account.providerGoogle')
+    : isAppleProvider
+      ? t('account.providerApple')
+      : '';
 
   const handleLogout = async () => {
     await logout();
@@ -36,7 +48,8 @@ export default function SettingsScreen() {
         </View>
 
         {/* Content */}
-        <YStack flex={1} px="$4" py="$4" gap="$4">
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        <YStack px="$4" py="$4" gap="$4">
           {/* Appearance Section */}
           <YStack gap="$2">
             <Text variant="caption" muted px="$1">
@@ -52,6 +65,36 @@ export default function SettingsScreen() {
               {t('notification.sectionTitle')}
             </Text>
             <NotificationSettings />
+          </YStack>
+
+          {/* Account Section */}
+          <YStack gap="$2" mt="$4">
+            <Text variant="caption" muted px="$1">
+              {t('account.title')}
+            </Text>
+            {member && (
+              <YStack
+                py="$3"
+                px="$4"
+                bg="$backgroundSoft"
+                borderRadius={12}
+                gap="$3"
+              >
+                {/* Provider Info */}
+                <XStack alignItems="center" gap="$2">
+                  {isGoogleProvider && <GoogleIcon size={20} />}
+                  {isAppleProvider && <AppleIcon size={20} color={theme.color?.val} />}
+                  <Text variant="body">{providerLabel}</Text>
+                </XStack>
+                {/* Email */}
+                <View>
+                  <Text variant="caption" muted mb="$1">
+                    {t('account.email')}
+                  </Text>
+                  <Text variant="body">{member.email}</Text>
+                </View>
+              </YStack>
+            )}
           </YStack>
 
           {/* App Info Section */}
@@ -77,11 +120,8 @@ export default function SettingsScreen() {
             </YStack>
           </YStack>
 
-          {/* Account Section */}
-          <YStack gap="$2" mt="$4">
-            <Text variant="caption" muted px="$1">
-              {t('account.title')}
-            </Text>
+          {/* Logout Button */}
+          <YStack mt="$4">
             <Pressable
               onPress={handleLogout}
               style={({ pressed }) => [
@@ -98,12 +138,20 @@ export default function SettingsScreen() {
             </Pressable>
           </YStack>
         </YStack>
+        </ScrollView>
       </YStack>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 20,
+  },
   logoutButton: {
     paddingVertical: 14,
     paddingHorizontal: 16,

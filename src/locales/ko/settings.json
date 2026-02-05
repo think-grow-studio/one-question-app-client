@@ -29,6 +29,10 @@
   },
   "account": {
     "title": "계정",
+    "email": "이메일",
+    "provider": "로그인 방식",
+    "providerGoogle": "Google 계정",
+    "providerApple": "Apple 계정",
     "logout": "로그아웃"
   }
 }

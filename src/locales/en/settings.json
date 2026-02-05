@@ -29,6 +29,10 @@
   },
   "account": {
     "title": "Account",
+    "email": "Email",
+    "provider": "Sign in with",
+    "providerGoogle": "Google Account",
+    "providerApple": "Apple Account",
     "logout": "Log Out"
   }
 }
