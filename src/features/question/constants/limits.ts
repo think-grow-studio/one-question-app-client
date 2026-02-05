@@ -45,7 +45,7 @@ export function getReloadCountDisplay(
 ): { remaining: number; max: number } {
   const max = getMaxReloadCount(permission);
   return {
-    remaining: max - currentChangeCount,
+    remaining: Math.max(0, max - currentChangeCount),
     max,
   };
 }
