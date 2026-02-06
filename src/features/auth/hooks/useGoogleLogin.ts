@@ -12,6 +12,8 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { GoogleAuthRequest } from '@/types/api';
 
 // Google Sign-In 설정
+let isGoogleSignInConfigured = false;
+
 const configureGoogleSignIn = () => {
   const expoConfig = Constants.expoConfig;
   const extra = expoConfig?.extra || {};
@@ -20,11 +22,17 @@ const configureGoogleSignIn = () => {
   const webClientId =
     extra.googleClientIdWeb || process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB;
 
+  if (!webClientId) {
+    console.warn('[GoogleSignIn] webClientId is missing, skipping configure');
+    return;
+  }
+
   GoogleSignin.configure({
     webClientId,
     offlineAccess: true, // refresh token 획득
     scopes: ['email', 'profile'],
   });
+  isGoogleSignInConfigured = true;
 };
 
 export function useGoogleLogin() {
@@ -48,6 +56,11 @@ export function useGoogleLogin() {
   });
 
   const handleLogin = async () => {
+    if (!isGoogleSignInConfigured) {
+      console.warn('[GoogleSignIn] Not configured, cannot sign in');
+      return;
+    }
+
     try {
       // Google Play Services 확인 (Android)
       await GoogleSignin.hasPlayServices();

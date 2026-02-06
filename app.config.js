@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 // 플랫폼별 버전 관리
 
 const APP_VERSIONS = {
@@ -67,6 +69,7 @@ export default {
           },
           android: {
             newArchEnabled: true,
+            usesCleartextTraffic: true,// access HTTP , not secure
           },
         },
       ],

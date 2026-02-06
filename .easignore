@@ -1,19 +1,22 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+# EAS Build ignore (based on .gitignore, but includes .env for build)
 
 # Node / package managers
+
 node_modules/
 package-lock.json.tmp
 
 # Tooling cache
+
 .expo/
 .expo-shared/
-.metro-health-check*
+.metro-health-check\*
 .gradle/
 .kotlin/
 .serena/
 .claude/
 
 # Build outputs
+
 dist/
 web-build/
 android/**
@@ -22,36 +25,41 @@ Pods/
 app.json
 
 # Expo / React Native generated files
-expo-env.d.ts
-*.tsbuildinfo
 
-# Local env / secrets
-.env
+expo-env.d.ts
+\*.tsbuildinfo
+
+# Local env / secrets (.env is NOT ignored - needed for build)
+
 .env.local
-.env.*.local
-*.jks
-*.keystore
-*.p8
-*.p12
-*.key
-*.mobileprovision
-*.pem
+.env._.local
+_.jks
+_.keystore
+_.p8
+_.p12
+_.key
+_.mobileprovision
+_.pem
 
 # Logs
-npm-debug.*
-yarn-debug.*
-yarn-error.*
-*.log
+
+npm-debug._
+yarn-debug._
+yarn-error.\*
+\*.log
 
 # macOS
+
 .DS_Store
 
 # Design reference app
+
 design-reference/node_modules/
 design-reference/dist/
-design-reference/.env*
+design-reference/.env\*
 
 # IDE / editor
+
 .idea/
 .vscode/
-*.iml
+\*.iml

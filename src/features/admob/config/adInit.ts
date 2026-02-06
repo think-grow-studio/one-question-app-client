@@ -11,7 +11,7 @@ export const admobInitPromise: Promise<boolean> = isAdMobSupportedPlatform
       try {
         if (__DEV__) {
           await mobileAds().setRequestConfiguration({
-            testDeviceIdentifiers: ['EMULATOR'],
+            testDeviceIdentifiers: ['EMULATOR', '1AA71683D3B0DD450FF6F68CE236AC37'],
           });
         }
         await mobileAds().initialize();
