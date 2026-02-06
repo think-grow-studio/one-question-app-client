@@ -253,9 +253,10 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
 
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => !isAnimating.current,
+      onStartShouldSetPanResponder: () => false,
       onMoveShouldSetPanResponder: (_, gestureState) => {
-        return !isAnimating.current && Math.abs(gestureState.dx) > 5;
+        // 가로 이동이 세로보다 클 때만 스와이프로 인식 (세로 스크롤 허용)
+        return !isAnimating.current && Math.abs(gestureState.dx) > Math.abs(gestureState.dy) && Math.abs(gestureState.dx) > 5;
       },
       onPanResponderMove: (_, gestureState) => {
         // 애니메이션 중이면 무시
