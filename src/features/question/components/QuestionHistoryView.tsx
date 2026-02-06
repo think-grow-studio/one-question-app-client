@@ -590,7 +590,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
       </View>
 
       {/* Swipe Indicator + Banner */}
-      <YStack   ai="center" gap="$2">
+      <YStack ai="center" gap="$2" pb={isAdFreeMember ? "$2" : "$0"}>
         <Paragraph fontSize="$2" color="$gray9">
           {t('actions.swipeHint')}
         </Paragraph>
