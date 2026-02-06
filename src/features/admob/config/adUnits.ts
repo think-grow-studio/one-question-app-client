@@ -19,9 +19,10 @@ const envIds = {
     process.env.EXPO_PUBLIC_ADMOB_IOS_REWARDED_ID,
 };
 
+// 실제 Ad Unit ID 사용 (환경변수 없으면 테스트 ID 폴백)
 export const admobUnitIds = {
-  banner: envIds.banner && envIds.banner.length > 0 ? envIds.banner : TEST_IDS.banner,
-  rewarded: envIds.rewarded && envIds.rewarded.length > 0 ? envIds.rewarded : TEST_IDS.rewarded,
+  banner: envIds.banner || TEST_IDS.banner,
+  rewarded: envIds.rewarded || TEST_IDS.rewarded,
 };
 
 export const admobRequestOptions = {

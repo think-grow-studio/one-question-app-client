@@ -9,6 +9,7 @@ import {
   admobUnitIds,
   isAdMobSupportedPlatform,
 } from '../config/adUnits';
+import { admobInitPromise } from '../config/adInit';
 
 type RewardResult = {
   success: boolean;
@@ -66,40 +67,57 @@ function waitForAdLoad(rewarded: RewardedAd, timeoutMs: number): Promise<boolean
 
 export function useRewardedAdGate() {
   const adRef = useRef<RewardedAd | null>(null);
+  const cleanupRef = useRef<(() => void) | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (!isAdMobSupportedPlatform) return;
 
-    const rewarded = RewardedAd.createForAdRequest(
-      admobUnitIds.rewarded,
-      admobRequestOptions
-    );
+    let cancelled = false;
 
-    adRef.current = rewarded;
+    const init = async () => {
+      // SDK 초기화 완료 대기
+      const initialized = await admobInitPromise;
+      if (cancelled || !initialized) return;
 
-    const unsubscribeLoaded = rewarded.addAdEventListener(
-      RewardedAdEventType.LOADED,
-      () => {
-        setIsLoaded(true);
-        setIsLoading(false);
-      }
-    );
+      const rewarded = RewardedAd.createForAdRequest(
+        admobUnitIds.rewarded,
+        admobRequestOptions
+      );
 
-    const unsubscribeError = rewarded.addAdEventListener(
-      AdEventType.ERROR,
-      () => {
-        setIsLoaded(false);
-        setIsLoading(false);
-      }
-    );
+      adRef.current = rewarded;
 
-    rewarded.load();
+      const unsubscribeLoaded = rewarded.addAdEventListener(
+        RewardedAdEventType.LOADED,
+        () => {
+          setIsLoaded(true);
+          setIsLoading(false);
+        }
+      );
+
+      const unsubscribeError = rewarded.addAdEventListener(
+        AdEventType.ERROR,
+        (error) => {
+          if (__DEV__) console.warn('[useRewardedAdGate] Ad load error:', error);
+          setIsLoaded(false);
+          setIsLoading(false);
+        }
+      );
+
+      cleanupRef.current = () => {
+        unsubscribeLoaded();
+        unsubscribeError();
+      };
+
+      rewarded.load();
+    };
+
+    init();
 
     return () => {
-      unsubscribeLoaded();
-      unsubscribeError();
+      cancelled = true;
+      cleanupRef.current?.();
     };
   }, []);
 
@@ -119,7 +137,7 @@ export function useRewardedAdGate() {
       setIsLoading(false);
 
       if (!loadSuccess) {
-        console.warn('[useRewardedAdGate] Ad failed to load within timeout');
+        if (__DEV__) console.warn('[useRewardedAdGate] Ad failed to load within timeout');
         return { success: false };
       }
     }

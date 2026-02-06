@@ -19,6 +19,7 @@ import { appVersionService } from '@/services/appVersionService';
 import { meetsMinVersion, hasNewerVersion } from '@/services/versionComparator';
 import { config } from '@/constants/config';
 import { APP_STORE_URLS } from '@/constants/appStoreUrls';
+import '@/features/admob/config/adInit'; // AdMob SDK 초기화
 
 type VersionCheckType = 'force_update' | 'optional_update' | 'server_down';
 
