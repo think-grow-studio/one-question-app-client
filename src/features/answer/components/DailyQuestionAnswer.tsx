@@ -206,7 +206,7 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
             <View style={cardStyles.card}>
               {/* Question Section */}
               <View style={styles.questionSection}>
-                <Text style={[cardStyles.labelText, { marginBottom: 12 }]}>{t('question:labels.question')}</Text>
+                <Text style={[cardStyles.labelText, { marginBottom: 8 }]}>{t('question:labels.question')}</Text>
                 <Text
                   style={cardStyles.questionText}
                   numberOfLines={2}
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   questionSection: {
-    minHeight: 100,
+    minHeight: 80,
   },
   answerSection: {
     flex: 1,

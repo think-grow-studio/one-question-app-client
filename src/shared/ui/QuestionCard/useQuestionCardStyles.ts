@@ -47,26 +47,26 @@ export function useQuestionCardStyles() {
         questionText: {
           fontSize: fs(20),
           fontWeight: '700' as const,
-          lineHeight: fs(32),
+          lineHeight: fs(24),
           color: theme.color?.val,
           letterSpacing: -0.4,
-          minHeight: fs(32), // 최소 1줄
+          minHeight: fs(24), // 최소 1줄
         },
 
         // Question description
         questionDescription: {
           fontSize: fs(14),
-          lineHeight: fs(22),
+          lineHeight: fs(20),
           color: theme.colorMuted?.val,
-          marginTop: sp(8),
+          marginTop: sp(4),
         },
 
         // Divider
         divider: {
           height: 1,
           backgroundColor: theme.borderColor?.val,
-          marginTop: sp(32),
-          marginBottom: sp(24),
+          marginTop: sp(20),
+          marginBottom: sp(20),
           marginHorizontal: sp(-24),
         },
 
