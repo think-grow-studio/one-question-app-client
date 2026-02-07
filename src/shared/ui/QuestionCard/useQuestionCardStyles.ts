@@ -90,7 +90,7 @@ export function useQuestionCardStyles() {
         // Input container (for write mode)
         inputContainer: {
           borderRadius: radius(16),
-          marginHorizontal: sp(-32),
+          marginHorizontal: sp(-16),
           paddingHorizontal: sp(24),
           paddingTop: sp(16),
           paddingBottom: sp(18),
