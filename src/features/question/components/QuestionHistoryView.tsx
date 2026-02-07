@@ -454,7 +454,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
         <View style={styles.contentWrapper}>
           <View style={[cardStyles.card, cardStyles.cardFull]}>
             <View style={styles.questionSection}>
-              <XStack ai="center" jc="space-between" mb="$3">
+              <XStack ai="center" jc="space-between" mb="$3" style={styles.questionHeader}>
                 <Text style={cardStyles.labelText}>{t('labels.question')}</Text>
                 {/* 답변이 없을 때만 reload 버튼 표시 */}
                 {!currentItem.answer && (
@@ -499,7 +499,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
             </View>
 
             {/* Answer Section - 항상 동일한 레이아웃 유지 */}
-            <View style={[cardStyles.divider, !currentItem.description && { marginTop: sp(8) }]} />
+            <View style={[cardStyles.divider, !currentItem.description && { marginTop: sp(16) }]} />
             <View style={styles.answerSection}>
               {currentItem.answer ? (
                 <>
@@ -642,8 +642,9 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  questionSection: {
-    height: SCREEN.height * 0.13,
+  questionSection: {},
+  questionHeader: {
+    minHeight: 32,
   },
   answerSection: {
     flex: 1, // 나머지 공간 전부 차지

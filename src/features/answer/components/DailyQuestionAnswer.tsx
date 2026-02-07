@@ -229,7 +229,7 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
               </View>
 
               {/* Divider */}
-              <View style={[cardStyles.divider, !data.description && { marginTop: sp(8) }]} />
+              <View style={[cardStyles.divider, !data.description && { marginTop: sp(16) }]} />
 
               {/* Answer Section */}
               <View style={styles.answerSection}>
@@ -334,9 +334,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
   },
-  questionSection: {
-    minHeight: 80,
-  },
+  questionSection: {},
   answerSection: {
     flex: 1,
   },
