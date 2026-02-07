@@ -67,7 +67,7 @@ export function useQuestionCardStyles() {
           backgroundColor: theme.borderColor?.val,
           marginTop: sp(4),
           marginBottom: sp(16),
-          marginHorizontal: sp(-24),
+          marginHorizontal: sp(0),
         },
 
         // Answer text (for read mode)
