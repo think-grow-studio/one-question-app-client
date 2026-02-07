@@ -22,7 +22,7 @@ export function useQuestionCardStyles() {
           borderRadius: radius(32),
           borderWidth: 1,
           borderColor: theme.borderColor?.val,
-          paddingHorizontal: sp(48),
+          paddingHorizontal: sp(32),
           paddingTop: sp(24),
           paddingBottom: sp(48),
           flexDirection: 'column' as const,
