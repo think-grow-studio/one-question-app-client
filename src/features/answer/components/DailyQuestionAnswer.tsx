@@ -25,6 +25,7 @@ import { useCreateAnswer, useUpdateAnswer } from '@/features/question/hooks/muta
 import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 import { shouldHideAds } from '@/features/member/constants/permissions';
+import { sp } from '@/utils/responsive';
 
 interface QuestionData {
   date: string;
@@ -228,7 +229,7 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
               </View>
 
               {/* Divider */}
-              <View style={cardStyles.divider} />
+              <View style={[cardStyles.divider, !data.description && { marginTop: sp(8) }]} />
 
               {/* Answer Section */}
               <View style={styles.answerSection}>

@@ -58,21 +58,21 @@ export function useQuestionCardStyles() {
           fontSize: fs(14),
           lineHeight: fs(20),
           color: theme.colorMuted?.val,
-          marginTop: sp(4),
+          marginTop: sp(8),
         },
 
         // Divider
         divider: {
           height: 1,
           backgroundColor: theme.borderColor?.val,
-          marginTop: sp(20),
-          marginBottom: sp(20),
+          marginTop: sp(4),
+          marginBottom: sp(16),
           marginHorizontal: sp(-24),
         },
 
         // Answer text (for read mode)
         answerText: {
-          fontSize: fs(19),
+          fontSize: fs(16),
           lineHeight: fs(32),
           color: theme.color?.val,
           letterSpacing: -0.3,

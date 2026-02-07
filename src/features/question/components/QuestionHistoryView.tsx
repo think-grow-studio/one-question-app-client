@@ -499,7 +499,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
             </View>
 
             {/* Answer Section - 항상 동일한 레이아웃 유지 */}
-            <View style={cardStyles.divider} />
+            <View style={[cardStyles.divider, !currentItem.description && { marginTop: sp(8) }]} />
             <View style={styles.answerSection}>
               {currentItem.answer ? (
                 <>
