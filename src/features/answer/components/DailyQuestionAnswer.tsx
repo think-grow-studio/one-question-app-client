@@ -212,7 +212,9 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
                   style={cardStyles.questionText}
                   numberOfLines={2}
                   adjustsFontSizeToFit
-                  minimumFontScale={0.8}
+                  minimumFontScale={0.7}
+                  {...(Platform.OS === 'android' && { android_hyphenationFrequency: 'none' })}
+                  {...(Platform.OS === 'ios' && { lineBreakMode: 'tail' })}
                 >
                   {data.question}
                 </Text>

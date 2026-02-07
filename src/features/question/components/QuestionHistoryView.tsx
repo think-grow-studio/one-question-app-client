@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState, useCallback, memo, useMemo } from 'react';
-import { StyleSheet, Pressable, View, Text, PanResponder, ActivityIndicator, ScrollView } from 'react-native';
+import { StyleSheet, Pressable, View, Text, PanResponder, ActivityIndicator, ScrollView, Platform } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -482,7 +482,9 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
                 style={cardStyles.questionText}
                 numberOfLines={2}
                 adjustsFontSizeToFit
-                minimumFontScale={0.8}
+                minimumFontScale={0.7}
+                {...(Platform.OS === 'android' && { android_hyphenationFrequency: 'none' })}
+                {...(Platform.OS === 'ios' && { lineBreakMode: 'tail' })}
               >
                 {currentItem.question}
               </Text>
