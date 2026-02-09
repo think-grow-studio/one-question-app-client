@@ -256,6 +256,10 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
                       textAlignVertical="top"
                       editable={!isPending}
                       onContentSizeChange={handleInputContentSizeChange}
+                      {...(Platform.OS === 'android' && {
+                        android_hyphenationFrequency: 'none',
+                        textBreakStrategy: 'simple',
+                      })}
                     />
                   </ScrollView>
                   <Text style={cardStyles.charCount}>

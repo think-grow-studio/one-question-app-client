@@ -524,7 +524,16 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
                     showsVerticalScrollIndicator
                     nestedScrollEnabled
                   >
-                    <Text style={cardStyles.answerText}>{currentItem.answer}</Text>
+                    <Text
+                      style={cardStyles.answerText}
+                      {...(Platform.OS === 'android' && {
+                        android_hyphenationFrequency: 'none',
+                        textBreakStrategy: 'simple',
+                      })}
+                      {...(Platform.OS === 'ios' && { lineBreakStrategyIOS: 'hangul-word' })}
+                    >
+                      {currentItem.answer}
+                    </Text>
                   </ScrollView>
                 </>
               ) : (
