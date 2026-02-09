@@ -27,9 +27,9 @@ const config = createTamagui({
     ...tamaguiConfig.tokens,
     color: {
       ...tamaguiConfig.tokens?.color,
-      // Primary - Pastel Blue
-      primary: '#7BA7D7',
-      primaryPressed: '#6B97C7',
+      // Primary - Medium Blue
+      primary: '#4A90E2',
+      primaryPressed: '#3A7BC8',
 
       // Grayscale - Pastel (light to dark)
       gray1: '#F7F9FB', // backgroundSecondary
@@ -76,13 +76,13 @@ const config = createTamagui({
       colorSubtle: '#A8B4C0',
 
       // Primary action colors
-      primary: '#7BA7D7',
-      primaryHover: '#6B97C7',
+      primary: '#4A90E2',
+      primaryHover: '#3A7BC8',
 
       // Border colors
       borderColor: '#E0E6EC',
       borderColorHover: '#D0D8E0',
-      borderColorFocus: '#7BA7D7',
+      borderColorFocus: '#4A90E2',
 
       // Input colors
       placeholderColor: '#A8B4C0',
@@ -118,13 +118,13 @@ const config = createTamagui({
       colorSubtle: '#8E8E93',
 
       // Primary action colors
-      primary: '#8BB8E8',
-      primaryHover: '#7BA7D7',
+      primary: '#5BA3F5',
+      primaryHover: '#4A90E2',
 
       // Border colors
       borderColor: '#38383A',
       borderColorHover: '#48484A',
-      borderColorFocus: '#8BB8E8',
+      borderColorFocus: '#5BA3F5',
 
       // Input colors
       placeholderColor: '#8E8E93',

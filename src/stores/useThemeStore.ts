@@ -8,13 +8,13 @@ export type AccentColor = 'blue' | 'lavender' | 'green' | 'white';
 // 액센트 색상별 값 정의
 export const ACCENT_COLORS = {
   blue: {
-    primary: '#7BA7D7',
-    primaryHover: '#6B97C7',
+    primary: '#4A90E2',
+    primaryHover: '#3A7BC8',
     background: '#F0F7FF',
     textOnPrimary: '#FFFFFF',
     // 다크모드
-    primaryDark: '#8BB8E8',
-    primaryHoverDark: '#7BA7D7',
+    primaryDark: '#5BA3F5',
+    primaryHoverDark: '#4A90E2',
     backgroundDark: '#1C1C1E',
     textOnPrimaryDark: '#FFFFFF',
   },
