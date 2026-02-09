@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next';
 import { useQuestionCardStyles } from '@/shared/ui/QuestionCard';
 import { ScreenHeader } from '@/shared/ui/ScreenHeader';
 import { AlertDialog, AlertDialogButton } from '@/shared/ui/AlertDialog';
+import { ReviewPromptDialog } from './ReviewPromptDialog';
 import { CloseIcon } from '@/shared/icons/CloseIcon';
 import { useAccentColors } from '@/shared/theme';
 import { useAppReviewPrompt } from '../hooks/useAppReviewPrompt';
@@ -52,7 +53,6 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
     handleLater,
     handleDecline,
     handleAccept,
-    closePrePrompt,
   } = useAppReviewPrompt();
   const { data: member } = useMemberMe();
   const isAdFreeMember = shouldHideAds(member?.permission);
@@ -306,17 +306,16 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
       />
 
       {/* App Review Pre-prompt Dialog */}
-      <AlertDialog
+      <ReviewPromptDialog
         visible={showPrePrompt}
         title={t('answer:reviewPrompt.title')}
         message={t('answer:reviewPrompt.message')}
-        dismissible={false}
-        buttons={[
-          { label: t('answer:reviewPrompt.decline'), variant: 'default', onPress: handleDecline },
-          { label: t('answer:reviewPrompt.later'), variant: 'default', onPress: handleLater },
-          { label: t('answer:reviewPrompt.accept'), variant: 'primary', onPress: handleAccept },
-        ]}
-        onClose={closePrePrompt}
+        onAccept={handleAccept}
+        onLater={handleLater}
+        onDecline={handleDecline}
+        acceptLabel={t('answer:reviewPrompt.accept')}
+        laterLabel={t('answer:reviewPrompt.later')}
+        declineLabel={t('answer:reviewPrompt.decline')}
       />
     </KeyboardAvoidingView>
   );

@@ -25,10 +25,10 @@
     "countRemaining": "{{count}} remaining"
   },
   "reviewPrompt": {
-    "title": "Enjoying the app?",
-    "message": "Your review helps us improve!",
+    "title": "Do you like the app?",
+    "message": "Please leave a rating",
     "later": "Later",
     "decline": "Not really",
-    "accept": "Yes!"
+    "accept": "Write a review"
   }
 }
