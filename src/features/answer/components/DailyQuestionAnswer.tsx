@@ -310,9 +310,10 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
         visible={showPrePrompt}
         title={t('answer:reviewPrompt.title')}
         message={t('answer:reviewPrompt.message')}
+        dismissible={false}
         buttons={[
-          { label: t('answer:reviewPrompt.later'), variant: 'default', onPress: handleLater },
           { label: t('answer:reviewPrompt.decline'), variant: 'default', onPress: handleDecline },
+          { label: t('answer:reviewPrompt.later'), variant: 'default', onPress: handleLater },
           { label: t('answer:reviewPrompt.accept'), variant: 'primary', onPress: handleAccept },
         ]}
         onClose={closePrePrompt}

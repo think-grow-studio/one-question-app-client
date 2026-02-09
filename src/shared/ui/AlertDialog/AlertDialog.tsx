@@ -1,4 +1,4 @@
-import { Modal, Pressable, StyleSheet, View, Text } from 'react-native';
+import { Modal, Pressable, StyleSheet, View, Text, TouchableWithoutFeedback } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useTheme } from 'tamagui';
 import { useAccentColors } from '@/shared/theme';
@@ -16,6 +16,7 @@ export type AlertDialogProps = {
   message?: string;
   buttons?: AlertDialogButton[];
   onClose: () => void;
+  dismissible?: boolean;
 };
 
 export function AlertDialog({
@@ -24,6 +25,7 @@ export function AlertDialog({
   message,
   buttons = [{ label: '확인', variant: 'primary' }],
   onClose,
+  dismissible = true,
 }: AlertDialogProps) {
   const theme = useTheme();
   const accent = useAccentColors();
@@ -100,11 +102,13 @@ export function AlertDialog({
 
   return (
     <Modal transparent visible={visible} animationType="none" statusBarTranslucent>
-      <Pressable style={styles.backdrop} onPress={onClose}>
-        <Animated.View entering={FadeIn.duration(150)} exiting={FadeOut.duration(100)} style={styles.backdropOverlay} />
-      </Pressable>
+      <TouchableWithoutFeedback onPress={dismissible ? onClose : undefined}>
+        <View style={styles.backdrop}>
+          <Animated.View entering={FadeIn.duration(150)} exiting={FadeOut.duration(100)} style={styles.backdropOverlay} />
+        </View>
+      </TouchableWithoutFeedback>
 
-      <View style={[styles.centeredContainer, responsiveStyles.centeredContainer]}>
+      <View style={[styles.centeredContainer, responsiveStyles.centeredContainer]} pointerEvents="box-none">
         <Animated.View
           entering={FadeIn.duration(200)}
           exiting={FadeOut.duration(150)}
