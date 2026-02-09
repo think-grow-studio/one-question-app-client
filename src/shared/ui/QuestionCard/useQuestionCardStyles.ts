@@ -73,7 +73,7 @@ export function useQuestionCardStyles() {
         // Answer text (for read mode)
         answerText: {
           fontSize: fs(16),
-          lineHeight: fs(32),
+          lineHeight: fs(26),
           color: theme.color?.val,
           letterSpacing: -0.3,
         },
@@ -99,8 +99,8 @@ export function useQuestionCardStyles() {
 
         // Input (for write mode)
         input: {
-          fontSize: fs(19),
-          lineHeight: fs(32),
+          fontSize: fs(16),
+          lineHeight: fs(26),
           letterSpacing: -0.3,
           color: theme.color?.val,
           minHeight: SCREEN.height * 0.35,
