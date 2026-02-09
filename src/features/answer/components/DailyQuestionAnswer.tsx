@@ -21,6 +21,7 @@ import { AlertDialog, AlertDialogButton } from '@/shared/ui/AlertDialog';
 import { ReviewPromptDialog } from './ReviewPromptDialog';
 import { CloseIcon } from '@/shared/icons/CloseIcon';
 import { useAccentColors } from '@/shared/theme';
+import { useThrottledCallback } from '@/shared/hooks/useThrottledCallback';
 import { useAppReviewPrompt } from '../hooks/useAppReviewPrompt';
 import { useCreateAnswer, useUpdateAnswer } from '@/features/question/hooks/mutations/useQuestionMutations';
 import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
@@ -117,7 +118,7 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
   const isSubmitEnabled = answer.trim().length > 0;
   const isPending = createAnswerMutation.isPending || updateAnswerMutation.isPending;
 
-  const handleSubmit = async () => {
+  const handleSubmit = useThrottledCallback(async () => {
     if (!isSubmitEnabled || isPending) return;
 
     try {
@@ -141,7 +142,7 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
     } catch {
       // 에러는 전역 에러 핸들러에서 처리됨
     }
-  };
+  }, 500);
 
   const closeAlert = () => {
     setAlertConfig((prev) => ({ ...prev, visible: false }));

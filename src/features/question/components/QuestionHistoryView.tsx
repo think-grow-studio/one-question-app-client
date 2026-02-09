@@ -21,6 +21,7 @@ import { useQuestionCardStyles } from '@/shared/ui/QuestionCard';
 import { LoadingOverlay } from '@/shared/ui/LoadingOverlay';
 import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
 import { AdBadge } from '@/shared/ui/ads/AdBadge';
+import { useThrottledCallback } from '@/shared/hooks/useThrottledCallback';
 import { useDatePickerStore } from '../stores/useDatePickerStore';
 import { useSlideDirectionStore } from '../stores/useSlideDirectionStore';
 import { useDailyHistory, questionQueryKeys } from '../hooks/queries/useQuestionQueries';
@@ -340,7 +341,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
     setIsDatePickerVisible(true);
   }, [setIsDatePickerVisible]);
 
-  const handleGoToAnswer = useCallback(() => {
+  const handleGoToAnswer = useThrottledCallback(() => {
     if (!currentItem) return;
     router.push({
       pathname: '/answer',
@@ -350,9 +351,9 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
         description: currentItem.description || '',
       },
     });
-  }, [currentItem, currentDate, router]);
+  }, 500);
 
-  const handleDrawRandomQuestion = useCallback(() => {
+  const handleDrawRandomQuestion = useThrottledCallback(() => {
     runRewardedAction('random')
       .then((allowed) => {
         if (!allowed) {
@@ -363,7 +364,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
       .catch((error) => {
         console.warn('[QuestionHistoryView] Rewarded action failed', error);
       });
-  }, [runRewardedAction, serveDailyQuestionMutation, currentDate]);
+  }, 500);
 
   const handleDrawYearAgoQuestion = useCallback(() => {
     setIsAlertVisible(true);
@@ -374,7 +375,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
     setIsReloadSheetVisible(true);
   }, []);
 
-  const handleRandomQuestion = useCallback(() => {
+  const handleRandomQuestion = useThrottledCallback(() => {
     if (!canReloadQuestion(reloadCount, memberPermission)) {
       console.warn('[QuestionHistoryView] Cannot reload: no reloads remaining');
       return;
@@ -395,7 +396,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
       .catch((error) => {
         console.warn('[QuestionHistoryView] Rewarded reload failed', error);
       });
-  }, [reloadCount, memberPermission, reloadMutation, currentDate, runRewardedAction]);
+  }, 500);
 
   const handlePastQuestion = useCallback(() => {
     setIsAlertVisible(true);
