@@ -36,7 +36,7 @@ import { ReloadOptionSheet } from '@/features/answer/components/ReloadOptionShee
 import { SCREEN, sp } from '@/utils/responsive';
 import { canReloadQuestion, getReloadCountDisplay } from '../constants/limits';
 
-const SWIPE_THRESHOLD = SCREEN.width * 0.3;
+const SWIPE_THRESHOLD = SCREEN.width * 0.2; // 20% - 더 쉽게 넘어가도록 조정 (이전: 0.3)
 
 const getTodayDateString = () => {
   const today = new Date();
