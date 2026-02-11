@@ -20,6 +20,7 @@ import { meetsMinVersion, hasNewerVersion } from '@/services/versionComparator';
 import { config } from '@/constants/config';
 import { APP_STORE_URLS } from '@/constants/appStoreUrls';
 import '@/features/admob/config/adInit'; // AdMob SDK 초기화
+import { initializeFirebase, enableCrashlytics } from '@/services/firebase'; // Firebase 초기화
 
 type VersionCheckType = 'force_update' | 'optional_update' | 'server_down';
 
@@ -79,6 +80,10 @@ function RootLayoutNav() {
   // 앱 시작 시 토큰 확인
   useEffect(() => {
     initialize();
+
+    // Firebase 초기화
+    initializeFirebase();
+    enableCrashlytics();
   }, []);
 
   // 앱 시작 시 버전 체크
