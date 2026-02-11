@@ -33,6 +33,11 @@
     "provider": "Sign in with",
     "providerGoogle": "Google Account",
     "providerApple": "Apple Account",
-    "logout": "Log Out"
+    "logout": "Log Out",
+    "withdraw": "Delete Account",
+    "withdrawTitle": "Delete Your Account?",
+    "withdrawMessage": "All your data will be permanently deleted and cannot be recovered.",
+    "withdrawConfirm": "Delete Account",
+    "withdrawCancel": "Cancel"
   }
 }

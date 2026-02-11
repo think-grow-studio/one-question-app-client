@@ -17,4 +17,6 @@ export const authApi = {
 
   reissueToken: (data: ReissueTokenRequest) =>
     apiClient.post<AuthResponse>('/api/v1/auth/reissue-token', data),
+
+  withdraw: () => apiClient.delete<void>('/api/v1/auth/me'),
 };

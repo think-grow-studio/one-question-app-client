@@ -33,6 +33,11 @@
     "provider": "로그인 방식",
     "providerGoogle": "Google 계정",
     "providerApple": "Apple 계정",
-    "logout": "로그아웃"
+    "logout": "로그아웃",
+    "withdraw": "회원탈퇴",
+    "withdrawTitle": "정말 탈퇴하시겠어요?",
+    "withdrawMessage": "탈퇴하시면 모든 데이터가 삭제되며 복구할 수 없습니다.",
+    "withdrawConfirm": "탈퇴하기",
+    "withdrawCancel": "취소"
   }
 }

@@ -10,12 +10,17 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 import { GoogleIcon } from '@/shared/icons/GoogleIcon';
 import { AppleIcon } from '@/shared/icons/AppleIcon';
+import { AlertDialog } from '@/shared/ui/AlertDialog/AlertDialog';
+import { useAlertDialog } from '@/shared/ui/AlertDialog/useAlertDialog';
+import { useWithdrawMutation } from '@/features/auth/hooks/mutations/useAuthMutations';
 
 export default function SettingsScreen() {
   const theme = useTheme();
   const { t } = useTranslation('settings');
   const { logout } = useAuthStore();
   const { data: member } = useMemberMe();
+  const withdrawMutation = useWithdrawMutation();
+  const withdrawDialog = useAlertDialog();
 
   const isGoogleProvider = member?.provider === 'GOOGLE';
   const isAppleProvider = member?.provider === 'APPLE';
@@ -27,6 +32,26 @@ export default function SettingsScreen() {
 
   const handleLogout = async () => {
     await logout();
+  };
+
+  const handleWithdrawPress = () => {
+    withdrawDialog.show({
+      title: t('account.withdrawTitle'),
+      message: t('account.withdrawMessage'),
+      buttons: [
+        {
+          label: t('account.withdrawCancel'),
+          variant: 'default',
+        },
+        {
+          label: t('account.withdrawConfirm'),
+          variant: 'destructive',
+          onPress: () => {
+            withdrawMutation.mutate();
+          },
+        },
+      ],
+    });
   };
 
   return (
@@ -137,8 +162,34 @@ export default function SettingsScreen() {
               </Text>
             </Pressable>
           </YStack>
+
+          {/* Withdraw Button - Small, Bottom Right */}
+          <YStack mt="$2" alignItems="flex-end">
+            <Pressable
+              onPress={handleWithdrawPress}
+              style={({ pressed }) => [
+                styles.withdrawButton,
+                {
+                  opacity: pressed ? 0.5 : 1,
+                },
+              ]}
+            >
+              <Text variant="caption" color="$gray9" style={styles.withdrawText}>
+                {t('account.withdraw')}
+              </Text>
+            </Pressable>
+          </YStack>
         </YStack>
         </ScrollView>
+
+        {/* Withdraw Confirmation Dialog */}
+        <AlertDialog
+          visible={withdrawDialog.visible}
+          title={withdrawDialog.config.title}
+          message={withdrawDialog.config.message}
+          buttons={withdrawDialog.config.buttons}
+          onClose={withdrawDialog.hide}
+        />
       </YStack>
     </Screen>
   );
@@ -157,5 +208,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 12,
     alignItems: 'center',
+  },
+  withdrawButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  withdrawText: {
+    fontSize: 12,
+    textDecorationLine: 'underline',
   },
 });
