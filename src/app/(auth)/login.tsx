@@ -6,8 +6,9 @@ import { Text } from '@/shared/ui/Text';
 import { useGoogleLogin } from '@/features/auth/hooks/useGoogleLogin';
 import { Pressable, ActivityIndicator } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { sp, cs, radius } from '@/utils/responsive';
+import { sp, cs, radius, fs } from '@/utils/responsive';
 import { useThemeStore } from '@/stores/useThemeStore';
+import * as WebBrowser from 'expo-web-browser';
 
 const logoLight = require('@/assets/images/one-question-light.png');
 const logoDark = require('@/assets/images/one-question-dark.png');
@@ -44,6 +45,10 @@ export default function LoginScreen() {
 
   const handleGoogleLogin = () => {
     googleLogin();
+  };
+
+  const handlePressTerms = async () => {
+    await WebBrowser.openBrowserAsync('https://one-question.org/legal-document');
   };
 
   return (
@@ -121,9 +126,25 @@ export default function LoginScreen() {
 
         {/* Terms */}
         <YStack mt="$8" px="$4">
-          <Text variant="caption" muted center>
-            {t('termsAgreement')}
-          </Text>
+          <XStack flexWrap="wrap" jc="center" ai="center">
+            <Text variant="caption" muted style={styles.termsText}>
+              {t('termsAgreementPrefix')}
+            </Text>
+            <Pressable onPress={handlePressTerms}>
+              <Text
+                variant="caption"
+                style={[
+                  styles.termsLink,
+                  { color: theme.blue10?.val || '#0066CC' },
+                ]}
+              >
+                {t('termsAgreementLink')}
+              </Text>
+            </Pressable>
+            <Text variant="caption" muted style={styles.termsText}>
+              {t('termsAgreementSuffix')}
+            </Text>
+          </XStack>
         </YStack>
       </YStack>
     </Screen>
@@ -144,5 +165,15 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.5,
+  },
+  termsText: {
+    fontSize: fs(12),
+    lineHeight: fs(18),
+  },
+  termsLink: {
+    fontSize: fs(12),
+    lineHeight: fs(18),
+    textDecorationLine: 'underline',
+    fontWeight: '500',
   },
 });
