@@ -6,6 +6,7 @@ import { ThemeModeIcon } from '@/shared/icons/ThemeModeIcon';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { useThemeTransition } from '@/shared/ui/ThemeTransitionProvider';
 import { useAccentColors } from '@/shared/theme';
+import { logEvent, AnalyticsEvents } from '@/services/firebase';
 
 interface ThemeToggleProps {
   showLabel?: boolean;
@@ -18,6 +19,15 @@ export function ThemeToggle({ showLabel = true }: ThemeToggleProps) {
   const accent = useAccentColors();
   const { t } = useTranslation('settings');
   const isDark = mode === 'dark';
+
+  const handleThemeToggle = (value: boolean) => {
+    const newTheme = value ? 'dark' : 'light';
+    // Analytics: 테마 변경
+    logEvent(AnalyticsEvents.THEME_CHANGE, {
+      theme: newTheme,
+    });
+    toggleThemeWithTransition();
+  };
 
   return (
     <XStack
@@ -43,7 +53,7 @@ export function ThemeToggle({ showLabel = true }: ThemeToggleProps) {
       </XStack>
       <Switch
         value={isDark}
-        onValueChange={toggleThemeWithTransition}
+        onValueChange={handleThemeToggle}
         trackColor={{
           false: theme.borderColor?.val,
           true: accent.primary,

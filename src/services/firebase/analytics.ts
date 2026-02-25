@@ -31,26 +31,35 @@ export async function setUserId(userId: string | null) {
 
 // 주요 이벤트들
 export const AnalyticsEvents = {
-  // 인증
+  // 인증 (User Lifecycle)
   LOGIN: 'login',
   LOGOUT: 'logout',
-  SIGN_UP: 'sign_up',
+  ACCOUNT_DELETE: 'account_delete',
 
-  // 질문
+  // 화면 조회 (Navigation)
+  SCREEN_VIEW: 'screen_view',
+
+  // 질문 (Content Engagement)
   QUESTION_VIEW: 'question_view',
-  QUESTION_ANSWER: 'question_answer',
-  QUESTION_SKIP: 'question_skip',
+  RANDOM_QUESTION_TODAY: 'random_question_today',
+  RANDOM_QUESTION_PAST: 'random_question_past',
+  RANDOM_QUESTION_RELOAD: 'random_question_reload',
+  PAST_QUESTION_CLICK: 'past_question_click',
 
-  // 도감
-  COLLECTION_VIEW: 'collection_view',
-  COLLECTION_FILTER: 'collection_filter',
+  // 답변 (Content Engagement)
+  ANSWER_START: 'answer_start',
+  ANSWER_SUBMIT: 'answer_submit',
+  ANSWER_EDIT: 'answer_edit',
 
-  // 설정
-  SETTINGS_CHANGE_THEME: 'settings_change_theme',
-  SETTINGS_CHANGE_LANGUAGE: 'settings_change_language',
-  SETTINGS_NOTIFICATION_TOGGLE: 'settings_notification_toggle',
+  // 광고 (Monetization)
+  AD_IMPRESSION: 'ad_impression',
+  AD_CLICK: 'ad_click',
+  REWARDED_AD_REQUEST: 'rewarded_ad_request',
+  REWARDED_AD_VIEW: 'rewarded_ad_view',
+  REWARDED_AD_SKIP: 'rewarded_ad_skip',
 
-  // 공유
-  SHARE: 'share',
-  SHARE_SUCCESS: 'share_success',
+  // 설정 (Settings)
+  THEME_CHANGE: 'theme_change',
+  NOTIFICATION_TOGGLE: 'notification_toggle',
+  DATE_PICKER_OPEN: 'date_picker_open',
 } as const;

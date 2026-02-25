@@ -28,6 +28,7 @@ import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 import { shouldHideAds } from '@/features/member/constants/permissions';
 import { sp } from '@/utils/responsive';
+import { logScreenView, logEvent, AnalyticsEvents } from '@/services/firebase';
 
 interface QuestionData {
   date: string;
@@ -72,6 +73,18 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
 
   // 변경사항 감지 (dirty state)
   const isDirty = answer !== originalAnswer;
+
+  // Analytics: 화면 진입
+  useEffect(() => {
+    if (isEditMode) {
+      logScreenView('Answer_Edit');
+    } else {
+      logScreenView('Answer_Create');
+      logEvent(AnalyticsEvents.ANSWER_START, {
+        date: data.date,
+      });
+    }
+  }, [isEditMode, data.date]);
 
   const [alertConfig, setAlertConfig] = useState<{
     visible: boolean;
@@ -123,8 +136,18 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
 
     try {
       if (isEditMode) {
+        // Analytics: 답변 수정
+        logEvent(AnalyticsEvents.ANSWER_EDIT, {
+          date: data.date,
+          answer_length: answer.trim().length,
+        });
         await updateAnswerMutation.mutateAsync({ date: data.date, answer: answer.trim() });
       } else {
+        // Analytics: 답변 제출
+        logEvent(AnalyticsEvents.ANSWER_SUBMIT, {
+          date: data.date,
+          answer_length: answer.trim().length,
+        });
         await createAnswerMutation.mutateAsync({ date: data.date, answer: answer.trim() });
         onAnswerSubmitted(); // 새 답변 작성시에만 카운트
       }

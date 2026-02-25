@@ -22,6 +22,7 @@ export default {
       supportsTablet: true,
       bundleIdentifier: 'com.onequestion.app',
       buildNumber: APP_VERSIONS.iosVersion,
+      googleServicesFile: './GoogleService-Info.plist', // Firebase 설정 파일
       // Google Sign-In URL scheme은 @react-native-google-signin plugin이 자동 처리
     },
     android: {
@@ -33,6 +34,7 @@ export default {
       versionCode: APP_VERSIONS.androidVersion,
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
+      googleServicesFile: './google-services.json', // Firebase 설정 파일
     },
     web: {
       favicon: './assets/favicon.png',
@@ -42,6 +44,8 @@ export default {
       'expo-router',
       'expo-localization',
       'expo-web-browser',
+      '@react-native-firebase/app',
+      '@react-native-firebase/crashlytics',
       [
         '@react-native-google-signin/google-signin',
         {

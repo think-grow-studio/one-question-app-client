@@ -10,6 +10,7 @@ import {
   isAdMobSupportedPlatform,
 } from '../config/adUnits';
 import { admobInitPromise } from '../config/adInit';
+import { logEvent, AnalyticsEvents } from '@/services/firebase';
 
 type RewardResult = {
   success: boolean;
@@ -131,6 +132,9 @@ export function useRewardedAdGate() {
       return { success: false };
     }
 
+    // Analytics: 리워드 광고 요청
+    logEvent(AnalyticsEvents.REWARDED_AD_REQUEST);
+
     if (!isLoaded) {
       setIsLoading(true);
       const loadSuccess = await waitForAdLoad(rewarded, AD_LOAD_TIMEOUT_MS);
@@ -138,6 +142,10 @@ export function useRewardedAdGate() {
 
       if (!loadSuccess) {
         if (__DEV__) console.warn('[useRewardedAdGate] Ad failed to load within timeout');
+        // Analytics: 리워드 광고 건너뛰기/실패
+        logEvent(AnalyticsEvents.REWARDED_AD_SKIP, {
+          reason: 'load_timeout',
+        });
         return { success: false };
       }
     }
@@ -149,6 +157,8 @@ export function useRewardedAdGate() {
         RewardedAdEventType.EARNED_REWARD,
         () => {
           rewardEarned = true;
+          // Analytics: 리워드 광고 시청 완료
+          logEvent(AnalyticsEvents.REWARDED_AD_VIEW);
         }
       );
 
@@ -159,6 +169,14 @@ export function useRewardedAdGate() {
           closedListener();
           setIsLoaded(false);
           rewarded.load();
+
+          // Analytics: 시청하지 않고 닫음
+          if (!rewardEarned) {
+            logEvent(AnalyticsEvents.REWARDED_AD_SKIP, {
+              reason: 'closed_early',
+            });
+          }
+
           resolve({ success: rewardEarned });
         }
       );
@@ -168,6 +186,10 @@ export function useRewardedAdGate() {
         closedListener();
         setIsLoaded(false);
         rewarded.load();
+        // Analytics: 리워드 광고 표시 실패
+        logEvent(AnalyticsEvents.REWARDED_AD_SKIP, {
+          reason: 'show_failed',
+        });
         resolve({ success: false });
       });
     });

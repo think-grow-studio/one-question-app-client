@@ -8,6 +8,7 @@ import {
   isAdMobSupportedPlatform,
 } from '@/features/admob/config/adUnits';
 import { admobInitPromise } from '@/features/admob/config/adInit';
+import { logEvent, AnalyticsEvents } from '@/services/firebase';
 
 type BannerAdSlotProps = {
   hidden?: boolean;
@@ -35,7 +36,13 @@ export const BannerAdSlot = memo(function BannerAdSlot({ hidden, disableSafeArea
         unitId={admobUnitIds.banner}
         size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
         requestOptions={admobRequestOptions}
-        onAdLoaded={() => { if (__DEV__) console.log('[BannerAd] Loaded'); }}
+        onAdLoaded={() => {
+          if (__DEV__) console.log('[BannerAd] Loaded');
+          // Analytics: 배너 광고 노출
+          logEvent(AnalyticsEvents.AD_IMPRESSION, {
+            ad_type: 'banner',
+          });
+        }}
         onAdFailedToLoad={(error) => { if (__DEV__) console.warn('[BannerAd] Failed:', error); }}
       />
     </View>

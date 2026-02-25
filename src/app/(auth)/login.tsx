@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { StyleSheet, Platform, Image } from 'react-native';
 import { YStack, XStack, useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
@@ -9,6 +10,7 @@ import Svg, { Path } from 'react-native-svg';
 import { sp, cs, radius, fs } from '@/utils/responsive';
 import { useThemeStore } from '@/stores/useThemeStore';
 import * as WebBrowser from 'expo-web-browser';
+import { logScreenView, logEvent, AnalyticsEvents } from '@/services/firebase';
 
 const logoLight = require('@/assets/images/one-question-light.png');
 const logoDark = require('@/assets/images/one-question-dark.png');
@@ -43,7 +45,16 @@ export default function LoginScreen() {
   const { mutate: googleLogin, isPending } = useGoogleLogin();
   const isDark = mode === 'dark';
 
+  // Analytics: 화면 조회
+  useEffect(() => {
+    logScreenView('Login');
+  }, []);
+
   const handleGoogleLogin = () => {
+    // Analytics: 로그인 시도
+    logEvent(AnalyticsEvents.LOGIN, {
+      method: 'google',
+    });
     googleLogin();
   };
 

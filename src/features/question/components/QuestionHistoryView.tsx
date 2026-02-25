@@ -35,6 +35,7 @@ import { DatePickerSheet } from './DatePickerSheet';
 import { ReloadOptionSheet } from '@/features/answer/components/ReloadOptionSheet';
 import { SCREEN, sp } from '@/utils/responsive';
 import { canReloadQuestion, getReloadCountDisplay } from '../constants/limits';
+import { logEvent, AnalyticsEvents } from '@/services/firebase';
 
 const SWIPE_THRESHOLD = SCREEN.width * 0.2; // 20% - 더 쉽게 넘어가도록 조정 (이전: 0.3)
 
@@ -136,6 +137,17 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
   const shouldGateRandomQuestion = memberPermission === MemberPermission.FREE && isViewingPastDate;
   const shouldGateReloadQuestion = memberPermission === MemberPermission.FREE;
   const isAdFreeMember = shouldHideAds(memberPermission);
+
+  // Analytics: 질문 조회
+  useEffect(() => {
+    if (currentHistory?.question) {
+      logEvent(AnalyticsEvents.QUESTION_VIEW, {
+        date: currentDate,
+        question_id: currentHistory.question.id,
+        has_answer: !!currentHistory.answer,
+      });
+    }
+  }, [currentHistory, currentDate]);
 
   const runRewardedAction = useCallback(
     async (action: 'random' | 'reload') => {
@@ -354,6 +366,17 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
   }, 500);
 
   const handleDrawRandomQuestion = useThrottledCallback(() => {
+    // Analytics: 오늘/과거 랜덤 질문 구분
+    const isToday = currentDate === todayStr;
+    const eventName = isToday
+      ? AnalyticsEvents.RANDOM_QUESTION_TODAY
+      : AnalyticsEvents.RANDOM_QUESTION_PAST;
+
+    logEvent(eventName, {
+      date: currentDate,
+      requires_ad: shouldGateRandomQuestion,
+    });
+
     runRewardedAction('random')
       .then((allowed) => {
         if (!allowed) {
@@ -381,6 +404,13 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
       return;
     }
 
+    // Analytics: 질문 새로고침 (랜덤 질문 선택)
+    logEvent(AnalyticsEvents.RANDOM_QUESTION_RELOAD, {
+      date: currentDate,
+      reload_count: reloadCount,
+      requires_ad: shouldGateReloadQuestion,
+    });
+
     runRewardedAction('reload')
       .then((allowed) => {
         if (!allowed) {
@@ -399,8 +429,12 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
   }, 500);
 
   const handlePastQuestion = useCallback(() => {
+    // Analytics: 과거 질문 클릭 (준비 중)
+    logEvent(AnalyticsEvents.PAST_QUESTION_CLICK, {
+      date: currentDate,
+    });
     setIsAlertVisible(true);
-  }, []);
+  }, [currentDate]);
 
   // 답변 수정 화면으로 이동
   const handleEditAnswer = useCallback(() => {

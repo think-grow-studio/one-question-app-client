@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { View, Pressable, StyleSheet, ScrollView } from 'react-native';
 import { YStack, XStack, useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
@@ -13,6 +14,7 @@ import { AppleIcon } from '@/shared/icons/AppleIcon';
 import { AlertDialog } from '@/shared/ui/AlertDialog/AlertDialog';
 import { useAlertDialog } from '@/shared/ui/AlertDialog/useAlertDialog';
 import { useWithdrawMutation } from '@/features/auth/hooks/mutations/useAuthMutations';
+import { logScreenView, logEvent, AnalyticsEvents } from '@/services/firebase';
 
 export default function SettingsScreen() {
   const theme = useTheme();
@@ -30,7 +32,14 @@ export default function SettingsScreen() {
       ? t('account.providerApple')
       : '';
 
+  // Analytics: 화면 조회
+  useEffect(() => {
+    logScreenView('Settings');
+  }, []);
+
   const handleLogout = async () => {
+    // Analytics: 로그아웃
+    await logEvent(AnalyticsEvents.LOGOUT);
     await logout();
   };
 
@@ -47,6 +56,8 @@ export default function SettingsScreen() {
           label: t('account.withdrawConfirm'),
           variant: 'destructive',
           onPress: () => {
+            // Analytics: 회원탈퇴
+            logEvent(AnalyticsEvents.ACCOUNT_DELETE);
             withdrawMutation.mutate();
           },
         },
