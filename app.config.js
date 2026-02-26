@@ -46,6 +46,7 @@ export default {
       'expo-web-browser',
       '@react-native-firebase/app',
       '@react-native-firebase/crashlytics',
+      './plugins/with-modular-headers',
       [
         '@react-native-google-signin/google-signin',
         {
