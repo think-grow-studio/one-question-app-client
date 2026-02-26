@@ -22,10 +22,15 @@
     "pushTitle": "One Question",
     "pushBody": "오늘의 질문에 답을 해보세요."
   },
+  "language": {
+    "title": "언어",
+    "sheetTitle": "언어 선택",
+    "ko": "한국어",
+    "en": "English"
+  },
   "appInfo": {
     "title": "앱 정보",
-    "version": "버전",
-    "language": "언어"
+    "version": "버전"
   },
   "account": {
     "title": "계정",

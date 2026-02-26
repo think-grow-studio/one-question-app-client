@@ -60,6 +60,7 @@ export const AnalyticsEvents = {
 
   // 설정 (Settings)
   THEME_CHANGE: 'theme_change',
+  LANGUAGE_CHANGE: 'language_change',
   NOTIFICATION_TOGGLE: 'notification_toggle',
   DATE_PICKER_OPEN: 'date_picker_open',
 } as const;

@@ -22,10 +22,15 @@
     "pushTitle": "One Question",
     "pushBody": "Answer today's question."
   },
+  "language": {
+    "title": "Language",
+    "sheetTitle": "Select Language",
+    "ko": "한국어",
+    "en": "English"
+  },
   "appInfo": {
     "title": "App Info",
-    "version": "Version",
-    "language": "Language"
+    "version": "Version"
   },
   "account": {
     "title": "Account",

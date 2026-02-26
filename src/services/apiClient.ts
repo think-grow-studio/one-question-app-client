@@ -1,6 +1,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import * as Localization from 'expo-localization';
 import { config } from '@/constants/config';
+import { LANGUAGE_LOCALE_MAP } from '@/stores/useLanguageStore';
 import { storage } from './storage';
 import i18n from '@/locales';
 import { useApiErrorStore } from '@/stores/useApiErrorStore';
@@ -26,9 +27,11 @@ apiClient.interceptors.request.use(
       requestConfig.headers.Authorization = `Bearer ${token}`;
     }
 
-    // Locale 주입 (ko-KR 형식 사용)
+    // Locale 주입 - 사용자 선택 언어 우선, 없으면 기기 언어 (ko-KR 형식)
     requestConfig.headers['Accept-Language'] =
-      Localization.getLocales()[0]?.languageTag ?? i18n.language;
+      LANGUAGE_LOCALE_MAP[i18n.language as keyof typeof LANGUAGE_LOCALE_MAP] ??
+      Localization.getLocales()[0]?.languageTag ??
+      i18n.language;
 
     // Timezone 주입
     requestConfig.headers['Timezone'] =
