@@ -18,6 +18,11 @@ export default {
     icon: './assets/one-question-light.png',
     userInterfaceStyle: 'automatic',
     newArchEnabled: true,
+    locales: {
+      ko: './locales/ko.json',
+      en: './locales/en.json',
+      ja: './locales/ja.json',
+    },
     ios: {
       supportsTablet: true,
       bundleIdentifier: 'com.onequestion.app',
@@ -47,6 +52,7 @@ export default {
       '@react-native-firebase/app',
       '@react-native-firebase/crashlytics',
       './plugins/with-modular-headers',
+      './plugins/with-localized-app-name',
       [
         '@react-native-google-signin/google-signin',
         {
