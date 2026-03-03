@@ -1,4 +1,6 @@
 {
-  "CFBundleDisplayName": "One Question",
-  "CFBundleName": "One Question"
+  "ios": {
+    "CFBundleDisplayName": "One Question",
+    "CFBundleName": "One Question"
+  }
 }
