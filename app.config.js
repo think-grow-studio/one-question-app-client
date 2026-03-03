@@ -13,6 +13,12 @@ export default {
     name: 'One Question',
     slug: 'one-question',
     version: APP_VERSIONS.version, // 기본값 (Expo에서 요구)
+    runtimeVersion: {
+      policy: 'appVersion',
+    },
+    updates: {
+      url: 'https://u.expo.dev/d2581480-0979-4cc5-9dac-01c48af69bf2',
+    },
     scheme: 'onequestion',
     orientation: 'portrait',
     icon: './assets/one-question-light.png',
