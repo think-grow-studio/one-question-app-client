@@ -55,6 +55,12 @@ export default {
       'expo-router',
       'expo-localization',
       'expo-web-browser',
+      [
+        'expo-notifications',
+        {
+          androidMode: 'exact',
+        },
+      ],
       '@react-native-firebase/app',
       '@react-native-firebase/crashlytics',
       './plugins/with-modular-headers',
