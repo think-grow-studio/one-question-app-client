@@ -7,15 +7,24 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "channel": "development"
+      "channel": "development",
+      "env": {
+        "API_URL": "https://dev.one-question.org"
+      }
     },
     "preview": {
       "distribution": "internal",
-      "channel": "preview"
+      "channel": "preview",
+      "env": {
+        "API_URL": "https://dev.one-question.org"
+      }
     },
     "production": {
       "autoIncrement": true,
-      "channel": "production"
+      "channel": "production",
+      "env": {
+        "API_URL": "https://one-question.org"
+      }
     }
   },
   "submit": {

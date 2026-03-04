@@ -109,8 +109,7 @@ export default {
       ],
     ],
     extra: {
-      // Environment variables (can be accessed via expo-constants)
-      apiUrl: process.env.API_URL || 'https://api.example.com',
+      apiUrl: process.env.API_URL || 'https://dev.one-question.org',
       environment: process.env.NODE_ENV || 'development',
       // Google OAuth Client IDs
       googleClientIdWeb: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB,
