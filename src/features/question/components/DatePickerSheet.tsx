@@ -12,6 +12,8 @@ import { useDatePickerStore } from '../stores/useDatePickerStore';
 import { useSlideDirectionStore } from '../stores/useSlideDirectionStore';
 import { useCalendarHistory } from '../hooks/queries/useQuestionQueries';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
+import { shouldHideAds } from '@/features/member/constants/permissions';
+import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
 import { Button } from '@/shared/ui/Button';
 import { AlertDialog } from '@/shared/ui/AlertDialog';
 import { useAccentColors } from '@/shared/theme';
@@ -59,6 +61,7 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
 
   // 회원 정보 조회 (cycleStartDate 제한용)
   const { data: member } = useMemberMe();
+  const isAdFreeMember = shouldHideAds(member?.permission);
 
   const calendarFetchBaseDate = useMemo(() => {
     if (!member?.cycleStartDate) {
@@ -521,7 +524,7 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
           <View style={[styles.handle, themedStyles.handle]} />
         </View>
 
-        <YStack style={{ paddingBottom: sp(20) }}>
+        <YStack style={{ paddingBottom: sp(20), flex: 1 }}>
           {/* Content area is not draggable */}
 
           {/* Month Navigation */}
@@ -664,7 +667,14 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
                 </View>
               </YStack>
           </View>
+
         </YStack>
+
+        {!isAdFreeMember && (
+          <View style={{ paddingHorizontal: sp(20) }}>
+            <BannerAdSlot disableSafeAreaPadding />
+          </View>
+        )}
       </Animated.View>
 
       <AlertDialog

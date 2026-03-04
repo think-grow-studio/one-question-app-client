@@ -15,6 +15,8 @@ import { AlertDialog } from '@/shared/ui/AlertDialog/AlertDialog';
 import { useAlertDialog } from '@/shared/ui/AlertDialog/useAlertDialog';
 import { useWithdrawMutation } from '@/features/auth/hooks/mutations/useAuthMutations';
 import { logScreenView, logEvent, AnalyticsEvents } from '@/services/firebase';
+import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
+import { shouldHideAds } from '@/features/member/constants/permissions';
 
 export default function SettingsScreen() {
   const theme = useTheme();
@@ -24,6 +26,7 @@ export default function SettingsScreen() {
   const withdrawMutation = useWithdrawMutation();
   const withdrawDialog = useAlertDialog();
 
+  const isAdFreeMember = shouldHideAds(member?.permission);
   const isGoogleProvider = member?.provider === 'GOOGLE';
   const isAppleProvider = member?.provider === 'APPLE';
   const providerLabel = isGoogleProvider
@@ -66,7 +69,7 @@ export default function SettingsScreen() {
   };
 
   return (
-    <Screen>
+    <Screen edges={['top']}>
       <YStack flex={1} bg="$background">
         {/* Header */}
         <View
@@ -192,6 +195,8 @@ export default function SettingsScreen() {
           </YStack>
         </YStack>
         </ScrollView>
+
+        {!isAdFreeMember && <BannerAdSlot disableSafeAreaPadding />}
 
         {/* Withdraw Confirmation Dialog */}
         <AlertDialog

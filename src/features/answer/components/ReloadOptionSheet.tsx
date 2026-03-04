@@ -12,6 +12,9 @@ import { useAccentColors } from '@/shared/theme';
 import { MailIcon } from '@/shared/icons/MailIcon';
 import { PastQuestionIcon } from '@/shared/icons/PastQuestionIcon';
 import { AdBadge } from '@/shared/ui/ads/AdBadge';
+import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
+import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
+import { shouldHideAds } from '@/features/member/constants/permissions';
 import { fs, sp, radius, cs, SHEET_HEIGHTS, SHEET_MAX_WIDTH } from '@/utils/responsive';
 
 const DISMISS_THRESHOLD = 100;
@@ -34,6 +37,8 @@ export function ReloadOptionSheet({
   const theme = useTheme();
   const accent = useAccentColors();
   const { t } = useTranslation(['answer', 'common']);
+  const { data: member } = useMemberMe();
+  const isAdFreeMember = shouldHideAds(member?.permission);
 
   // Use standard sheet height constant
   const SHEET_HEIGHT = SHEET_HEIGHTS.medium;
@@ -285,6 +290,12 @@ export function ReloadOptionSheet({
             </Text>
           </Pressable>
         </View>
+
+        {!isAdFreeMember && (
+          <View style={{ paddingHorizontal: sp(16) }}>
+            <BannerAdSlot disableSafeAreaPadding />
+          </View>
+        )}
       </Animated.View>
     </Modal>
   );
