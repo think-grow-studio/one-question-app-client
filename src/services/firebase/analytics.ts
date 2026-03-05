@@ -57,6 +57,8 @@ export const AnalyticsEvents = {
   REWARDED_AD_REQUEST: 'rewarded_ad_request',
   REWARDED_AD_VIEW: 'rewarded_ad_view',
   REWARDED_AD_SKIP: 'rewarded_ad_skip',
+  INTERSTITIAL_AD_SHOW: 'interstitial_ad_show',
+  INTERSTITIAL_AD_CLOSE: 'interstitial_ad_close',
 
   // 설정 (Settings)
   THEME_CHANGE: 'theme_change',

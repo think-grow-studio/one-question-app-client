@@ -30,6 +30,7 @@ import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 import { MemberPermission } from '@/types/api';
 import { shouldHideAds } from '@/features/member/constants/permissions';
 import { useRewardedAdGate } from '@/features/admob/hooks/useRewardedAdGate';
+import { useInterstitialAdGate } from '@/features/admob/hooks/useInterstitialAdGate';
 import { useQueryClient } from '@tanstack/react-query';
 import { DatePickerSheet } from './DatePickerSheet';
 import { ReloadOptionSheet } from '@/features/answer/components/ReloadOptionSheet';
@@ -137,6 +138,23 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
   const shouldGateRandomQuestion = memberPermission === MemberPermission.FREE && isViewingPastDate;
   const shouldGateReloadQuestion = memberPermission === MemberPermission.FREE;
   const isAdFreeMember = shouldHideAds(memberPermission);
+
+  const { showAd } = useInterstitialAdGate();
+
+  const swipeCountRef = useRef(0);
+  const isAdFreeMemberRef = useRef(isAdFreeMember);
+  const showAdRef = useRef(showAd);
+
+  useEffect(() => { isAdFreeMemberRef.current = isAdFreeMember; }, [isAdFreeMember]);
+  useEffect(() => { showAdRef.current = showAd; }, [showAd]);
+
+  const maybeShowSwipeAdRef = useRef(() => {
+    if (isAdFreeMemberRef.current) return;
+    swipeCountRef.current += 1;
+    if (swipeCountRef.current % 10 === 0) {
+      showAdRef.current();
+    }
+  });
 
   // Analytics: 질문 조회
   useEffect(() => {
@@ -299,6 +317,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
             opacity.value = 0;
             goToNextDay();
             setDirectionForNextDay();
+            maybeShowSwipeAdRef.current();
           };
           translateX.value = withTiming(-SCREEN.width, { duration: 200 }, (finished) => {
             if (finished) {
@@ -320,6 +339,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
             opacity.value = 0;
             goToPreviousDay();
             setDirectionForPreviousDay();
+            maybeShowSwipeAdRef.current();
           };
           translateX.value = withTiming(SCREEN.width, { duration: 200 }, (finished) => {
             if (finished) {
