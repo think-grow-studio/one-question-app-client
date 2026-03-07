@@ -89,6 +89,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
     isLoading: isHistoryLoading,
     refetch: refetchHistory,
     isError: isHistoryError,
+    isFetching: isHistoryFetching,
     error: historyError,
   } = useDailyHistory(currentDate, direction, {
     enabled: Boolean(currentDate),
@@ -126,7 +127,14 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
 
   // 히스토리 로딩 중이거나, 랜덤질문 요청 중일 때 로딩 표시
   const isLoading = isHistoryLoading || serveDailyQuestionMutation.isPending;
-  const isError = isHistoryError || serveDailyQuestionMutation.isError;
+
+  // Query 에러: 캐시 데이터가 없고, fetching 중도 아닐 때만 에러 UI 표시
+  // (캐시 있는데 백그라운드 refetch 실패 시 캐시 데이터 유지)
+  const isQueryError = isHistoryError && !isHistoryFetching && !currentHistory;
+  // Mutation 에러: 사용자 직접 액션 실패 → 항상 에러 UI
+  const isMutationError = serveDailyQuestionMutation.isError;
+  const isError = isQueryError || isMutationError;
+
   const currentError = (historyError ?? serveDailyQuestionMutation.error) as ApiErrorResponse | null;
   const isNetworkError = !currentError || (currentError as ApiErrorResponse).status === 0;
   const reloadCount = currentItem?.reloadCount ?? 0;

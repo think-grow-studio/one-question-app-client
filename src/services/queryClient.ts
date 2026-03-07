@@ -24,8 +24,8 @@ const exponentialBackoff = (attemptIndex: number) => {
  * - 네트워크 에러: 재시도
  */
 const shouldRetry = (failureCount: number, error: any) => {
-  // 최대 3회 재시도
-  if (failureCount >= 3) return false;
+  // 최대 1회 재시도
+  if (failureCount >= 1) return false;
 
   const status = error?.status;
 
@@ -64,8 +64,8 @@ export const queryClient = new QueryClient({
     },
     mutations: {
       retry: (failureCount, error: any) => {
-        // Mutation은 더 보수적 (최대 2회)
-        if (failureCount >= 2) return false;
+        // Mutation은 최대 1회 재시도
+        if (failureCount >= 1) return false;
 
         const status = error?.status;
         // 5xx 또는 네트워크 에러만 재시도
