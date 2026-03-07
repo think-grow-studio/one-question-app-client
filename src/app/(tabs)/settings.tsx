@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { View, Pressable, StyleSheet, ScrollView } from 'react-native';
+import { View, Pressable, StyleSheet, ScrollView, Linking } from 'react-native';
 import { YStack, XStack, useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { Screen } from '@/shared/layout/Screen';
@@ -44,6 +44,12 @@ export default function SettingsScreen() {
     // Analytics: 로그아웃
     await logEvent(AnalyticsEvents.LOGOUT);
     await logout();
+  };
+
+  const handleContactDeveloper = () => {
+    Linking.openURL(
+      'mailto:studiothinkgrow@gmail.com?subject=%5BOne%20Question%5D%20%EB%AC%B8%EC%9D%98'
+    );
   };
 
   const handleWithdrawPress = () => {
@@ -157,6 +163,18 @@ export default function SettingsScreen() {
                 <Text variant="body">1.0.0</Text>
               </View>
             </YStack>
+            <Pressable
+              onPress={handleContactDeveloper}
+              style={({ pressed }) => [
+                styles.contactButton,
+                {
+                  backgroundColor: theme.backgroundSoft?.val,
+                  opacity: pressed ? 0.7 : 1,
+                },
+              ]}
+            >
+              <Text variant="body">{t('appInfo.contact')}</Text>
+            </Pressable>
           </YStack>
 
           {/* Logout Button */}
@@ -220,6 +238,12 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   logoutButton: {
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  contactButton: {
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderRadius: 12,

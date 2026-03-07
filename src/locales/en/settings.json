@@ -30,7 +30,8 @@
   },
   "appInfo": {
     "title": "App Info",
-    "version": "Version"
+    "version": "Version",
+    "contact": "Contact Developer"
   },
   "account": {
     "title": "Account",
