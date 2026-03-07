@@ -146,7 +146,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
     if (currentHistory?.question) {
       logEvent(AnalyticsEvents.QUESTION_VIEW, {
         date: currentDate,
-        question_id: currentHistory.question.id,
+        question_id: currentHistory.question.dailyQuestionId,
         has_answer: !!currentHistory.answer,
       });
     }
