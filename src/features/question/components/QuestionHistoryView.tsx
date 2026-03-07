@@ -27,7 +27,7 @@ import { useSlideDirectionStore } from '../stores/useSlideDirectionStore';
 import { useDailyHistory, questionQueryKeys } from '../hooks/queries/useQuestionQueries';
 import { useServeDailyQuestion, useReloadQuestion } from '../hooks/mutations/useQuestionMutations';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
-import { MemberPermission } from '@/types/api';
+import { MemberPermission, ApiErrorResponse } from '@/types/api';
 import { shouldHideAds } from '@/features/member/constants/permissions';
 import { useRewardedAdGate } from '@/features/admob/hooks/useRewardedAdGate';
 import { useQueryClient } from '@tanstack/react-query';
@@ -89,6 +89,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
     isLoading: isHistoryLoading,
     refetch: refetchHistory,
     isError: isHistoryError,
+    error: historyError,
   } = useDailyHistory(currentDate, direction, {
     enabled: Boolean(currentDate),
   });
@@ -126,6 +127,8 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
   // 히스토리 로딩 중이거나, 랜덤질문 요청 중일 때 로딩 표시
   const isLoading = isHistoryLoading || serveDailyQuestionMutation.isPending;
   const isError = isHistoryError || serveDailyQuestionMutation.isError;
+  const currentError = (historyError ?? serveDailyQuestionMutation.error) as ApiErrorResponse | null;
+  const isNetworkError = !currentError || (currentError as ApiErrorResponse).status === 0;
   const reloadCount = currentItem?.reloadCount ?? 0;
 
   // Permission 정보 가져오기
@@ -470,10 +473,10 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
           <CloudOffIcon size={140} color={theme.colorSubtle?.val} />
           <View style={[styles.errorTextContainer, responsiveStyles.errorTextContainer]}>
             <Text style={[cardStyles.emptyText, { marginBottom: 8 }]}>
-              {t('common:errors.networkError')}
+              {isNetworkError ? t('common:errors.networkError') : t('common:errors.serverError')}
             </Text>
             <Text style={[cardStyles.questionDescription, { textAlign: 'center', color: theme.colorMuted?.val }]}>
-              {t('common:errors.networkErrorDesc')}
+              {isNetworkError ? t('common:errors.networkErrorDesc') : t('common:errors.serverErrorDesc')}
             </Text>
           </View>
           <Pressable style={cardStyles.emptyButton} onPress={handleRetry}>

@@ -36,7 +36,9 @@
   "errors": {
     "loadFailed": "Failed to load data.",
     "networkError": "Connection issue",
-    "networkErrorDesc": "Please check your network connection and try again"
+    "networkErrorDesc": "Please check your network connection and try again",
+    "serverError": "Oops, something went wrong",
+    "serverErrorDesc": "Please try again later"
   },
   "splash": {
     "quotes": [
