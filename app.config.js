@@ -4,7 +4,7 @@ require('dotenv').config();
 
 const APP_VERSIONS = {
     version: '1.0.0',
-    androidVersion: 7,
+    androidVersion: 8,
     iosVersion: '1',
 };
 
