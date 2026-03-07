@@ -162,10 +162,19 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
   const maybeShowSwipeAdRef = useRef(() => {
     if (isAdFreeMemberRef.current) return;
     swipeCountRef.current += 1;
-    if (swipeCountRef.current % 10 === 0) {
+    if (swipeCountRef.current % 20 === 0) {
       showAdRef.current();
     }
   });
+
+  const isFirstDateRender = useRef(true);
+  useEffect(() => {
+    if (isFirstDateRender.current) {
+      isFirstDateRender.current = false;
+      return;
+    }
+    maybeShowSwipeAdRef.current();
+  }, [currentDate]);
 
   // Analytics: 질문 조회
   useEffect(() => {
@@ -328,7 +337,6 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
             opacity.value = 0;
             goToNextDay();
             setDirectionForNextDay();
-            maybeShowSwipeAdRef.current();
           };
           translateX.value = withTiming(-SCREEN.width, { duration: 200 }, (finished) => {
             if (finished) {
@@ -350,7 +358,6 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
             opacity.value = 0;
             goToPreviousDay();
             setDirectionForPreviousDay();
-            maybeShowSwipeAdRef.current();
           };
           translateX.value = withTiming(SCREEN.width, { duration: 200 }, (finished) => {
             if (finished) {
