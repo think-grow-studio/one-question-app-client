@@ -29,7 +29,7 @@ export const BannerAdSlot = memo(function BannerAdSlot({ hidden, disableSafeArea
   }
 
   return (
-    <View style={[styles.container, !disableSafeAreaPadding && { paddingBottom: Math.max(insets.bottom, 12) }]}
+    <View style={[styles.container, { paddingBottom: disableSafeAreaPadding ? 0 : Math.max(insets.bottom, 12) }]}
       pointerEvents="box-none"
     >
       <BannerAd

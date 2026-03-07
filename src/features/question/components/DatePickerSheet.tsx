@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback, memo } from 'react';
 import { Modal, Pressable, StyleSheet, View, Text, PanResponder, BackHandler, ActivityIndicator } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { YStack, XStack, Paragraph, useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import Animated, {
@@ -28,6 +29,7 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
   const theme = useTheme();
   const accent = useAccentColors();
   const { t } = useTranslation(['question', 'common']);
+  const insets = useSafeAreaInsets();
   const { isDatePickerVisible, setIsDatePickerVisible, currentDate, setCurrentDate } =
     useDatePickerStore();
   const { setDirectionForCalendar } = useSlideDirectionStore();
@@ -671,7 +673,7 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
         </YStack>
 
         {!isAdFreeMember && (
-          <View style={{ paddingHorizontal: sp(20) }}>
+          <View style={{ paddingHorizontal: sp(20), paddingBottom: insets.bottom }}>
             <BannerAdSlot disableSafeAreaPadding />
           </View>
         )}

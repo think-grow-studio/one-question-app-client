@@ -27,7 +27,7 @@ import { useSlideDirectionStore } from '../stores/useSlideDirectionStore';
 import { useDailyHistory, questionQueryKeys } from '../hooks/queries/useQuestionQueries';
 import { useServeDailyQuestion, useReloadQuestion } from '../hooks/mutations/useQuestionMutations';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
-import { MemberPermission } from '@/types/api';
+import { MemberPermission, ApiErrorResponse } from '@/types/api';
 import { shouldHideAds } from '@/features/member/constants/permissions';
 import { useRewardedAdGate } from '@/features/admob/hooks/useRewardedAdGate';
 import { useInterstitialAdGate } from '@/features/admob/hooks/useInterstitialAdGate';
@@ -90,6 +90,8 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
     isLoading: isHistoryLoading,
     refetch: refetchHistory,
     isError: isHistoryError,
+    isFetching: isHistoryFetching,
+    error: historyError,
   } = useDailyHistory(currentDate, direction, {
     enabled: Boolean(currentDate),
   });
@@ -126,7 +128,16 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
 
   // 히스토리 로딩 중이거나, 랜덤질문 요청 중일 때 로딩 표시
   const isLoading = isHistoryLoading || serveDailyQuestionMutation.isPending;
-  const isError = isHistoryError || serveDailyQuestionMutation.isError;
+
+  // Query 에러: 캐시 데이터가 없고, fetching 중도 아닐 때만 에러 UI 표시
+  // (캐시 있는데 백그라운드 refetch 실패 시 캐시 데이터 유지)
+  const isQueryError = isHistoryError && !isHistoryFetching && !currentHistory;
+  // Mutation 에러: 사용자 직접 액션 실패 → 항상 에러 UI
+  const isMutationError = serveDailyQuestionMutation.isError;
+  const isError = isQueryError || isMutationError;
+
+  const currentError = (historyError ?? serveDailyQuestionMutation.error) as ApiErrorResponse | null;
+  const isNetworkError = !currentError || (currentError as ApiErrorResponse).status === 0;
   const reloadCount = currentItem?.reloadCount ?? 0;
 
   // Permission 정보 가져오기
@@ -161,7 +172,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
     if (currentHistory?.question) {
       logEvent(AnalyticsEvents.QUESTION_VIEW, {
         date: currentDate,
-        question_id: currentHistory.question.id,
+        question_id: currentHistory.question.dailyQuestionId,
         has_answer: !!currentHistory.answer,
       });
     }
@@ -490,10 +501,10 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
           <CloudOffIcon size={140} color={theme.colorSubtle?.val} />
           <View style={[styles.errorTextContainer, responsiveStyles.errorTextContainer]}>
             <Text style={[cardStyles.emptyText, { marginBottom: 8 }]}>
-              {t('common:errors.networkError')}
+              {isNetworkError ? t('common:errors.networkError') : t('common:errors.serverError')}
             </Text>
             <Text style={[cardStyles.questionDescription, { textAlign: 'center', color: theme.colorMuted?.val }]}>
-              {t('common:errors.networkErrorDesc')}
+              {isNetworkError ? t('common:errors.networkErrorDesc') : t('common:errors.serverErrorDesc')}
             </Text>
           </View>
           <Pressable style={cardStyles.emptyButton} onPress={handleRetry}>

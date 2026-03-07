@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { storage } from '@/services/storage';
 import { queryClient } from '@/services/queryClient';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { setCrashlyticsUserId } from '@/services/firebase';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -31,6 +32,7 @@ export const useAuthStore = create<AuthState>()((set) => ({
 
   login: async (accessToken: string, refreshToken: string) => {
     await storage.setTokens(accessToken, refreshToken);
+    setCrashlyticsUserId('authenticated');
     set({ isAuthenticated: true });
   },
 
@@ -50,6 +52,7 @@ export const useAuthStore = create<AuthState>()((set) => ({
         console.warn('Google sign out failed:', error);
       }
 
+      setCrashlyticsUserId(null);
       set({ isAuthenticated: false });
     } finally {
       isLoggingOut = false;

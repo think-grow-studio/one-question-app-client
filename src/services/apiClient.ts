@@ -8,6 +8,7 @@ import { useApiErrorStore } from '@/stores/useApiErrorStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { ApiErrorResponse, AuthResponse } from '@/types/api';
 import { tokenRefreshService } from './tokenRefreshService';
+import { recordError } from '@/services/firebase';
 
 // Axios 인스턴스 생성
 export const apiClient = axios.create({
@@ -124,6 +125,17 @@ apiClient.interceptors.response.use(
       code: error.response?.data?.code || 'UNKNOWN_ERROR',
       message: errorMessage,
     };
+
+    // Production: 5xx, 네트워크 에러만 Crashlytics로 전송
+    if (!__DEV__) {
+      const status = error.response?.status;
+      if (!status || status >= 500) {
+        recordError(
+          new Error(`[${status ?? 'NETWORK'}] ${error.config?.method?.toUpperCase()} ${error.config?.url}`),
+          `API:${error.config?.url}`
+        );
+      }
+    }
 
     // 개발 모드에서 API 에러 로그
     if (config.isDev) {
