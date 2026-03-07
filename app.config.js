@@ -43,6 +43,7 @@ export default {
       },
       package: 'com.onequestion.app',
       versionCode: APP_VERSIONS.androidVersion,
+      enableProguardInReleaseBuilds: true,
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
       googleServicesFile: './google-services.json', // Firebase 설정 파일
