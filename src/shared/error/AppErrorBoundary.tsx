@@ -1,9 +1,11 @@
 import React, { Component, ReactNode } from 'react';
 import { View, Text, StyleSheet, Pressable, Alert, Platform } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { queryClient } from '@/services/queryClient';
 import { useApiErrorStore } from '@/stores/useApiErrorStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { recordError } from '@/services/firebase';
+import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
 
 interface Props {
   children: ReactNode;
@@ -96,20 +98,25 @@ export class AppErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <View style={styles.container}>
-          <Text style={styles.title}>문제가 발생했습니다</Text>
-          <Text style={styles.message}>
-            앱을 재시작하면 문제가 해결될 수 있습니다.
-          </Text>
-          {__DEV__ && this.state.error && (
-            <Text style={styles.errorDetail}>
-              {this.state.error.toString()}
-            </Text>
-          )}
-          <Pressable style={styles.button} onPress={this.handleRestart}>
-            <Text style={styles.buttonText}>앱 재시작</Text>
-          </Pressable>
-        </View>
+        <SafeAreaProvider>
+          <View style={styles.container}>
+            <View style={styles.content}>
+              <Text style={styles.title}>문제가 발생했습니다</Text>
+              <Text style={styles.message}>
+                앱을 재시작하면 문제가 해결될 수 있습니다.
+              </Text>
+              {__DEV__ && this.state.error && (
+                <Text style={styles.errorDetail}>
+                  {this.state.error.toString()}
+                </Text>
+              )}
+              <Pressable style={styles.button} onPress={this.handleRestart}>
+                <Text style={styles.buttonText}>앱 재시작</Text>
+              </Pressable>
+            </View>
+            <BannerAdSlot />
+          </View>
+        </SafeAreaProvider>
       );
     }
 
@@ -120,10 +127,13 @@ export class AppErrorBoundary extends Component<Props, State> {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  content: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#FFFFFF',
   },
   title: {
     fontSize: 20,
