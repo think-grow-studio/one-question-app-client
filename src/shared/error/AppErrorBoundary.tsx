@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable, Alert, Platform } from 'react-native
 import { queryClient } from '@/services/queryClient';
 import { useApiErrorStore } from '@/stores/useApiErrorStore';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { recordError } from '@/services/firebase';
 
 interface Props {
   children: ReactNode;
@@ -54,9 +55,7 @@ export class AppErrorBoundary extends Component<Props, State> {
     if (__DEV__) {
       console.error('AppErrorBoundary caught error:', errorData);
     } else {
-      // Production: 여기에 Sentry/Firebase Crashlytics 연동
-      // reportToCrashlytics(errorData);
-      console.error('AppErrorBoundary:', errorData);
+      recordError(error, `ErrorBoundary:${errorInfo.componentStack?.slice(0, 200)}`);
     }
   }
 
