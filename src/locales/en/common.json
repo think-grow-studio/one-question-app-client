@@ -38,6 +38,20 @@
     "networkError": "Connection issue",
     "networkErrorDesc": "Please check your network connection and try again"
   },
+  "splash": {
+    "quotes": [
+      "The one who questions themselves every day grows.",
+      "Today's question shapes tomorrow's you.",
+      "Before finding answers, find the right questions.",
+      "The most important question is the one not yet asked.",
+      "To know yourself, ask yourself.",
+      "An unexamined life is not worth living.",
+      "One question a day can change your life.",
+      "Curiosity is the beginning of wisdom.",
+      "Deep questions make deep people.",
+      "What question did you ask yourself today?"
+    ]
+  },
   "versionCheck": {
     "forceUpdate": {
       "title": "Update Required",

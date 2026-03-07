@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
-import { StatusBar, View, ActivityIndicator, StyleSheet, Linking, Platform, BackHandler } from 'react-native';
+import { StatusBar, Linking, Platform, BackHandler } from 'react-native';
+import { SplashQuoteScreen } from '@/shared/ui/SplashQuoteScreen';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { TamaguiProvider, Theme } from 'tamagui';
@@ -37,6 +38,8 @@ function RootLayoutNav() {
   const { isAuthenticated, isLoading, initialize } = useAuthStore();
   const segments = useSegments();
   const router = useRouter();
+
+  const [splashDone, setSplashDone] = useState(false);
 
   const [dialogState, setDialogState] = useState<VersionCheckDialogState>({
     visible: false,
@@ -173,7 +176,7 @@ function RootLayoutNav() {
 
   // 인증 상태에 따라 리다이렉트
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || !splashDone) return;
 
     const inAuthGroup = segments[0] === '(auth)';
 
@@ -182,7 +185,7 @@ function RootLayoutNav() {
     } else if (isAuthenticated && inAuthGroup) {
       router.replace('/(tabs)');
     }
-  }, [isAuthenticated, isLoading, segments]);
+  }, [isAuthenticated, isLoading, splashDone, segments]);
 
   const handleDialogClose = () => {
     if (dialogState.type === 'optional_update') {
@@ -203,13 +206,9 @@ function RootLayoutNav() {
     BackHandler.exitApp();
   };
 
-  // 로딩 중일 때 스플래시 표시
-  if (isLoading) {
-    return (
-      <View style={[styles.splashContainer, { backgroundColor: rootBackgroundColor }]}>
-        <ActivityIndicator size="large" color={mode === 'dark' ? '#FFFFFF' : '#000000'} />
-      </View>
-    );
+  // 로딩 중이거나 스플래시가 끝나지 않았을 때
+  if (isLoading || !splashDone) {
+    return <SplashQuoteScreen onFinish={() => setSplashDone(true)} />;
   }
 
   return (
@@ -266,11 +265,3 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
-
-const styles = StyleSheet.create({
-  splashContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
