@@ -56,5 +56,5 @@ design-reference/.env*
 .vscode/
 *.iml
 
-google-services.json
+google-services*.json
 GoogleService-Info.plist
