@@ -1,5 +1,20 @@
 require('dotenv').config();
 
+const ENV = {
+  preview: {
+    name: '질문 하나 Preview',
+    androidPackage: 'com.onequestion.app.preview',
+    iosBundleId: 'com.onequestion.app.preview',
+    googleServicesFile: './google-services-preview.json',
+  },
+  production: {
+    name: '질문 하나',
+    androidPackage: 'com.onequestion.app',
+    iosBundleId: 'com.onequestion.app',
+    googleServicesFile: './google-services.json',
+  },
+}[process.env.APP_ENV ?? 'preview'];
+
 // 플랫폼별 버전 관리
 
 const APP_VERSIONS = {
@@ -10,7 +25,7 @@ const APP_VERSIONS = {
 
 export default {
   expo: {
-    name: 'One Question',
+    name: ENV.name,
     slug: 'one-question',
     version: APP_VERSIONS.version, // 기본값 (Expo에서 요구)
     runtimeVersion: {
@@ -31,7 +46,7 @@ export default {
     },
     ios: {
       supportsTablet: true,
-      bundleIdentifier: 'com.onequestion.app',
+      bundleIdentifier: ENV.iosBundleId,
       buildNumber: APP_VERSIONS.iosVersion,
       googleServicesFile: './GoogleService-Info.plist', // Firebase 설정 파일
       // Google Sign-In URL scheme은 @react-native-google-signin plugin이 자동 처리
@@ -41,12 +56,12 @@ export default {
         foregroundImage: './assets/one-question-light.png',
         backgroundColor: '#ffffff',
       },
-      package: 'com.onequestion.app',
+      package: ENV.androidPackage,
       versionCode: APP_VERSIONS.androidVersion,
       enableProguardInReleaseBuilds: true,
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
-      googleServicesFile: './google-services.json', // Firebase 설정 파일
+      googleServicesFile: ENV.googleServicesFile,
     },
     web: {
       favicon: './assets/favicon.png',
@@ -111,7 +126,7 @@ export default {
     ],
     extra: {
       apiUrl: process.env.API_URL || 'https://dev.one-question.org',
-      environment: process.env.NODE_ENV || 'development',
+      environment: process.env.APP_ENV ?? 'preview',
       // Google OAuth Client IDs
       googleClientIdWeb: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB,
       googleClientIdIos: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS,

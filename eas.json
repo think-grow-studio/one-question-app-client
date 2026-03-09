@@ -16,14 +16,16 @@
       "distribution": "internal",
       "channel": "preview",
       "env": {
-        "API_URL": "https://dev.one-question.org"
+        "API_URL": "https://dev.one-question.org",
+        "APP_ENV": "preview"
       }
     },
     "production": {
       "autoIncrement": true,
       "channel": "production",
       "env": {
-        "API_URL": "https://one-question.org"
+        "API_URL": "https://one-question.org",
+        "APP_ENV": "production"
       }
     }
   },
