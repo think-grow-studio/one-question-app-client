@@ -1,4 +1,5 @@
 import { Button, ButtonProps, styled } from 'tamagui';
+import { getFontStyle } from '@/shared/theme/typography';
 
 interface ChipProps extends Omit<ButtonProps, 'children'> {
   label: string;
@@ -14,7 +15,7 @@ const ChipButton = styled(Button, {
   borderRadius: 12,
   alignItems: 'center',
   justifyContent: 'center',
-  fontWeight: '600',
+  ...getFontStyle('600'),
   fontSize: 15,
   backgroundColor: '$backgroundSoft',
   color: '$color',

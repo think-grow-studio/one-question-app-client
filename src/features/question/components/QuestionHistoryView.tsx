@@ -34,6 +34,7 @@ import { useInterstitialAdGate } from '@/features/admob/hooks/useInterstitialAdG
 import { useQueryClient } from '@tanstack/react-query';
 import { DatePickerSheet } from './DatePickerSheet';
 import { ReloadOptionSheet } from '@/features/answer/components/ReloadOptionSheet';
+import { getFontStyle } from '@/shared/theme/typography';
 import { SCREEN, sp } from '@/utils/responsive';
 import { canReloadQuestion, getReloadCountDisplay } from '../constants/limits';
 import { logEvent, AnalyticsEvents } from '@/services/firebase';
@@ -749,7 +750,7 @@ const styles = StyleSheet.create({
   },
   editButtonText: {
     fontSize: 13,
-    fontWeight: '500',
+    ...getFontStyle('500'),
   },
   noAnswerContainer: {
     flex: 1,

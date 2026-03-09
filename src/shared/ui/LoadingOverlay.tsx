@@ -1,7 +1,7 @@
 import { memo, useMemo } from 'react';
 import { Modal, View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useTheme } from 'tamagui';
-import { useAccentColors } from '@/shared/theme';
+import { useAccentColors, getFontStyle } from '@/shared/theme';
 import { fs, sp, radius, deviceValue } from '@/utils/responsive';
 
 export type LoadingOverlayProps = {
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   message: {
-    fontWeight: '600',
+    ...getFontStyle('600'),
     textAlign: 'center',
   },
   description: {

@@ -1,4 +1,5 @@
 import { Text as TamaguiText, styled, GetProps } from 'tamagui';
+import { getFontStyle } from '@/shared/theme/typography';
 
 const StyledText = styled(TamaguiText, {
   name: 'AppText',
@@ -8,7 +9,7 @@ const StyledText = styled(TamaguiText, {
     variant: {
       heading: {
         fontSize: 24,
-        fontWeight: '700',
+        ...getFontStyle('700'),
         letterSpacing: -0.5,
         // Tablet scaling
         $gtSm: {
@@ -17,7 +18,7 @@ const StyledText = styled(TamaguiText, {
       },
       subheading: {
         fontSize: 20,
-        fontWeight: '600',
+        ...getFontStyle('600'),
         letterSpacing: -0.3,
         $gtSm: {
           fontSize: 23,
@@ -25,7 +26,7 @@ const StyledText = styled(TamaguiText, {
       },
       body: {
         fontSize: 16,
-        fontWeight: '400',
+        ...getFontStyle('400'),
         lineHeight: 24,
         $gtSm: {
           fontSize: 18,
@@ -34,7 +35,7 @@ const StyledText = styled(TamaguiText, {
       },
       bodySmall: {
         fontSize: 14,
-        fontWeight: '400',
+        ...getFontStyle('400'),
         lineHeight: 20,
         $gtSm: {
           fontSize: 16,
@@ -43,7 +44,7 @@ const StyledText = styled(TamaguiText, {
       },
       caption: {
         fontSize: 12,
-        fontWeight: '400',
+        ...getFontStyle('400'),
         color: '$colorMuted',
         $gtSm: {
           fontSize: 14,
@@ -51,7 +52,7 @@ const StyledText = styled(TamaguiText, {
       },
       label: {
         fontSize: 14,
-        fontWeight: '600',
+        ...getFontStyle('600'),
         $gtSm: {
           fontSize: 16,
         },

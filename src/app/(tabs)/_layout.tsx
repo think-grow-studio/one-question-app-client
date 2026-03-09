@@ -4,7 +4,7 @@ import { useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { HomeIcon } from '@/shared/icons/HomeIcon';
 import { SettingsIcon } from '@/shared/icons/SettingsIcon';
-import { useAccentColors } from '@/shared/theme';
+import { useAccentColors, getFontStyle } from '@/shared/theme';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 
 export default function TabLayout() {
@@ -36,7 +36,7 @@ export default function TabLayout() {
             <HomeIcon size={24} color={color} active={focused} />
           ),
           tabBarLabel: ({ color, focused }) => (
-            <Text style={{ color, fontSize: 10, fontWeight: focused ? '700' : '400' }}>
+            <Text style={{ color, fontSize: 10, ...getFontStyle(focused ? '700' : '400') }}>
               {t('tabs.home')}
             </Text>
           ),
@@ -50,7 +50,7 @@ export default function TabLayout() {
             <SettingsIcon size={24} color={color} active={focused} />
           ),
           tabBarLabel: ({ color, focused }) => (
-            <Text style={{ color, fontSize: 10, fontWeight: focused ? '700' : '400' }}>
+            <Text style={{ color, fontSize: 10, ...getFontStyle(focused ? '700' : '400') }}>
               {t('tabs.settings')}
             </Text>
           ),

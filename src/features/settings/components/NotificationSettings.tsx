@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
 import { useNotificationSettings } from '../hooks/useNotificationSettings';
 import { TimePickerSheet } from './TimePickerSheet';
-import { useAccentColors } from '@/shared/theme';
+import { useAccentColors, getFontStyle } from '@/shared/theme';
 
 export function NotificationSettings() {
   const theme = useTheme();
@@ -41,7 +41,7 @@ export function NotificationSettings() {
           px="$4"
         >
           <View style={{ flex: 1 }}>
-            <Text variant="body" fontWeight="600">
+            <Text variant="body" {...getFontStyle('600')}>
               {t('notification.title')}
             </Text>
             <Text variant="caption" muted style={{ marginTop: 2 }}>
@@ -83,7 +83,7 @@ export function NotificationSettings() {
           >
             <Text
               variant="body"
-              fontWeight="600"
+              {...getFontStyle('600')}
               style={{ color: isEnabled ? theme.color?.val : theme.colorMuted?.val }}
             >
               {t('notification.time')}
@@ -91,7 +91,7 @@ export function NotificationSettings() {
             <XStack ai="center" gap="$2">
               <Text
                 variant="body"
-                fontWeight="600"
+                {...getFontStyle('600')}
                 style={{
                   fontSize: 17,
                   color: isEnabled ? accent.primary : theme.colorMuted?.val,

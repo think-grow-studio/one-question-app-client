@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useTheme } from 'tamagui';
-import { useAccentColors } from '@/shared/theme';
+import { useAccentColors, getFontStyle } from '@/shared/theme';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { fs, sp, radius, cs, deviceValue, SCREEN } from '@/utils/responsive';
 
@@ -37,7 +37,7 @@ export function useQuestionCardStyles() {
         // Labels
         labelText: {
           fontSize: fs(13),
-          fontWeight: '700' as const,
+          ...getFontStyle('700'),
           color: accent.primary,
           letterSpacing: -0.2,
           textTransform: 'uppercase' as const,
@@ -46,7 +46,7 @@ export function useQuestionCardStyles() {
         // Question text
         questionText: {
           fontSize: fs(20),
-          fontWeight: '700' as const,
+          ...getFontStyle('700'),
           lineHeight: fs(24),
           color: theme.color?.val,
           letterSpacing: -0.4,
@@ -81,7 +81,7 @@ export function useQuestionCardStyles() {
         // Written date
         writtenDateText: {
           fontSize: fs(11),
-          fontWeight: '500' as const,
+          ...getFontStyle('500'),
           color: theme.colorSubtle?.val,
           marginTop: sp(20),
           letterSpacing: -0.1,
@@ -138,7 +138,7 @@ export function useQuestionCardStyles() {
         },
         reloadCountText: {
           fontSize: fs(12),
-          fontWeight: '600' as const,
+          ...getFontStyle('600'),
           color: accent.primary,
         },
 
@@ -159,7 +159,7 @@ export function useQuestionCardStyles() {
         },
         emptyButtonText: {
           fontSize: fs(16),
-          fontWeight: '600' as const,
+          ...getFontStyle('600'),
           color: accent.primary,
           letterSpacing: -0.2,
         },
@@ -173,7 +173,7 @@ export function useQuestionCardStyles() {
         },
         submitButtonText: {
           fontSize: fs(15),
-          fontWeight: '600' as const,
+          ...getFontStyle('600'),
         },
         submitButtonEnabled: {
           backgroundColor: accent.primary,

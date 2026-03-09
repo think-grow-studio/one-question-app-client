@@ -8,7 +8,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
-import { useAccentColors } from '@/shared/theme';
+import { useAccentColors, getFontStyle } from '@/shared/theme';
 import { MailIcon } from '@/shared/icons/MailIcon';
 import { PastQuestionIcon } from '@/shared/icons/PastQuestionIcon';
 import { AdBadge } from '@/shared/ui/ads/AdBadge';
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontWeight: '700',
+    ...getFontStyle('700'),
     textAlign: 'center',
   },
   message: {
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   optionTitle: {
-    fontWeight: '600',
+    ...getFontStyle('600'),
   },
   optionTitleRow: {
     flexDirection: 'row',
@@ -358,13 +358,13 @@ const styles = StyleSheet.create({
   optionDescription: {},
   comingSoonBadge: {},
   comingSoonText: {
-    fontWeight: '500',
+    ...getFontStyle('500'),
   },
   cancelButton: {
     borderWidth: 1,
     alignItems: 'center',
   },
   cancelText: {
-    fontWeight: '600',
+    ...getFontStyle('600'),
   },
 });

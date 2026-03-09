@@ -5,7 +5,7 @@ import { Text } from '@/shared/ui/Text';
 import { ThemeModeIcon } from '@/shared/icons/ThemeModeIcon';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { useThemeTransition } from '@/shared/ui/ThemeTransitionProvider';
-import { useAccentColors } from '@/shared/theme';
+import { useAccentColors, getFontStyle } from '@/shared/theme';
 import { logEvent, AnalyticsEvents } from '@/services/firebase';
 
 interface ThemeToggleProps {
@@ -42,7 +42,7 @@ export function ThemeToggle({ showLabel = true }: ThemeToggleProps) {
         <ThemeModeIcon mode={isDark ? 'dark' : 'light'} size={24} color={theme.color?.val} />
         {showLabel && (
           <View style={{ flex: 1 }}>
-            <Text variant="body" fontWeight="600">
+            <Text variant="body" {...getFontStyle('600')}>
               {isDark ? t('appearance.darkMode') : t('appearance.lightMode')}
             </Text>
             <Text variant="caption" muted>

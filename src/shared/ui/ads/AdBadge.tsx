@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { Text, View, StyleSheet } from 'react-native';
 import { useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
+import { getFontStyle } from '@/shared/theme/typography';
 import { fs, sp, radius } from '@/utils/responsive';
 
 type AdBadgeProps = {
@@ -47,7 +48,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   text: {
-    fontWeight: '700',
+    ...getFontStyle('700'),
     fontSize: fs(11),
   },
   compactBadge: {

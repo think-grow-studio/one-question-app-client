@@ -7,6 +7,7 @@ import { Text } from '@/shared/ui/Text';
 import { useGoogleLogin } from '@/features/auth/hooks/useGoogleLogin';
 import { Pressable, ActivityIndicator } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import { getFontStyle } from '@/shared/theme/typography';
 import { sp, cs, radius, fs } from '@/utils/responsive';
 import { useThemeStore } from '@/stores/useThemeStore';
 import * as WebBrowser from 'expo-web-browser';
@@ -102,7 +103,7 @@ export default function LoginScreen() {
               ) : (
                 <>
                   <GoogleIcon />
-                  <Text variant="body" fontWeight="600">
+                  <Text variant="body" {...getFontStyle('600')}>
                     {t('loginWithGoogle')}
                   </Text>
                 </>
@@ -185,6 +186,6 @@ const styles = StyleSheet.create({
     fontSize: fs(12),
     lineHeight: fs(18),
     textDecorationLine: 'underline',
-    fontWeight: '500',
+    ...getFontStyle('500'),
   },
 });

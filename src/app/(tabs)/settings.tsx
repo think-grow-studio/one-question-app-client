@@ -15,6 +15,7 @@ import { AlertDialog } from '@/shared/ui/AlertDialog/AlertDialog';
 import { useAlertDialog } from '@/shared/ui/AlertDialog/useAlertDialog';
 import { useWithdrawMutation } from '@/features/auth/hooks/mutations/useAuthMutations';
 import { logScreenView, logEvent, AnalyticsEvents } from '@/services/firebase';
+import { getFontStyle } from '@/shared/theme/typography';
 import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
 import { shouldHideAds } from '@/features/member/constants/permissions';
 
@@ -87,7 +88,7 @@ export default function SettingsScreen() {
             borderBottomWidth: 1,
           }}
         >
-          <Text variant="subheading" fontWeight="600">
+          <Text variant="subheading" {...getFontStyle('600')}>
             {t('title')}
           </Text>
         </View>

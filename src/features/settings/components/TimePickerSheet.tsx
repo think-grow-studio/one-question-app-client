@@ -5,7 +5,7 @@ import Animated, { FadeIn, SlideInDown, SlideOutDown } from 'react-native-reanim
 import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
 import { Button } from '@/shared/ui/Button';
-import { useAccentColors } from '@/shared/theme';
+import { useAccentColors, getFontStyle } from '@/shared/theme';
 import { cs, fs, sp, radius, SHEET_MAX_WIDTH } from '@/utils/responsive';
 
 const VISIBLE_ITEMS = 5;
@@ -125,7 +125,7 @@ export function TimePickerSheet({
                 style={{
                   fontSize: fs(22),
                   lineHeight: fs(28),
-                  fontWeight: '600',
+                  ...getFontStyle('600'),
                   color: isSelected ? '#FFFFFF' : theme.colorMuted?.val,
                 }}
               >
@@ -205,7 +205,7 @@ export function TimePickerSheet({
 
           {/* Title */}
           <YStack ai="center" pb="$4">
-            <Text variant="subheading" fontWeight="700">
+            <Text variant="subheading" {...getFontStyle('700')}>
               {t('notification.time')}
             </Text>
           </YStack>
@@ -228,7 +228,7 @@ export function TimePickerSheet({
               >
                 <Text
                   variant="body"
-                  fontWeight="600"
+                  {...getFontStyle('600')}
                   style={{ color: !isPM ? '#FFFFFF' : theme.colorMuted?.val }}
                 >
                   {t('notification.am')}
@@ -243,7 +243,7 @@ export function TimePickerSheet({
               >
                 <Text
                   variant="body"
-                  fontWeight="600"
+                  {...getFontStyle('600')}
                   style={{ color: isPM ? '#FFFFFF' : theme.colorMuted?.val }}
                 >
                   {t('notification.pm')}
@@ -279,7 +279,7 @@ export function TimePickerSheet({
             {/* Separator */}
             <Text
               variant="heading"
-              style={[responsiveStyles.separator, { fontWeight: '700', color: theme.color?.val }]}
+              style={[responsiveStyles.separator, { ...getFontStyle('700'), color: theme.color?.val }]}
             >
               :
             </Text>

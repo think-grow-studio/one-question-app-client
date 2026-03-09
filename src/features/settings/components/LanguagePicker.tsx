@@ -4,7 +4,7 @@ import { YStack, XStack, useTheme } from 'tamagui';
 import Animated, { FadeIn, SlideInDown, SlideOutDown } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
-import { useAccentColors } from '@/shared/theme';
+import { useAccentColors, getFontStyle } from '@/shared/theme';
 import { sp, radius, SHEET_MAX_WIDTH } from '@/utils/responsive';
 import { useLanguageStore, SUPPORTED_LANGUAGES, type Language } from '@/stores/useLanguageStore';
 import { useUpdateLocaleMutation } from '@/features/member/hooks/mutations/useMemberMutations';
@@ -48,7 +48,7 @@ export function LanguagePicker() {
           bg="$backgroundSoft"
           borderRadius={12}
         >
-          <Text variant="body" fontWeight="600">
+          <Text variant="body" {...getFontStyle('600')}>
             {t('language.title')}
           </Text>
           <XStack ai="center" gap="$2">
@@ -87,7 +87,7 @@ export function LanguagePicker() {
 
               {/* Title */}
               <YStack ai="center" pb="$4">
-                <Text variant="subheading" fontWeight="700">
+                <Text variant="subheading" {...getFontStyle('700')}>
                   {t('language.sheetTitle')}
                 </Text>
               </YStack>
@@ -116,7 +116,7 @@ export function LanguagePicker() {
                       >
                         <Text
                           variant="body"
-                          fontWeight={isSelected ? '600' : '400'}
+                          {...getFontStyle(isSelected ? '600' : '400')}
                           style={{ color: isSelected ? accent.primary : theme.color?.val }}
                         >
                           {lang.nativeLabel}

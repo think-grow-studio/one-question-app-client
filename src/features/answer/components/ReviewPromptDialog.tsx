@@ -1,7 +1,7 @@
 import { Modal, View, Text, Pressable, StyleSheet, TouchableWithoutFeedback } from 'react-native';
 import { useTheme } from 'tamagui';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
-import { useAccentColors } from '@/shared/theme';
+import { useAccentColors, getFontStyle } from '@/shared/theme';
 import { fs, sp, radius, deviceValue } from '@/utils/responsive';
 
 export interface ReviewPromptDialogProps {
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   title: {
-    fontWeight: '700',
+    ...getFontStyle('700'),
     textAlign: 'center',
   },
   message: {
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   buttonText: {
-    fontWeight: '600',
+    ...getFontStyle('600'),
     textAlign: 'center',
   },
 });

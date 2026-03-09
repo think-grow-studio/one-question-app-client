@@ -5,6 +5,7 @@ import { queryClient } from '@/services/queryClient';
 import { useApiErrorStore } from '@/stores/useApiErrorStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { recordError } from '@/services/firebase';
+import { getFontStyle } from '@/shared/theme/typography';
 import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
 
 interface Props {
@@ -137,7 +138,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: 'bold',
+    ...getFontStyle('bold'),
     marginBottom: 12,
   },
   message: {
@@ -161,6 +162,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '600',
+    ...getFontStyle('600'),
   },
 });

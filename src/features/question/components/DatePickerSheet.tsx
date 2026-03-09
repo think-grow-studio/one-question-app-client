@@ -17,7 +17,7 @@ import { shouldHideAds } from '@/features/member/constants/permissions';
 import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
 import { Button } from '@/shared/ui/Button';
 import { AlertDialog } from '@/shared/ui/AlertDialog';
-import { useAccentColors } from '@/shared/theme';
+import { useAccentColors, getFontStyle } from '@/shared/theme';
 import { fs, sp, radius, cs, SCREEN, SHEET_HEIGHTS, SHEET_MAX_WIDTH } from '@/utils/responsive';
 import type { DailyQuestionDomain } from '../domain/questionDomain';
 
@@ -211,7 +211,7 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
       },
       navArrow: {
         fontSize: fs(24),
-        fontWeight: '600' as const,
+        ...getFontStyle('600'),
         color: accent.primary,
         paddingHorizontal: sp(8),
       },
@@ -220,7 +220,7 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
       },
       weekdayText: {
         fontSize: fs(14),
-        fontWeight: '600' as const,
+        ...getFontStyle('600'),
         color: theme.colorMuted?.val,
       },
       sundayText: {
@@ -231,7 +231,7 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
       },
       dayText: {
         fontSize: fs(16),
-        fontWeight: '500' as const,
+        ...getFontStyle('500'),
         color: theme.color?.val,
       },
       dayTextDisabled: {
@@ -239,11 +239,11 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
       },
       dayTextSelected: {
         color: '#FFFFFF',
-        fontWeight: '700' as const,
+        ...getFontStyle('700'),
       },
       dayTextCurrent: {
         color: accent.primary,
-        fontWeight: '700' as const,
+        ...getFontStyle('700'),
       },
       dayButtonSelected: {
         backgroundColor: accent.primary,
@@ -535,7 +535,7 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
               <Text style={[themedStyles.navArrow, isPrevDisabled && themedStyles.navArrowDisabled]}>{'<'}</Text>
             </Pressable>
             <XStack ai="center" gap="$2">
-              <Paragraph fontSize={fs(20)} fontWeight="700" letterSpacing={-0.3} color="$color">
+              <Paragraph fontSize={fs(20)} {...getFontStyle('700')} letterSpacing={-0.3} color="$color">
                 {t('question:calendar.monthTitle', { year: viewYear, month: viewMonth + 1 })}
               </Paragraph>
               {showCalendarLoading && (
@@ -627,7 +627,7 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
           <View style={[styles.previewContainer, responsiveStyles.previewContainer, themedStyles.previewContainer]}>
               <YStack gap="$1">
                 <XStack ai="center" jc="space-between" height={24}>
-                  <Paragraph fontSize={fs(15)} fontWeight="700" style={themedStyles.previewTitle}>
+                  <Paragraph fontSize={fs(15)} {...getFontStyle('700')} style={themedStyles.previewTitle}>
                     {formatPreviewDate(previewDate)}
                   </Paragraph>
                   <View style={[
@@ -742,7 +742,7 @@ const styles = StyleSheet.create({
   previewContent: {},
   answeredBadge: {},
   answeredBadgeText: {
-    fontWeight: '600',
+    ...getFontStyle('600'),
     color: '#FFFFFF',
   },
   badgeHidden: {

@@ -1,7 +1,7 @@
 import { Modal, Pressable, StyleSheet, View, Text, TouchableWithoutFeedback } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useTheme } from 'tamagui';
-import { useAccentColors } from '@/shared/theme';
+import { useAccentColors, getFontStyle } from '@/shared/theme';
 import { fs, sp, radius, deviceValue } from '@/utils/responsive';
 
 export type AlertDialogButton = {
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   title: {
-    fontWeight: '700',
+    ...getFontStyle('700'),
     textAlign: 'center',
     letterSpacing: -0.3,
   },
@@ -185,6 +185,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   buttonText: {
-    fontWeight: '600',
+    ...getFontStyle('600'),
   },
 });

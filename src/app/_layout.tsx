@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
-import { StatusBar, Linking, Platform, BackHandler } from 'react-native';
+import { StatusBar, Linking, Platform, BackHandler, Text as RNText } from 'react-native';
+import { fontFamily } from '@/shared/theme/typography';
+
+// 앱 시작 시 기본 폰트 적용 (커스텀 폰트가 설정된 경우)
+if (fontFamily.regular) {
+  const defaultProps = (RNText as any).defaultProps || {};
+  (RNText as any).defaultProps = {
+    ...defaultProps,
+    style: [defaultProps.style, { fontFamily: fontFamily.regular }],
+  };
+}
 import { SplashQuoteScreen } from '@/shared/ui/SplashQuoteScreen';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';

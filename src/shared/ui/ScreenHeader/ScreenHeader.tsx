@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { StyleSheet, Pressable, Text, View } from 'react-native';
 import { XStack, useTheme } from 'tamagui';
+import { getFontStyle } from '@/shared/theme/typography';
 
 interface ScreenHeaderProps {
   title: string;
@@ -45,7 +46,7 @@ export function ScreenHeader({
 const styles = StyleSheet.create({
   title: {
     fontSize: 20,
-    fontWeight: '700',
+    ...getFontStyle('700'),
     letterSpacing: -0.4,
   },
   filledButton: {

@@ -1,5 +1,6 @@
 import { Button as TamaguiButton, styled, GetProps } from 'tamagui';
 import { useAccentColors } from '@/shared/theme';
+import { getFontStyle } from '@/shared/theme/typography';
 
 const StyledButton = styled(TamaguiButton, {
   name: 'AppButton',
@@ -8,7 +9,7 @@ const StyledButton = styled(TamaguiButton, {
   borderRadius: 16,
   justifyContent: 'center',
   alignItems: 'center',
-  fontWeight: '600',
+  ...getFontStyle('600'),
   borderWidth: 1.5,
 
   // Tablet scaling (only stack-based properties)
