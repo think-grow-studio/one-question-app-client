@@ -1,6 +1,6 @@
 require('dotenv').config();
 
-const isPreview = (process.env.APP_ENV ?? 'preview') === 'preview';
+const isPreview = process.env.APP_ENV === 'preview';
 
 const LOCALIZED_NAMES = {
   ko: isPreview ? '질문 하나Preview' : '질문 하나',
@@ -21,7 +21,7 @@ const ENV = {
     iosBundleId: 'com.onequestion.app',
     googleServicesFile: './google-services.json',
   },
-}[process.env.APP_ENV ?? 'preview'];
+}[process.env.APP_ENV ?? 'production'];
 
 // 플랫폼별 버전 관리
 
@@ -134,7 +134,7 @@ export default {
     ],
     extra: {
       apiUrl: process.env.API_URL || 'https://dev.one-question.org',
-      environment: process.env.APP_ENV ?? 'preview',
+      environment: process.env.APP_ENV ?? 'production',
       // Google OAuth Client IDs
       googleClientIdWeb: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB,
       googleClientIdIos: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS,

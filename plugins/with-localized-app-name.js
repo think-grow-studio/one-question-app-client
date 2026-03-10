@@ -16,7 +16,7 @@ const ANDROID_LOCALE_MAP = {
 };
 
 const withLocalizedAppName = (config) => {
-  const isPreview = (process.env.APP_ENV ?? 'preview') === 'preview';
+  const isPreview = process.env.APP_ENV === 'preview';
 
   return withDangerousMod(config, [
     'android',
