@@ -1,5 +1,5 @@
 import { memo, useMemo } from 'react';
-import { Modal, View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useTheme } from 'tamagui';
 import { useAccentColors, getFontStyle } from '@/shared/theme';
 import { fs, sp, radius, deviceValue } from '@/utils/responsive';
@@ -47,7 +47,7 @@ export const LoadingOverlay = memo(function LoadingOverlay({
   if (!visible) return null;
 
   return (
-    <Modal transparent visible={visible} animationType="fade" statusBarTranslucent>
+    <View style={styles.overlay} pointerEvents="auto">
       <View style={styles.backdrop}>
         <View
           style={[
@@ -81,11 +81,15 @@ export const LoadingOverlay = memo(function LoadingOverlay({
           ) : null}
         </View>
       </View>
-    </Modal>
+    </View>
   );
 });
 
 const styles = StyleSheet.create({
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 9999,
+  },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0, 0, 0, 0.35)',

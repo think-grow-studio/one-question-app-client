@@ -47,10 +47,13 @@ export function ReloadOptionSheet({
   const backdropOpacity = useSharedValue(0);
   const startY = useRef(0);
 
-  const closeSheet = useCallback(() => {
+  const closeSheet = useCallback((afterClose?: () => void) => {
     translateY.value = withTiming(SHEET_HEIGHT, { duration: 200 }, (finished) => {
       if (finished) {
         runOnJS(onClose)();
+        if (afterClose) {
+          runOnJS(afterClose)();
+        }
       }
     });
     backdropOpacity.value = withTiming(0, { duration: 200 });
@@ -112,12 +115,11 @@ export function ReloadOptionSheet({
   }));
 
   const handleRandomQuestion = () => {
-    onRandomQuestion();
-    closeSheet();
+    closeSheet(onRandomQuestion);
   };
 
   const handlePastQuestion = () => {
-    onPastQuestion();
+    closeSheet(onPastQuestion);
   };
 
   const handleBackdropPress = () => {
@@ -188,7 +190,7 @@ export function ReloadOptionSheet({
   if (!visible) return null;
 
   return (
-    <Modal transparent visible={visible} animationType="none" statusBarTranslucent onRequestClose={closeSheet}>
+    <Modal transparent visible={visible} animationType="none" statusBarTranslucent onRequestClose={() => closeSheet()}>
       {/* Backdrop */}
       <Pressable style={styles.backdropContainer} onPress={handleBackdropPress}>
         <Animated.View style={[styles.backdrop, backdropStyle]} />
