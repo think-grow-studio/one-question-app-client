@@ -12,14 +12,16 @@ const ENV = {
   preview: {
     name: LOCALIZED_NAMES.ko,
     androidPackage: 'com.onequestion.app.preview',
-    iosBundleId: 'com.onequestion.app.preview',
+    iosBundleId: 'org.onequestion.app.preview',
     googleServicesFile: './google-services-preview.json',
+    iosGoogleServicesFile: './GoogleService-Info.plist',
   },
   production: {
     name: LOCALIZED_NAMES.ko,
     androidPackage: 'com.onequestion.app',
-    iosBundleId: 'com.onequestion.app',
+    iosBundleId: 'org.onequestion.app',
     googleServicesFile: './google-services.json',
+    iosGoogleServicesFile: './GoogleService-Info.plist',
   },
 }[process.env.APP_ENV ?? 'production'];
 
@@ -56,8 +58,7 @@ export default {
       supportsTablet: true,
       bundleIdentifier: ENV.iosBundleId,
       buildNumber: APP_VERSIONS.iosVersion,
-      googleServicesFile: './GoogleService-Info.plist', // Firebase 설정 파일
-      // Google Sign-In URL scheme은 @react-native-google-signin plugin이 자동 처리
+      googleServicesFile: ENV.iosGoogleServicesFile,
     },
     android: {
       adaptiveIcon: {
@@ -89,12 +90,7 @@ export default {
       '@react-native-firebase/crashlytics',
       './plugins/with-modular-headers',
       './plugins/with-localized-app-name',
-      [
-        '@react-native-google-signin/google-signin',
-        {
-          iosUrlScheme: `com.googleusercontent.apps.${(process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS || '').split('.')[0]}`,
-        },
-      ],
+      '@react-native-google-signin/google-signin',
       [
         'expo-splash-screen',
         {
