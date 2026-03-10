@@ -19,7 +19,7 @@
     "build-ios-dev-submit": "rm -rf ios && eas build --platform ios --profile development --local --clear-cache && eas submit --platform ios --profile development",
     "build-ios-dev-cloud-submit": "rm -rf ios && eas build --platform ios --profile development --auto-submit --clear-cache",
     "update-preview": "eas update --branch preview --message",
-    "update-production": "eas update --branch production --message",
+    "update-production": "APP_ENV=production eas update --branch production --message",
     "update-development": "eas update --branch development --message",
     "postinstall": "patch-package"
   },

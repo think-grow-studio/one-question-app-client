@@ -1,4 +1,6 @@
-require('dotenv').config();
+const path = require('path');
+const envFile = process.env.APP_ENV === 'production' ? '.env.production' : '.env';
+require('dotenv').config({ path: path.resolve(__dirname, envFile) });
 
 const isPreview = process.env.APP_ENV === 'preview';
 
