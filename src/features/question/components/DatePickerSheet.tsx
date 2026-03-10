@@ -238,7 +238,7 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
         color: theme.colorSubtle?.val,
       },
       dayTextSelected: {
-        color: '#FFFFFF',
+        color: accent.textOnPrimary,
         ...getFontStyle('700'),
       },
       dayTextCurrent: {
@@ -281,6 +281,9 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
       },
       answeredBadge: {
         backgroundColor: accent.primary,
+      },
+      answeredBadgeText: {
+        color: accent.textOnPrimary,
       },
     }),
     [theme, accent]
@@ -636,7 +639,7 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
                     themedStyles.answeredBadge,
                     previewItem?.status !== 'ANSWERED' && styles.badgeHidden,
                   ]}>
-                    <Text style={[styles.answeredBadgeText, responsiveStyles.answeredBadgeText]}>
+                    <Text style={[styles.answeredBadgeText, responsiveStyles.answeredBadgeText, themedStyles.answeredBadgeText]}>
                       {t('question:status.answered')}
                     </Text>
                   </View>
@@ -743,7 +746,6 @@ const styles = StyleSheet.create({
   answeredBadge: {},
   answeredBadgeText: {
     ...getFontStyle('600'),
-    color: '#FFFFFF',
   },
   badgeHidden: {
     opacity: 0,
