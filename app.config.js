@@ -27,7 +27,7 @@ const ENV = {
 
 const APP_VERSIONS = {
     version: '1.0.0',
-    androidVersion: 10,
+    androidVersion: 11,
     iosVersion: '1',
 };
 
