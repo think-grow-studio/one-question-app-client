@@ -1,14 +1,22 @@
 require('dotenv').config();
 
+const isPreview = (process.env.APP_ENV ?? 'preview') === 'preview';
+
+const LOCALIZED_NAMES = {
+  ko: isPreview ? '질문 하나Preview' : '질문 하나',
+  en: isPreview ? '질문 하나Preview' : 'One Question',
+  ja: isPreview ? '질문 하나Preview' : 'ひとつの質問',
+};
+
 const ENV = {
   preview: {
-    name: '질문 하나 Preview',
+    name: LOCALIZED_NAMES.ko,
     androidPackage: 'com.onequestion.app.preview',
     iosBundleId: 'com.onequestion.app.preview',
     googleServicesFile: './google-services-preview.json',
   },
   production: {
-    name: '질문 하나',
+    name: LOCALIZED_NAMES.ko,
     androidPackage: 'com.onequestion.app',
     iosBundleId: 'com.onequestion.app',
     googleServicesFile: './google-services.json',
@@ -40,9 +48,9 @@ export default {
     userInterfaceStyle: 'automatic',
     newArchEnabled: true,
     locales: {
-      ko: './locales/ko.json',
-      en: './locales/en.json',
-      ja: './locales/ja.json',
+      ko: { ios: { CFBundleDisplayName: LOCALIZED_NAMES.ko, CFBundleName: LOCALIZED_NAMES.ko } },
+      en: { ios: { CFBundleDisplayName: LOCALIZED_NAMES.en, CFBundleName: LOCALIZED_NAMES.en } },
+      ja: { ios: { CFBundleDisplayName: LOCALIZED_NAMES.ja, CFBundleName: LOCALIZED_NAMES.ja } },
     },
     ios: {
       supportsTablet: true,

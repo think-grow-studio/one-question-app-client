@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const LOCALIZED_NAMES = {
-  ko: '질문하나',
+  ko: '질문 하나',
   en: 'One Question',
   ja: 'ひとつの質問',
 };
@@ -16,9 +16,8 @@ const ANDROID_LOCALE_MAP = {
 };
 
 const withLocalizedAppName = (config) => {
-  if (process.env.APP_ENV === 'preview') {
-    return config;
-  }
+  const isPreview = (process.env.APP_ENV ?? 'preview') === 'preview';
+
   return withDangerousMod(config, [
     'android',
     async (config) => {
@@ -37,7 +36,9 @@ const withLocalizedAppName = (config) => {
         }
 
         const stringsPath = path.join(dir, 'strings.xml');
-        const appName = LOCALIZED_NAMES[locale];
+        const appName = isPreview
+          ? '질문 하나Preview'
+          : LOCALIZED_NAMES[locale];
 
         if (folderName === 'values') {
           // Default strings.xml - merge with existing
