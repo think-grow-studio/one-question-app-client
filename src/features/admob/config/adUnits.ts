@@ -9,19 +9,24 @@ const TEST_IDS = {
   interstitial: 'ca-app-pub-3940256099942544/1033173712',
 } as const;
 
+const platformEnv =
+  Platform.OS === 'ios'
+    ? {
+        banner: process.env.EXPO_PUBLIC_ADMOB_IOS_BANNER_ID,
+        rewarded: process.env.EXPO_PUBLIC_ADMOB_IOS_REWARDED_ID,
+        interstitial: process.env.EXPO_PUBLIC_ADMOB_IOS_INTERSTITIAL_ID,
+      }
+    : {
+        banner: process.env.EXPO_PUBLIC_ADMOB_ANDROID_BANNER_ID,
+        rewarded: process.env.EXPO_PUBLIC_ADMOB_ANDROID_REWARDED_ID,
+        interstitial: process.env.EXPO_PUBLIC_ADMOB_ANDROID_INTERSTITIAL_ID,
+      };
+
 const envIds = {
-  banner:
-    process.env.EXPO_PUBLIC_ADMOB_BANNER_ID ||
-    process.env.EXPO_PUBLIC_ADMOB_ANDROID_BANNER_ID ||
-    process.env.EXPO_PUBLIC_ADMOB_IOS_BANNER_ID,
-  rewarded:
-    process.env.EXPO_PUBLIC_ADMOB_REWARDED_ID ||
-    process.env.EXPO_PUBLIC_ADMOB_ANDROID_REWARDED_ID ||
-    process.env.EXPO_PUBLIC_ADMOB_IOS_REWARDED_ID,
+  banner: process.env.EXPO_PUBLIC_ADMOB_BANNER_ID || platformEnv.banner,
+  rewarded: process.env.EXPO_PUBLIC_ADMOB_REWARDED_ID || platformEnv.rewarded,
   interstitial:
-    process.env.EXPO_PUBLIC_ADMOB_INTERSTITIAL_ID ||
-    process.env.EXPO_PUBLIC_ADMOB_ANDROID_INTERSTITIAL_ID ||
-    process.env.EXPO_PUBLIC_ADMOB_IOS_INTERSTITIAL_ID,
+    process.env.EXPO_PUBLIC_ADMOB_INTERSTITIAL_ID || platformEnv.interstitial,
 };
 
 // 실제 Ad Unit ID 사용 (환경변수 없으면 테스트 ID 폴백)
