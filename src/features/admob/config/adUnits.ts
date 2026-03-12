@@ -1,6 +1,9 @@
 import { Platform } from 'react-native';
 
+import { config } from '@/constants/config';
+
 const isMobile = Platform.OS === 'ios' || Platform.OS === 'android';
+const isProduction = config.environment === 'production';
 
 // v16에서 TestIds가 빈 문자열로 변경되어 Google 공식 테스트 Ad Unit ID를 직접 사용
 const TEST_IDS = {
@@ -29,11 +32,11 @@ const envIds = {
     process.env.EXPO_PUBLIC_ADMOB_INTERSTITIAL_ID || platformEnv.interstitial,
 };
 
-// 실제 Ad Unit ID 사용 (환경변수 없으면 테스트 ID 폴백)
+// production에서만 실제 Ad Unit ID 사용, 그 외(preview/development)에서는 테스트 ID 사용
 export const admobUnitIds = {
-  banner: envIds.banner || TEST_IDS.banner,
-  rewarded: envIds.rewarded || TEST_IDS.rewarded,
-  interstitial: envIds.interstitial || TEST_IDS.interstitial,
+  banner: isProduction ? (envIds.banner || TEST_IDS.banner) : TEST_IDS.banner,
+  rewarded: isProduction ? (envIds.rewarded || TEST_IDS.rewarded) : TEST_IDS.rewarded,
+  interstitial: isProduction ? (envIds.interstitial || TEST_IDS.interstitial) : TEST_IDS.interstitial,
 };
 
 export const admobRequestOptions = {
