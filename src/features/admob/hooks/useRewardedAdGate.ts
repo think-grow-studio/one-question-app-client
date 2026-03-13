@@ -1,9 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  AdEventType,
-  RewardedAd,
-  RewardedAdEventType,
-} from 'react-native-google-mobile-ads';
+import { useCallback, useEffect, useRef } from 'react';
+import { AdEventType, InterstitialAd } from 'react-native-google-mobile-ads';
 import {
   admobRequestOptions,
   admobUnitIds,
@@ -12,65 +8,19 @@ import {
 import { admobInitPromise } from '../config/adInit';
 import { logEvent, AnalyticsEvents } from '@/services/firebase';
 
-type RewardResult = {
+type GateResult = {
   success: boolean;
 };
 
-const AD_LOAD_TIMEOUT_MS = 10000;
-
 /**
- * 광고 로드가 완료될 때까지 대기하는 헬퍼 함수
+ * 전면 광고 게이트 훅 (기존 보상형 광고 대체)
+ * - 광고가 로드되어 있으면 전면 광고를 보여주고, 닫힌 후 진행
+ * - 광고가 로드되지 않았으면 바로 진행 (유저를 블로킹하지 않음)
  */
-function waitForAdLoad(rewarded: RewardedAd, timeoutMs: number): Promise<boolean> {
-  return new Promise((resolve) => {
-    let resolved = false;
-
-    const cleanup = () => {
-      loadedListener();
-      errorListener();
-    };
-
-    const loadedListener = rewarded.addAdEventListener(
-      RewardedAdEventType.LOADED,
-      () => {
-        if (!resolved) {
-          resolved = true;
-          cleanup();
-          resolve(true);
-        }
-      }
-    );
-
-    const errorListener = rewarded.addAdEventListener(
-      AdEventType.ERROR,
-      () => {
-        if (!resolved) {
-          resolved = true;
-          cleanup();
-          resolve(false);
-        }
-      }
-    );
-
-    // 타임아웃 처리
-    setTimeout(() => {
-      if (!resolved) {
-        resolved = true;
-        cleanup();
-        resolve(false);
-      }
-    }, timeoutMs);
-
-    // 광고 로드 시작
-    rewarded.load();
-  });
-}
-
 export function useRewardedAdGate() {
-  const adRef = useRef<RewardedAd | null>(null);
+  const adRef = useRef<InterstitialAd | null>(null);
+  const isLoadedRef = useRef(false);
   const cleanupRef = useRef<(() => void) | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (!isAdMobSupportedPlatform) return;
@@ -78,40 +28,31 @@ export function useRewardedAdGate() {
     let cancelled = false;
 
     const init = async () => {
-      // SDK 초기화 완료 대기
       const initialized = await admobInitPromise;
       if (cancelled || !initialized) return;
 
-      const rewarded = RewardedAd.createForAdRequest(
-        admobUnitIds.rewarded,
+      const ad = InterstitialAd.createForAdRequest(
+        admobUnitIds.interstitial,
         admobRequestOptions
       );
 
-      adRef.current = rewarded;
+      adRef.current = ad;
 
-      const unsubscribeLoaded = rewarded.addAdEventListener(
-        RewardedAdEventType.LOADED,
-        () => {
-          setIsLoaded(true);
-          setIsLoading(false);
-        }
-      );
+      const unsubLoaded = ad.addAdEventListener(AdEventType.LOADED, () => {
+        isLoadedRef.current = true;
+      });
 
-      const unsubscribeError = rewarded.addAdEventListener(
-        AdEventType.ERROR,
-        (error) => {
-          if (__DEV__) console.warn('[useRewardedAdGate] Ad load error:', error);
-          setIsLoaded(false);
-          setIsLoading(false);
-        }
-      );
+      const unsubError = ad.addAdEventListener(AdEventType.ERROR, (error) => {
+        if (__DEV__) console.warn('[useRewardedAdGate] Ad load error:', error);
+        isLoadedRef.current = false;
+      });
 
       cleanupRef.current = () => {
-        unsubscribeLoaded();
-        unsubscribeError();
+        unsubLoaded();
+        unsubError();
       };
 
-      rewarded.load();
+      ad.load();
     };
 
     init();
@@ -122,83 +63,44 @@ export function useRewardedAdGate() {
     };
   }, []);
 
-  const requestReward = useCallback(async (): Promise<RewardResult> => {
+  const requestReward = useCallback(async (): Promise<GateResult> => {
     if (!isAdMobSupportedPlatform) {
       return { success: true };
     }
 
-    const rewarded = adRef.current;
-    if (!rewarded) {
-      return { success: false };
+    const ad = adRef.current;
+    if (!ad || !isLoadedRef.current) {
+      // 광고가 로드되지 않았으면 블로킹하지 않고 바로 진행
+      return { success: true };
     }
 
-    // Analytics: 리워드 광고 요청
-    logEvent(AnalyticsEvents.REWARDED_AD_REQUEST);
+    logEvent(AnalyticsEvents.INTERSTITIAL_AD_SHOW);
 
-    if (!isLoaded) {
-      setIsLoading(true);
-      const loadSuccess = await waitForAdLoad(rewarded, AD_LOAD_TIMEOUT_MS);
-      setIsLoading(false);
-
-      if (!loadSuccess) {
-        if (__DEV__) console.warn('[useRewardedAdGate] Ad failed to load within timeout');
-        // Analytics: 리워드 광고 건너뛰기/실패
-        logEvent(AnalyticsEvents.REWARDED_AD_SKIP, {
-          reason: 'load_timeout',
-        });
-        return { success: false };
-      }
-    }
-
-    return new Promise<RewardResult>((resolve) => {
-      let rewardEarned = false;
-
-      const rewardListener = rewarded.addAdEventListener(
-        RewardedAdEventType.EARNED_REWARD,
-        () => {
-          rewardEarned = true;
-          // Analytics: 리워드 광고 시청 완료
-          logEvent(AnalyticsEvents.REWARDED_AD_VIEW);
-        }
-      );
-
-      const closedListener = rewarded.addAdEventListener(
+    return new Promise<GateResult>((resolve) => {
+      const closedListener = ad.addAdEventListener(
         AdEventType.CLOSED,
         () => {
-          rewardListener();
           closedListener();
-          setIsLoaded(false);
-          rewarded.load();
-
-          // Analytics: 시청하지 않고 닫음
-          if (!rewardEarned) {
-            logEvent(AnalyticsEvents.REWARDED_AD_SKIP, {
-              reason: 'closed_early',
-            });
-          }
-
-          resolve({ success: rewardEarned });
+          isLoadedRef.current = false;
+          logEvent(AnalyticsEvents.INTERSTITIAL_AD_CLOSE);
+          ad.load(); // 다음 사용을 위해 미리 로드
+          resolve({ success: true });
         }
       );
 
-      rewarded.show().catch(() => {
-        rewardListener();
+      ad.show().catch(() => {
         closedListener();
-        setIsLoaded(false);
-        rewarded.load();
-        // Analytics: 리워드 광고 표시 실패
-        logEvent(AnalyticsEvents.REWARDED_AD_SKIP, {
-          reason: 'show_failed',
-        });
-        resolve({ success: false });
+        isLoadedRef.current = false;
+        ad.load();
+        resolve({ success: true });
       });
     });
-  }, [isLoaded]);
+  }, []);
 
   return {
     requestReward,
-    isLoaded,
-    isLoading,
+    isLoaded: false,
+    isLoading: false,
     isSupported: isAdMobSupportedPlatform,
   };
 }

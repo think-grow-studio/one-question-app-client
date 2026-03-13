@@ -114,7 +114,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
 
   // 회원 정보 조회 (cycleStartDate 제한용)
   const { data: member } = useMemberMe();
-  const { requestReward, isLoading: isAdLoading } = useRewardedAdGate();
+  const { requestReward } = useRewardedAdGate();
 
   // 현재 질문/답변 데이터 (히스토리 기반)
   const currentItem = currentHistory?.question
@@ -633,17 +633,10 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
           <Pressable
             style={cardStyles.emptyButton}
             onPress={handleDrawRandomQuestion}
-            disabled={isAdLoading}
           >
             <XStack ai="center" gap="$2">
-              {isAdLoading && shouldGateRandomQuestion ? (
-                <ActivityIndicator size="small" color={theme.color?.val} />
-              ) : (
-                <>
-                  <Text style={cardStyles.emptyButtonText}>{t('empty.drawQuestion')}</Text>
-                  {shouldGateRandomQuestion && <AdBadge size="compact" />}
-                </>
-              )}
+              <Text style={cardStyles.emptyButtonText}>{t('empty.drawQuestion')}</Text>
+              {shouldGateRandomQuestion && <AdBadge size="compact" />}
             </XStack>
           </Pressable>
           <Pressable style={cardStyles.emptyButton} onPress={handleDrawYearAgoQuestion}>
