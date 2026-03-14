@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { View, Pressable, StyleSheet, ScrollView, Linking } from 'react-native';
 import { YStack, XStack, useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +11,7 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 import { GoogleIcon } from '@/shared/icons/GoogleIcon';
 import { AppleIcon } from '@/shared/icons/AppleIcon';
+import { InfoIcon } from '@/shared/icons/InfoIcon';
 import { AlertDialog } from '@/shared/ui/AlertDialog/AlertDialog';
 import { useAlertDialog } from '@/shared/ui/AlertDialog/useAlertDialog';
 import { useWithdrawMutation } from '@/features/auth/hooks/mutations/useAuthMutations';
@@ -27,6 +28,8 @@ export default function SettingsScreen() {
   const withdrawMutation = useWithdrawMutation();
   const withdrawDialog = useAlertDialog();
 
+  const [tooltipVisible, setTooltipVisible] = useState(false);
+
   const isAdFreeMember = shouldHideAds(member?.permission);
   const isGoogleProvider = member?.provider === 'GOOGLE';
   const isAppleProvider = member?.provider === 'APPLE';
@@ -35,6 +38,14 @@ export default function SettingsScreen() {
     : isAppleProvider
       ? t('account.providerApple')
       : '';
+
+  const formattedCycleStartDate = useMemo(() => {
+    if (!member?.cycleStartDate) return '';
+    const [year, month, day] = member.cycleStartDate.split('-').map(Number);
+    const months = t('account.months', { returnObjects: true });
+    const monthName = Array.isArray(months) ? months[month - 1] : '';
+    return t('account.cycleStartDateFormat', { year, month, day, monthName });
+  }, [member?.cycleStartDate, t]);
 
   // Analytics: 화면 조회
   useEffect(() => {
@@ -94,7 +105,7 @@ export default function SettingsScreen() {
         </View>
 
         {/* Content */}
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} onTouchStart={() => setTooltipVisible(false)}>
         <YStack px="$4" py="$4" gap="$4">
           {/* Appearance Section */}
           <YStack gap="$2">
@@ -139,6 +150,28 @@ export default function SettingsScreen() {
                   </Text>
                   <Text variant="body">{member.email}</Text>
                 </View>
+                {/* Question Start Date */}
+                {member.cycleStartDate && (
+                  <View>
+                    <XStack alignItems="center" gap="$1">
+                      <Text variant="caption" muted>
+                        {t('account.cycleStartDate')}
+                      </Text>
+                      <Pressable onPress={() => setTooltipVisible(v => !v)}>
+                        <InfoIcon size={14} color={theme.gray9?.val} />
+                      </Pressable>
+                    </XStack>
+                    {tooltipVisible && (
+                      <View style={[styles.tooltipBubble, { backgroundColor: theme.backgroundSoft?.val, borderColor: theme.borderColor?.val }]}>
+                        <Text variant="caption" fontSize={12}>
+                          {t('account.cycleStartDateTooltip')}
+                        </Text>
+                        <View style={[styles.tooltipArrow, { backgroundColor: theme.backgroundSoft?.val, borderColor: theme.borderColor?.val }]} />
+                      </View>
+                    )}
+                    <Text variant="body" mt="$1">{formattedCycleStartDate}</Text>
+                  </View>
+                )}
               </YStack>
             )}
           </YStack>
@@ -257,5 +290,26 @@ const styles = StyleSheet.create({
   withdrawText: {
     fontSize: 12,
     textDecorationLine: 'underline',
+  },
+  tooltipBubble: {
+    position: 'absolute',
+    top: 24,
+    left: 0,
+    zIndex: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    maxWidth: 260,
+  },
+  tooltipArrow: {
+    position: 'absolute',
+    top: -5,
+    left: 16,
+    width: 8,
+    height: 8,
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    transform: [{ rotate: '45deg' }],
   },
 });

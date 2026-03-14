@@ -44,6 +44,10 @@
     "withdrawTitle": "Delete Your Account?",
     "withdrawMessage": "All your data will be permanently deleted and cannot be recovered.",
     "withdrawConfirm": "Delete Account",
-    "withdrawCancel": "Cancel"
+    "withdrawCancel": "Cancel",
+    "cycleStartDate": "Question Start",
+    "cycleStartDateTooltip": "Based on your question start date, 366+ unique questions are provided without repetition.",
+    "cycleStartDateFormat": "{{monthName}} {{day}}, {{year}}",
+    "months": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
   }
 }

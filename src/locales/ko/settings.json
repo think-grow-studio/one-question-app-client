@@ -44,6 +44,9 @@
     "withdrawTitle": "정말 탈퇴하시겠어요?",
     "withdrawMessage": "탈퇴하시면 모든 데이터가 삭제되며 복구할 수 없습니다.",
     "withdrawConfirm": "탈퇴하기",
-    "withdrawCancel": "취소"
+    "withdrawCancel": "취소",
+    "cycleStartDate": "질문 시작",
+    "cycleStartDateTooltip": "질문 시작 일자를 기준으로 366개 이상의 질문이 중복되지 않게 제공됩니다.",
+    "cycleStartDateFormat": "{{year}}년 {{month}}월 {{day}}일"
   }
 }
