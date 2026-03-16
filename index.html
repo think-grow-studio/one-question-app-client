@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>질문 하나 — 하루 하나의 질문으로, 나를 마주하다</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Noto+Serif+KR:wght@400;600&display=swap" rel="stylesheet"/>
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --sky:       #C8DEFF;
+  --lavender:  #D4C8F5;
+  --pink:      #F5C8E8;
+  --peach:     #FFD9C8;
+  --blue:      #6B9FE4;
+  --blue-mid:  #7B8FD4;
+  --purple:    #9B8FD4;
+  --white:     #FFFFFF;
+  --ink:       #2D3561;
+  --ink-soft:  #4A5280;
+  --ink-muted: #8890B8;
+  --card-bg:   rgba(255,255,255,0.82);
+  --sans: 'Noto Sans KR', sans-serif;
+}
+
+html { scroll-behavior: smooth; font-size: 100%; }
+body { font-family: var(--sans); color: var(--ink); overflow-x: hidden; background: #EEF2FF; }
+
+/* BG */
+.grad-bg { background: linear-gradient(160deg, #D6E8FF 0%, #E0D6FF 30%, #F5D6EE 65%, #FFE8D6 100%); }
+
+/* SPARKLES */
+.sparkles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.spark {
+  position: absolute; clip-path: polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+  background: white; animation: twinkle var(--dur,3s) var(--delay,0s) ease-in-out infinite; opacity: 0;
+}
+@keyframes twinkle { 0%,100%{opacity:0;transform:scale(.5)} 50%{opacity:.9;transform:scale(1)} }
+
+/* BLOBS */
+.blob { position: absolute; border-radius: 50%; filter: blur(60px); pointer-events: none; }
+
+/* ─── NAV ─── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 5vw;
+  background: rgba(235,240,255,0.8);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255,255,255,0.5);
+}
+.nav-logo { display: flex; align-items: center; gap: .6rem; text-decoration: none; }
+.nav-logo-img { width: 36px; height: 36px; border-radius: 9px; object-fit: cover; }
+.nav-logo-text { font-size: 1.05rem; font-weight: 700; color: var(--ink); }
+.nav-cta {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
+  color: white; font-size: .85rem; font-weight: 700;
+  padding: .6rem 1.4rem; border-radius: 50px; text-decoration: none;
+  box-shadow: 0 4px 16px rgba(107,159,228,.4);
+  transition: transform .2s, box-shadow .2s;
+}
+.nav-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(107,159,228,.5); }
+
+/* ─── HERO ─── */
+.hero {
+  position: relative; min-height: 100svh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 9rem 5vw 5rem; overflow: hidden;
+}
+.hero .grad-bg { position: absolute; inset: 0; z-index: 0; }
+.hero .blob-1 { width:min(500px,90vw);height:min(500px,90vw);background:rgba(180,210,255,.5);top:-100px;left:-150px;animation:bm1 12s ease-in-out infinite; }
+.hero .blob-2 { width:min(400px,80vw);height:min(400px,80vw);background:rgba(210,185,255,.45);bottom:-80px;right:-100px;animation:bm2 15s ease-in-out infinite; }
+.hero .blob-3 { width:min(300px,60vw);height:min(300px,60vw);background:rgba(255,200,220,.4);top:40%;left:60%;animation:bm3 10s ease-in-out infinite; }
+@keyframes bm1{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,30px)}}
+@keyframes bm2{0%,100%{transform:translate(0,0)}50%{transform:translate(-30px,40px)}}
+@keyframes bm3{0%,100%{transform:translate(0,0)}50%{transform:translate(-20px,-30px)}}
+
+.hero-content { position: relative; z-index: 2; }
+.hero-app-icon {
+  width: 88px; height: 88px; border-radius: 22px; object-fit: cover;
+  box-shadow: 0 12px 40px rgba(107,143,212,.35); margin-bottom: 1.5rem;
+  opacity: 0; transform: scale(.8);
+  animation: popIn .7s .2s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+@keyframes popIn { to{opacity:1;transform:scale(1)} }
+
+.hero-eyebrow {
+  display: inline-block; font-size: .78rem; font-weight: 700; letter-spacing: .2em;
+  text-transform: uppercase; color: var(--blue-mid);
+  background: rgba(255,255,255,.6); padding: .35rem 1rem; border-radius: 50px;
+  margin-bottom: 1.2rem; opacity: 0; transform: translateY(16px);
+  animation: fadeUp .6s .4s forwards;
+}
+.hero-title {
+  font-size: clamp(2.4rem,7vw,5rem); font-weight: 900; line-height: 1.18;
+  color: var(--ink); letter-spacing: -.02em; margin-bottom: 1rem;
+  opacity: 0; transform: translateY(20px); animation: fadeUp .7s .55s forwards;
+}
+.hero-title .hi {
+  background: linear-gradient(135deg,var(--blue) 0%,var(--purple) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.hero-sub {
+  font-size: clamp(1rem,2.5vw,1.25rem); color: var(--ink-soft); line-height: 1.75;
+  max-width: 480px; margin: 0 auto 2.5rem;
+  opacity: 0; transform: translateY(16px); animation: fadeUp .7s .7s forwards;
+}
+.hero-q-card {
+  display: inline-block; background: var(--card-bg); backdrop-filter: blur(20px);
+  border: 1.5px solid rgba(255,255,255,.9); border-radius: 20px;
+  padding: 1.2rem 2rem; margin-bottom: 2.5rem;
+  box-shadow: 0 8px 32px rgba(107,143,212,.15);
+  opacity: 0; transform: translateY(16px); animation: fadeUp .7s .85s forwards;
+}
+.hero-q-label { font-size: .7rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--blue); margin-bottom: .4rem; }
+.hero-q-text { font-size: clamp(1rem,2.5vw,1.2rem); font-weight: 700; color: var(--ink); transition: opacity .4s, transform .4s; }
+
+.hero-badges {
+  display: flex; gap: .8rem; justify-content: center; flex-wrap: wrap;
+  opacity: 0; transform: translateY(16px); animation: fadeUp .7s 1s forwards;
+}
+.store-btn {
+  display: inline-flex; align-items: center; gap: .6rem;
+  background: var(--ink); color: white; font-size: .9rem; font-weight: 700;
+  padding: .85rem 1.8rem; border-radius: 16px; text-decoration: none;
+  box-shadow: 0 6px 24px rgba(45,53,97,.3);
+  transition: transform .2s, box-shadow .2s;
+}
+.store-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(45,53,97,.4); }
+.store-btn-label { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2; }
+.store-btn-sub { font-size: .65rem; font-weight: 400; opacity: .7; }
+.store-btn-name { font-size: .95rem; font-weight: 800; }
+
+.scroll-hint {
+  position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: .4rem;
+  font-size: .72rem; color: var(--ink-muted); letter-spacing: .1em;
+  z-index: 2; animation: bounce 2s ease-in-out infinite;
+}
+@keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(6px)}}
+
+/* ─── SCREENSHOTS ─── */
+.screenshots-section { position: relative; padding: 5rem 0; overflow: hidden; }
+.screenshots-section .grad-bg { position: absolute; inset: 0; z-index: 0; }
+.ss-header { position: relative; z-index: 1; text-align: center; padding: 0 5vw 2rem; }
+.ss-track {
+  position: relative; z-index: 1;
+  display: flex; gap: 2rem; overflow-x: auto; scroll-snap-type: x mandatory;
+  padding: 1rem 5vw 2rem; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.ss-track::-webkit-scrollbar { display: none; }
+.ss-card {
+  flex: 0 0 auto; scroll-snap-align: center;
+  width: clamp(220px,38vw,300px); border-radius: 28px; overflow: hidden;
+  box-shadow: 0 20px 60px rgba(107,143,212,.25); transition: transform .3s; background: white;
+}
+.ss-card:hover { transform: translateY(-8px) scale(1.02); }
+.ss-card img { width: 100%; display: block; }
+.ss-dots { display: flex; justify-content: center; gap: .5rem; position: relative; z-index: 1; padding-bottom: 1rem; }
+.ss-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(107,143,212,.25); transition: background .3s, width .3s; cursor: pointer; }
+.ss-dot.active { background: var(--blue-mid); width: 24px; border-radius: 4px; }
+
+/* ─── FEATURES ─── */
+.features-section { padding: 6rem 5vw; background: white; }
+.feat-grid {
+  display: grid; grid-template-columns: repeat(auto-fit,minmax(min(260px,100%),1fr));
+  gap: 1.5rem; max-width: 1000px; margin: 3rem auto 0;
+}
+.feat-card {
+  background: linear-gradient(140deg,#F0F4FF 0%,#F8F0FF 100%);
+  border: 1.5px solid rgba(180,190,255,.3); border-radius: 24px; padding: 2rem;
+  transition: transform .25s, box-shadow .25s; opacity: 0; transform: translateY(24px);
+}
+.feat-card:hover { transform: translateY(-6px); box-shadow: 0 16px 48px rgba(107,143,212,.18); }
+.feat-emoji { font-size: 2.2rem; margin-bottom: .9rem; display: block; }
+.feat-title { font-size: 1.05rem; font-weight: 800; color: var(--ink); margin-bottom: .5rem; }
+.feat-desc { font-size: .88rem; color: var(--ink-muted); line-height: 1.85; }
+
+/* ─── HOW IT WORKS ─── */
+.how-section { position: relative; padding: 6rem 5vw; overflow: hidden; }
+.how-section .grad-bg { position: absolute; inset: 0; z-index: 0; }
+.how-inner { position: relative; z-index: 1; max-width: 700px; margin: 0 auto; }
+.how-steps { margin-top: 3rem; }
+.how-step {
+  display: flex; gap: 1.5rem; padding: 2rem 0;
+  border-bottom: 1px solid rgba(107,143,212,.15);
+  opacity: 0; transform: translateX(-24px);
+}
+.how-step:last-child { border-bottom: none; }
+.step-num-w { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; }
+.step-num {
+  width: 48px; height: 48px; border-radius: 16px;
+  background: linear-gradient(135deg,var(--blue) 0%,var(--purple) 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; font-weight: 900; color: white;
+  box-shadow: 0 6px 20px rgba(107,143,212,.35); flex-shrink: 0;
+}
+.step-conn { width: 2px; flex: 1; min-height: 20px; background: linear-gradient(to bottom,rgba(107,143,212,.3),transparent); margin-top: 4px; }
+.step-body { padding-top: .4rem; }
+.step-title { font-size: 1.1rem; font-weight: 800; color: var(--ink); margin-bottom: .4rem; }
+.step-desc { font-size: .9rem; color: var(--ink-muted); line-height: 1.8; }
+
+/* ─── WHO FOR ─── */
+.who-section { padding: 6rem 5vw; background: white; }
+.who-section .section-header { max-width: 700px; margin: 0 auto; }
+.who-section .section-desc { margin: 0; }
+.who-chips { display: flex; flex-wrap: wrap; gap: .8rem; max-width: 700px; margin: 2.5rem auto 0; }
+.who-chip {
+  display: inline-flex; align-items: center; gap: .5rem;
+  background: linear-gradient(135deg,#EEF4FF 0%,#F3EEFF 100%);
+  border: 1.5px solid rgba(180,190,255,.4); border-radius: 50px;
+  padding: .7rem 1.3rem; font-size: .9rem; font-weight: 600; color: var(--ink-soft);
+  opacity: 0; transform: scale(.9);
+  transition: transform .2s, background .2s; cursor: default;
+}
+.who-chip:hover { background: linear-gradient(135deg,var(--blue) 0%,var(--purple) 100%); color: white; border-color: transparent; transform: scale(1.05); }
+.chip-icon { font-size: 1.1rem; }
+
+/* ─── QUOTE ─── */
+.quote-section {
+  position: relative; padding: 8rem 5vw; text-align: center; overflow: hidden;
+  background: linear-gradient(160deg,#2D3561 0%,#4A3880 50%,#6B3070 100%);
+}
+.q-blob-1 { position:absolute;width:min(600px,90vw);height:min(600px,90vw);border-radius:50%;background:rgba(107,159,228,.12);top:-200px;left:-200px;filter:blur(80px); }
+.q-blob-2 { position:absolute;width:min(500px,80vw);height:min(500px,80vw);border-radius:50%;background:rgba(180,120,255,.12);bottom:-150px;right:-100px;filter:blur(80px); }
+.q-star { position:absolute;opacity:0;animation:twinkle var(--d,3s) var(--dl,0s) ease-in-out infinite;color:rgba(255,255,255,.6); }
+blockquote {
+  position: relative; z-index: 1;
+  font-size: clamp(1.4rem,4vw,2.4rem); font-weight: 700;
+  color: rgba(255,255,255,.95); line-height: 1.6;
+  max-width: 760px; margin: 0 auto 1.5rem; letter-spacing: -.01em;
+  opacity: 0; transform: translateY(24px);
+}
+blockquote em {
+  font-style: normal;
+  background: linear-gradient(135deg,#90C4FF,#C8A0FF);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.quote-attr { position: relative; z-index: 1; font-size: .82rem; letter-spacing: .15em; text-transform: uppercase; color: rgba(255,255,255,.35); opacity: 0; }
+
+/* ─── FINAL CTA ─── */
+.cta-section { position: relative; padding: 8rem 5vw; text-align: center; overflow: hidden; }
+.cta-section .grad-bg { position: absolute; inset: 0; z-index: 0; }
+.cta-inner { position: relative; z-index: 1; }
+.cta-app-icon { width: 72px; height: 72px; border-radius: 18px; object-fit: cover; box-shadow: 0 10px 36px rgba(107,143,212,.35); margin: 0 auto 1.5rem; display: block; opacity: 0; transform: scale(.8); }
+.cta-title { font-size: clamp(2rem,6vw,4rem); font-weight: 900; color: var(--ink); line-height: 1.2; letter-spacing: -.02em; margin-bottom: .8rem; opacity: 0; transform: translateY(20px); }
+.cta-title .hi { background: linear-gradient(135deg,var(--blue) 0%,var(--purple) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.cta-sub { font-size: clamp(.95rem,2vw,1.1rem); color: var(--ink-muted); margin-bottom: 2.5rem; line-height: 1.8; opacity: 0; transform: translateY(16px); }
+.cta-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; opacity: 0; transform: translateY(16px); }
+
+/* ─── SECTION HEADERS ─── */
+.section-header { text-align: center; }
+.section-header.left { text-align: left; }
+.section-tag { display: inline-block; font-size: .72rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--blue-mid); background: rgba(107,159,228,.1); padding: .3rem .9rem; border-radius: 50px; margin-bottom: .9rem; }
+.section-title { font-size: clamp(1.8rem,4.5vw,3rem); font-weight: 900; color: var(--ink); line-height: 1.25; letter-spacing: -.02em; margin-bottom: .8rem; }
+.section-title .h { background: linear-gradient(135deg,var(--blue) 0%,var(--purple) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.section-desc { font-size: clamp(.9rem,2vw,1.05rem); color: var(--ink-muted); line-height: 1.85; max-width: 520px; margin: 0 auto; }
+
+/* ─── FOOTER ─── */
+footer { background: var(--ink); color: rgba(255,255,255,.5); padding: 2.5rem 5vw; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+.footer-logo { display: flex; align-items: center; gap: .5rem; text-decoration: none; color: white; font-weight: 700; font-size: .95rem; }
+.footer-logo img { width: 28px; height: 28px; border-radius: 7px; }
+.footer-links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+.footer-links a { font-size: .78rem; color: rgba(255,255,255,.4); text-decoration: none; transition: color .2s; }
+.footer-links a:hover { color: white; }
+.footer-copy { font-size: .75rem; }
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeUp { to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn { to{opacity:1} }
+@keyframes slideInL { to{opacity:1;transform:translateX(0)} }
+@keyframes scalePop { to{opacity:1;transform:scale(1)} }
+
+/* ─── RESPONSIVE ─── */
+
+/* Tablet landscape */
+@media(max-width:1024px){
+  .quote-section{padding:5rem 5vw;}
+  .cta-section{padding:5rem 5vw;}
+  .ss-card{width:clamp(200px,42vw,280px);}
+  .feat-grid{max-width:800px;}
+  .how-step{padding:1.5rem 0;}
+}
+
+/* Tablet portrait */
+@media(max-width:768px){
+  nav{padding:.9rem 4vw;}
+  .hero{padding:7.5rem 5vw 4rem;}
+  .how-section,.features-section,.who-section,.cta-section{padding:4rem 5vw;}
+  footer{flex-direction:column;text-align:center;}
+  .footer-links{justify-content:center;}
+  .quote-section{padding:3.5rem 5vw;}
+  .hero-q-card{padding:1rem 1.5rem;}
+  .ss-card{width:clamp(240px,70vw,300px);}
+  .ss-track{gap:1.2rem;}
+  .feat-grid{grid-template-columns:1fr;gap:1rem;padding:0 1rem;}
+  .feat-card{padding:1.5rem;}
+  .how-step{gap:1rem;padding:1.2rem 0;}
+  .step-num{width:40px;height:40px;font-size:1rem;}
+  .who-chips{justify-content:center;}
+  .store-btn{min-height:48px;}
+  .scroll-hint{font-size:.65rem;}
+  .section-tag{font-size:.65rem;padding:.25rem .7rem;}
+}
+
+/* Large phone */
+@media(max-width:480px){
+  .hero{padding:6rem 4vw 3rem;min-height:auto;}
+  .hero-app-icon{width:72px;height:72px;}
+  .hero-q-card{padding:.8rem 1.2rem;border-radius:14px;margin-bottom:2rem;}
+  .hero-q-text{font-size:.95rem;}
+  .hero-q-label{font-size:.65rem;}
+  .quote-section{padding:2.5rem 5vw;}
+  .cta-section{padding:2.5rem 5vw;}
+  .cta-btns{flex-direction:column;align-items:center;}
+  .store-btn{width:100%;justify-content:center;}
+  .hero-badges{flex-direction:column;align-items:center;}
+  .ss-card{width:clamp(220px,80vw,300px);}
+  .feat-card{padding:1.2rem;}
+  .feat-emoji{font-size:1.8rem;margin-bottom:.6rem;}
+  .feat-title{font-size:.95rem;}
+  .feat-desc{font-size:.82rem;}
+  .how-inner{max-width:100%;}
+  .step-title{font-size:1rem;}
+  .step-desc{font-size:.85rem;}
+  .who-chip{font-size:.82rem;padding:.55rem 1rem;}
+  .chip-icon{font-size:.95rem;}
+  footer{padding:2rem 4vw;}
+  .footer-copy{font-size:.7rem;}
+  .footer-links a{font-size:.72rem;}
+  .nav-logo-text{font-size:.9rem;}
+  .nav-cta{font-size:.78rem;padding:.5rem 1rem;min-height:40px;}
+}
+
+/* Small phone */
+@media(max-width:360px){
+  .hero{padding:5.5rem 3.5vw 2.5rem;}
+  .hero-eyebrow{font-size:.7rem;padding:.3rem .8rem;}
+  .hero-q-text{font-size:.88rem;word-break:keep-all;overflow-wrap:break-word;}
+  nav{padding:.8rem 3vw;}
+  .nav-logo-img{width:30px;height:30px;}
+  .nav-logo-text{font-size:.82rem;}
+  .nav-cta{font-size:.72rem;padding:.45rem .85rem;}
+  .who-chip{font-size:.78rem;padding:.5rem .85rem;}
+  .chip-icon{font-size:.88rem;}
+  .store-btn{border-radius:12px;padding:.75rem 1.4rem;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">
+    <img src="landing-images/one-question-light.png" alt="질문 하나" class="nav-logo-img"/>
+    <span class="nav-logo-text">질문 하나</span>
+  </a>
+  <a href="#download" class="nav-cta">무료 다운로드 ↓</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="grad-bg"></div>
+  <div class="blob blob-1"></div><div class="blob blob-2"></div><div class="blob blob-3"></div>
+  <div class="sparkles" id="heroSparks"></div>
+  <div class="hero-content">
+    <img src="landing-images/one-question-light.png" alt="질문 하나 앱 아이콘" class="hero-app-icon"/>
+    <p class="hero-eyebrow">One Question a Day</p>
+    <h1 class="hero-title">하루 하나의 질문<br><span class="hi">그리고 나의 생각</span></h1>
+    <p class="hero-sub">매일의 질문과 진솔한 생각으로<br>나를 채워가요.</p>
+    <div class="hero-q-card">
+      <p class="hero-q-label">오늘의 질문</p>
+      <p class="hero-q-text" id="rotQ">나는 언제 사랑받고 있다고 느끼나요?</p>
+    </div>
+    <div class="hero-badges">
+      <a href="https://play.google.com/store/apps/details?id=com.onequestion.app&hl=ko" class="store-btn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M3.18 23.76c.33.18.71.19 1.07.04l12.6-7.17-2.68-2.69-10.99 9.82zm-1.61-20.4C1.31 3.71 1 4.2 1 4.81v14.38c0 .61.31 1.1.57 1.45l.07.07 8.06-8.06v-.19L1.57 3.36zm18.4 8.13-2.93-1.67-2.95 2.95 2.95 2.95 2.96-1.68c.84-.48.84-1.26-.03-1.55zM4.25.28C3.89.13 3.51.14 3.18.32L14.17 11.3 11.49 8.6 4.25.28z"/></svg>
+        <span class="store-btn-label"><span class="store-btn-sub">Get it on</span><span class="store-btn-name">Google Play</span></span>
+      </a>
+    </div>
+  </div>
+  <div class="scroll-hint">
+    <span>스크롤해서 살펴보기</span>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+  </div>
+</section>
+
+<!-- SCREENSHOTS -->
+<section class="screenshots-section">
+  <div class="grad-bg"></div>
+  <div class="ss-header">
+    <span class="section-tag">App Screenshots</span>
+    <h2 class="section-title">이런 앱이에요</h2>
+    <p class="section-desc">직접 보시면 더 잘 알 수 있어요. 좌우로 스크롤해 보세요.</p>
+  </div>
+  <div class="ss-track" id="ssTrack">
+    <div class="ss-card"><img src="landing-images/광고1.png" alt="하루 하나의 질문 그리고 나의 생각"/></div>
+    <div class="ss-card"><img src="landing-images/광고2.png" alt="답을 하기 어렵다면 다른 질문으로 바꿔보세요"/></div>
+    <div class="ss-card"><img src="landing-images/광고3.png" alt="날짜를 선택하고 기록을 확인해요"/></div>
+    <div class="ss-card"><img src="landing-images/광고4.png" alt="나에게 맞는 질문시간을 설정하세요"/></div>
+  </div>
+  <div class="ss-dots" id="ssDots">
+    <span class="ss-dot active"></span><span class="ss-dot"></span><span class="ss-dot"></span><span class="ss-dot"></span>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features-section" id="features">
+  <div class="section-header">
+    <span class="section-tag">Features</span>
+    <h2 class="section-title">복잡하지 않아요.<br><span class="h">그저 질문 하나.</span></h2>
+    <p class="section-desc">억지로 쓰는 일기가 아니라, 질문을 통해 자연스럽게 생각을 꺼내는 시간.</p>
+  </div>
+  <div class="feat-grid">
+    <div class="feat-card"><span class="feat-emoji">🕯</span><h3 class="feat-title">하루 단 하나의 질문</h3><p class="feat-desc">짧지만 깊은 질문, 가볍지만 오래 남는 질문. 매일 하나씩만 마주합니다.</p></div>
+    <div class="feat-card"><span class="feat-emoji">📚</span><h3 class="feat-title">366개 이상의 질문</h3><p class="feat-desc">매일 다른 각도에서 나를 바라보게 합니다. 어렵다면 랜덤 질문을 다시 받아보세요.</p></div>
+    <div class="feat-card"><span class="feat-emoji">🔁</span><h3 class="feat-title">1년 전의 나와 비교</h3><p class="feat-desc">오늘의 질문을 1년 뒤에 다시 답할 수 있어요. 같은 질문, 달라진 생각.</p></div>
+    <div class="feat-card"><span class="feat-emoji">📅</span><h3 class="feat-title">달력으로 기록 확인</h3><p class="feat-desc">날짜를 선택하고 과거의 답변을 확인하세요. 하루하루 쌓여가는 나의 생각 기록.</p></div>
+    <div class="feat-card"><span class="feat-emoji">🔔</span><h3 class="feat-title">맞춤 알림 시간</h3><p class="feat-desc">내가 원하는 시간에 알림을 받아보세요. 배경 색상도 내 마음대로!</p></div>
+    <div class="feat-card"><span class="feat-emoji">✍️</span><h3 class="feat-title">나만의 생각 아카이브</h3><p class="feat-desc">쌓이면 나만의 생각 아카이브가 완성됩니다. 시간이 지날수록 선명해집니다.</p></div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section">
+  <div class="grad-bg"></div>
+  <div class="sparkles" id="howSparks"></div>
+  <div class="how-inner">
+    <div class="section-header left">
+      <span class="section-tag">How it works</span>
+      <h2 class="section-title">매일 3분,<br><span class="h">나를 마주하는 시간</span></h2>
+    </div>
+    <div class="how-steps">
+      <div class="how-step"><div class="step-num-w"><div class="step-num">1</div><div class="step-conn"></div></div><div class="step-body"><h3 class="step-title">오늘의 질문을 받아요</h3><p class="step-desc">매일 하나의 질문이 당신을 기다립니다. 짧지만, 오래 생각하게 하는 질문.</p></div></div>
+      <div class="how-step"><div class="step-num-w"><div class="step-num">2</div><div class="step-conn"></div></div><div class="step-body"><h3 class="step-title">솔직하게 답을 남겨요</h3><p class="step-desc">완벽한 문장이 아니어도 됩니다. 지금 나의 생각을 그대로 적어보세요.</p></div></div>
+      <div class="how-step"><div class="step-num-w"><div class="step-num">3</div><div class="step-conn"></div></div><div class="step-body"><h3 class="step-title">기록이 쌓여요</h3><p class="step-desc">하루하루 답이 모이면 나만의 생각 아카이브가 완성됩니다.</p></div></div>
+      <div class="how-step"><div class="step-num-w"><div class="step-num">4</div></div><div class="step-body"><h3 class="step-title">1년 전의 나를 만나요</h3><p class="step-desc">같은 질문, 달라진 답. "나는 이런 생각을 하는 사람이었구나." 그 순간의 발견.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- WHO FOR -->
+<section class="who-section">
+  <div class="section-header left">
+    <span class="section-tag">For You</span>
+    <h2 class="section-title">이런 분들께<br><span class="h">추천드려요</span></h2>
+    <p class="section-desc">복잡하지 않습니다. 어렵지 않습니다. 그저 질문 하나.</p>
+  </div>
+  <div class="who-chips">
+    <div class="who-chip"><span class="chip-icon">🔍</span>나에 대해 더 알고 싶은 사람</div>
+    <div class="who-chip"><span class="chip-icon">🌙</span>하루를 의미 있게 마무리하고 싶은 사람</div>
+    <div class="who-chip"><span class="chip-icon">💭</span>짧지만 깊은 사유를 하고 싶은 사람</div>
+    <div class="who-chip"><span class="chip-icon">🌿</span>SNS 대신 조용한 기록 공간이 필요한 사람</div>
+    <div class="who-chip"><span class="chip-icon">💛</span>감정과 생각을 정리하고 싶은 사람</div>
+    <div class="who-chip"><span class="chip-icon">⭐</span>매일 작은 성장을 원하는 사람</div>
+  </div>
+</section>
+
+<!-- QUOTE -->
+<section class="quote-section">
+  <div class="q-blob-1"></div><div class="q-blob-2"></div>
+  <div id="qStars"></div>
+  <blockquote id="qText">그리고 언젠가 깨닫게 될 거예요.<br><em>"나는 이런 생각을 하는 사람이었구나."</em></blockquote>
+  <p class="quote-attr" id="qAttr">— 질문 하나, One Question a Day</p>
+</section>
+
+<!-- FINAL CTA -->
+<section class="cta-section" id="download">
+  <div class="grad-bg"></div>
+  <div class="sparkles" id="ctaSparks"></div>
+  <div class="cta-inner">
+    <img src="landing-images/one-question-light.png" alt="질문 하나" class="cta-app-icon" id="ctaIcon"/>
+    <h2 class="cta-title" id="ctaTitle">지금, 당신은<br><span class="hi">누구입니까?</span></h2>
+    <p class="cta-sub" id="ctaSub">One Question. 하루 하나의 질문.<br>그리고 그 질문이 쌓여 당신을 만듭니다.</p>
+    <div class="cta-btns" id="ctaBtns">
+      <a href="https://play.google.com/store/apps/details?id=com.onequestion.app&hl=ko" class="store-btn">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M3.18 23.76c.33.18.71.19 1.07.04l12.6-7.17-2.68-2.69-10.99 9.82zm-1.61-20.4C1.31 3.71 1 4.2 1 4.81v14.38c0 .61.31 1.1.57 1.45l.07.07 8.06-8.06v-.19L1.57 3.36zm18.4 8.13-2.93-1.67-2.95 2.95 2.95 2.95 2.96-1.68c.84-.48.84-1.26-.03-1.55zM4.25.28C3.89.13 3.51.14 3.18.32L14.17 11.3 11.49 8.6 4.25.28z"/></svg>
+        <span class="store-btn-label"><span class="store-btn-sub">Get it on</span><span class="store-btn-name">Google Play</span></span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <a href="#" class="footer-logo">
+    <img src="landing-images/one-question-light.png" alt="질문 하나"/>
+    질문 하나
+  </a>
+  <div class="footer-links">
+    <a href="https://one-question.org/legal-document">개인정보처리방침</a><a href="https://one-question.org/legal-document">이용약관</a><a href="#">문의하기</a>
+  </div>
+  <p class="footer-copy">© 2025 질문 하나. All rights reserved.</p>
+</footer>
+
+<script>
+// Sparkle generator
+function makeSparks(id, n) {
+  const c = document.getElementById(id); if (!c) return;
+  for (let i=0;i<n;i++){
+    const s=document.createElement('div'); s.className='spark';
+    s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;--dur:${2+Math.random()*4}s;--delay:${Math.random()*4}s;width:${4+Math.random()*8}px;height:${4+Math.random()*8}px;`;
+    c.appendChild(s);
+  }
+}
+makeSparks('heroSparks',18); makeSparks('howSparks',10); makeSparks('ctaSparks',14);
+
+// Quote stars
+const qs=document.getElementById('qStars');
+['✦','✧','⋆','˚','·'].forEach(()=>{
+  for(let i=0;i<4;i++){
+    const s=document.createElement('div'); s.className='q-star';
+    s.textContent=['✦','✧','⋆','˚','·'][Math.floor(Math.random()*5)];
+    s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${2+Math.random()*4}s;--dl:${Math.random()*3}s;font-size:${.6+Math.random()*1.2}rem;`;
+    qs.appendChild(s);
+  }
+});
+
+// Rotating question in hero
+const rotEl=document.getElementById('rotQ');
+const rotQs=['최근에 받은 택배는 무엇인가요?','나에게 가장 필요한 AI는 무엇인가요?','오랫동안 연락하지 못한 사람이 있나요?','지금 내 머리 위에 무엇이 있나요?','카페에서 주로 시키는 메뉴는 무엇인가요?','아파본 경험이 있기에 이해하게 된 것들이 있나요?','나에게 상처 준 사람을 용서한 경험이 있나요?'];
+let ri=0;
+function rotQ(){
+  rotEl.style.cssText='opacity:0;transform:translateY(8px);transition:opacity .4s,transform .4s;';
+  setTimeout(()=>{ri=(ri+1)%rotQs.length;rotEl.textContent=rotQs[ri];rotEl.style.cssText='opacity:1;transform:translateY(0);transition:opacity .4s,transform .4s;';},400);
+}
+rotEl.style.transition='opacity .4s,transform .4s';
+setInterval(rotQ,3500);
+
+// Scroll animations via IntersectionObserver
+const io=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(!e.isIntersecting)return;
+    const el=e.target, tp=el.dataset.anim||'fadeUp', dl=el.dataset.delay||'0';
+    if(tp==='fadeUp') el.style.animation=`fadeUp .7s ${dl}ms forwards`;
+    else if(tp==='slideL') el.style.animation=`slideInL .7s ${dl}ms forwards`;
+    else if(tp==='pop') el.style.animation=`scalePop .6s ${dl}ms cubic-bezier(.34,1.56,.64,1) forwards`;
+    else if(tp==='fadeIn') el.style.animation=`fadeIn .8s ${dl}ms forwards`;
+    io.unobserve(el);
+  });
+},{threshold:.15,rootMargin:'0px 0px -30px 0px'});
+
+document.querySelectorAll('.feat-card').forEach((el,i)=>{el.dataset.anim='fadeUp';el.dataset.delay=i*80;io.observe(el);});
+document.querySelectorAll('.how-step').forEach((el,i)=>{el.dataset.anim='slideL';el.dataset.delay=i*120;io.observe(el);});
+document.querySelectorAll('.who-chip').forEach((el,i)=>{el.dataset.anim='pop';el.dataset.delay=i*80;io.observe(el);});
+
+const qT=document.getElementById('qText'); qT.dataset.anim='fadeUp'; io.observe(qT);
+const qA=document.getElementById('qAttr'); qA.dataset.anim='fadeIn'; qA.dataset.delay='400'; io.observe(qA);
+const ci=document.getElementById('ctaIcon'); ci.dataset.anim='pop'; io.observe(ci);
+const ct=document.getElementById('ctaTitle'); ct.dataset.anim='fadeUp'; ct.dataset.delay='100'; io.observe(ct);
+const cs=document.getElementById('ctaSub'); cs.dataset.anim='fadeUp'; cs.dataset.delay='220'; io.observe(cs);
+const cb=document.getElementById('ctaBtns'); cb.dataset.anim='fadeUp'; cb.dataset.delay='340'; io.observe(cb);
+
+// Screenshot dots
+const track=document.getElementById('ssTrack');
+const dots=document.querySelectorAll('.ss-dot');
+track.addEventListener('scroll',()=>{
+  const idx=Math.round(track.scrollLeft/(track.scrollWidth/4));
+  dots.forEach((d,i)=>d.classList.toggle('active',i===idx));
+});
+dots.forEach((dot,i)=>{
+  dot.addEventListener('click',()=>{
+    const cards=track.querySelectorAll('.ss-card');
+    cards[i].scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+  });
+});
+
+// Smooth scroll
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    const id=a.getAttribute('href').slice(1); if(!id)return;
+    const el=document.getElementById(id);
+    if(el){e.preventDefault();el.scrollIntoView({behavior:'smooth'});}
+  });
+});
+</script>
+</body>
+</html>
