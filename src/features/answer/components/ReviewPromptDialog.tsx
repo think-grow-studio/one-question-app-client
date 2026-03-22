@@ -10,10 +10,8 @@ export interface ReviewPromptDialogProps {
   message: string;
   onAccept: () => void; // 리뷰하기
   onLater: () => void; // 나중에
-  onDecline: () => void; // 별로에요
   acceptLabel: string;
   laterLabel: string;
-  declineLabel: string;
 }
 
 export function ReviewPromptDialog({
@@ -22,23 +20,11 @@ export function ReviewPromptDialog({
   message,
   onAccept,
   onLater,
-  onDecline,
   acceptLabel,
   laterLabel,
-  declineLabel,
 }: ReviewPromptDialogProps) {
   const theme = useTheme();
   const accent = useAccentColors();
-
-  const getPrimaryButtonStyle = () => ({
-    backgroundColor: accent.primary,
-    borderColor: accent.primary,
-  });
-
-  const getDefaultButtonStyle = () => ({
-    backgroundColor: theme.backgroundSoft?.val,
-    borderColor: theme.borderColor?.val,
-  });
 
   if (!visible) return null;
 
@@ -63,9 +49,6 @@ export function ReviewPromptDialog({
       marginBottom: sp(28),
     },
     buttonContainer: {
-      gap: sp(12),
-    },
-    splitButtonsRow: {
       gap: sp(12),
     },
     button: {
@@ -109,12 +92,12 @@ export function ReviewPromptDialog({
 
           {/* Buttons Container */}
           <View style={[styles.buttonContainer, responsiveStyles.buttonContainer]}>
-            {/* Row 1: Full-width Primary Button (리뷰하기) */}
+            {/* 리뷰하기 */}
             <Pressable
               style={({ pressed }) => [
-                styles.fullWidthButton,
+                styles.button,
                 responsiveStyles.button,
-                getPrimaryButtonStyle(),
+                { backgroundColor: accent.primary, borderColor: accent.primary },
                 pressed && { opacity: 0.8 },
               ]}
               onPress={onAccept}
@@ -124,38 +107,20 @@ export function ReviewPromptDialog({
               </Text>
             </Pressable>
 
-            {/* Row 2: Split Buttons (50/50) */}
-            <View style={[styles.splitButtonsRow, responsiveStyles.splitButtonsRow]}>
-              {/* 나중에 */}
-              <Pressable
-                style={({ pressed }) => [
-                  styles.splitButton,
-                  responsiveStyles.button,
-                  getDefaultButtonStyle(),
-                  pressed && { opacity: 0.8 },
-                ]}
-                onPress={onLater}
-              >
-                <Text style={[styles.buttonText, responsiveStyles.buttonText, { color: theme.color?.val }]}>
-                  {laterLabel}
-                </Text>
-              </Pressable>
-
-              {/* 별로에요 */}
-              <Pressable
-                style={({ pressed }) => [
-                  styles.splitButton,
-                  responsiveStyles.button,
-                  getDefaultButtonStyle(),
-                  pressed && { opacity: 0.8 },
-                ]}
-                onPress={onDecline}
-              >
-                <Text style={[styles.buttonText, responsiveStyles.buttonText, { color: theme.color?.val }]}>
-                  {declineLabel}
-                </Text>
-              </Pressable>
-            </View>
+            {/* 나중에 */}
+            <Pressable
+              style={({ pressed }) => [
+                styles.button,
+                responsiveStyles.button,
+                { backgroundColor: theme.backgroundSoft?.val, borderColor: theme.borderColor?.val },
+                pressed && { opacity: 0.8 },
+              ]}
+              onPress={onLater}
+            >
+              <Text style={[styles.buttonText, responsiveStyles.buttonText, { color: theme.color?.val }]}>
+                {laterLabel}
+              </Text>
+            </Pressable>
           </View>
         </Animated.View>
       </View>
@@ -198,18 +163,8 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: 'column',
   },
-  fullWidthButton: {
+  button: {
     width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-  },
-  splitButtonsRow: {
-    flexDirection: 'row',
-    width: '100%',
-  },
-  splitButton: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,

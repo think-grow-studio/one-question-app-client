@@ -4,55 +4,47 @@ import { requestAppReview } from '@/services/appReview';
 
 export function useAppReviewPrompt() {
   const [showPrePrompt, setShowPrePrompt] = useState(false);
-  const [isButtonsDisabled, setIsButtonsDisabled] = useState(false);
   const { incrementAnswerCount, shouldShowReviewPrompt, setReviewStatus } =
     useAppReviewStore();
 
-  const onAnswerSubmitted = useCallback(() => {
+  // 답변 제출 후 호출 - 리뷰 필요 여부 반환 (상태 변경 없음)
+  const prepareReview = useCallback((): boolean => {
     incrementAnswerCount();
-
-    if (shouldShowReviewPrompt()) {
-      setTimeout(() => {
-        setShowPrePrompt(true);
-        setIsButtonsDisabled(true);
-        setTimeout(() => setIsButtonsDisabled(false), 500);
-      }, 500);
-    }
+    return shouldShowReviewPrompt();
   }, [incrementAnswerCount, shouldShowReviewPrompt]);
 
-  const handleLater = useCallback(() => {
-    if (isButtonsDisabled) return;
-    setReviewStatus('postponed');
-    setShowPrePrompt(false);
-  }, [setReviewStatus, isButtonsDisabled]);
+  // 성공 팝업 닫힌 후 리뷰 팝업 표시
+  const showReviewPrompt = useCallback(() => {
+    setShowPrePrompt(true);
+  }, []);
 
-  const handleDecline = useCallback(() => {
-    if (isButtonsDisabled) return;
-    setReviewStatus('declined');
+  const handleLater = useCallback(() => {
+    const currentStatus = useAppReviewStore.getState().reviewStatus;
+    if (currentStatus === 'postponed') {
+      // 두 번째 나중에 → 영원히 안 보여줌
+      setReviewStatus('declined');
+    } else {
+      // 첫 번째 나중에 → 5번 더 답변 후 재요청
+      setReviewStatus('postponed');
+    }
     setShowPrePrompt(false);
-  }, [setReviewStatus, isButtonsDisabled]);
+  }, [setReviewStatus]);
 
   const handleAccept = useCallback(async () => {
-    if (isButtonsDisabled) return;
     setShowPrePrompt(false);
     const success = await requestAppReview();
     if (success) {
       setReviewStatus('completed');
+    } else {
+      setReviewStatus('postponed');
     }
-  }, [setReviewStatus, isButtonsDisabled]);
-
-  const closePrePrompt = useCallback(() => {
-    if (isButtonsDisabled) return;
-    setShowPrePrompt(false);
-  }, [isButtonsDisabled]);
+  }, [setReviewStatus]);
 
   return {
     showPrePrompt,
-    isButtonsDisabled,
-    onAnswerSubmitted,
+    prepareReview,
+    showReviewPrompt,
     handleLater,
-    handleDecline,
     handleAccept,
-    closePrePrompt,
   };
 }

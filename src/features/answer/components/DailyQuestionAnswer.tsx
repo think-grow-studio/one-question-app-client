@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   TextInput,
   StyleSheet,
@@ -51,11 +51,12 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
   const cardStyles = useQuestionCardStyles();
   const {
     showPrePrompt,
-    onAnswerSubmitted,
+    prepareReview,
+    showReviewPrompt,
     handleLater,
-    handleDecline,
     handleAccept,
   } = useAppReviewPrompt();
+  const pendingReview = useRef(false);
   const { data: member } = useMemberMe();
   const isAdFreeMember = shouldHideAds(member?.permission);
 
@@ -149,7 +150,7 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
           answer_length: answer.trim().length,
         });
         await createAnswerMutation.mutateAsync({ date: data.date, answer: answer.trim() });
-        onAnswerSubmitted(); // 새 답변 작성시에만 카운트
+        pendingReview.current = prepareReview(); // 새 답변 작성시에만 카운트
       }
 
       // 성공 메시지 표시
@@ -160,7 +161,18 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
         visible: true,
         title,
         message,
-        buttons: [{ label: t('common:buttons.confirm'), variant: 'primary', onPress: () => router.back() }],
+        buttons: [{
+          label: t('common:buttons.confirm'),
+          variant: 'primary',
+          onPress: () => {
+            if (pendingReview.current) {
+              pendingReview.current = false;
+              showReviewPrompt();
+            } else {
+              router.back();
+            }
+          },
+        }],
       });
     } catch {
       // 에러는 전역 에러 핸들러에서 처리됨
@@ -338,12 +350,10 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
         visible={showPrePrompt}
         title={t('answer:reviewPrompt.title')}
         message={t('answer:reviewPrompt.message')}
-        onAccept={handleAccept}
-        onLater={handleLater}
-        onDecline={handleDecline}
+        onAccept={async () => { await handleAccept(); router.back(); }}
+        onLater={() => { handleLater(); router.back(); }}
         acceptLabel={t('answer:reviewPrompt.accept')}
         laterLabel={t('answer:reviewPrompt.later')}
-        declineLabel={t('answer:reviewPrompt.decline')}
       />
     </KeyboardAvoidingView>
   );
