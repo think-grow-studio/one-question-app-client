@@ -32,6 +32,20 @@ import { config } from '@/constants/config';
 import { APP_STORE_URLS } from '@/constants/appStoreUrls';
 import '@/features/admob/config/adInit'; // AdMob SDK 초기화
 import { initializeFirebase, enableCrashlytics } from '@/services/firebase'; // Firebase 초기화
+import * as Updates from 'expo-updates';
+
+async function checkAndApplyUpdate() {
+  if (!Updates.isEnabled) return;
+  try {
+    const update = await Updates.checkForUpdateAsync();
+    if (update.isAvailable) {
+      await Updates.fetchUpdateAsync();
+      await Updates.reloadAsync();
+    }
+  } catch (e) {
+    console.warn('[Updates] 업데이트 확인 실패:', e);
+  }
+}
 
 type VersionCheckType = 'force_update' | 'optional_update' | 'server_down';
 
@@ -50,6 +64,7 @@ function RootLayoutNav() {
   const router = useRouter();
 
   const [splashDone, setSplashDone] = useState(false);
+  const [updateChecked, setUpdateChecked] = useState(false);
 
   const [dialogState, setDialogState] = useState<VersionCheckDialogState>({
     visible: false,
@@ -93,10 +108,9 @@ function RootLayoutNav() {
   // 앱 시작 시 토큰 확인
   useEffect(() => {
     initialize();
-
-    // Firebase 초기화
     initializeFirebase();
     enableCrashlytics();
+    checkAndApplyUpdate().finally(() => setUpdateChecked(true)); // 스플래시 화면 중 OTA 업데이트 체크 및 즉시 적용
   }, []);
 
   // 앱 시작 시 버전 체크
@@ -217,7 +231,7 @@ function RootLayoutNav() {
   };
 
   // 로딩 중이거나 스플래시가 끝나지 않았을 때
-  if (isLoading || !splashDone) {
+  if (isLoading || !splashDone || !updateChecked) {
     return <SplashQuoteScreen onFinish={() => setSplashDone(true)} />;
   }
 
