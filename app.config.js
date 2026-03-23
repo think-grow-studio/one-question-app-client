@@ -30,8 +30,8 @@ const ENV = {
 // 플랫폼별 버전 관리
 
 const APP_VERSIONS = {
-    version: '1.0.0',
-    androidVersion: 12,
+    version: '1.0.1',
+    androidVersion: 13,
     iosVersion: '1',
 };
 
