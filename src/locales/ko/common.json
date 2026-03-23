@@ -22,6 +22,7 @@
   },
   "tabs": {
     "home": "홈",
+    "feed": "모두의 생각",
     "settings": "설정"
   },
   "error": {

@@ -84,22 +84,26 @@ export interface ServeDailyQuestionResponse {
 
 export interface CreateAnswerRequest {
   answer: string;
+  isPublic?: boolean;
 }
 
 export interface CreateAnswerResponse {
   dailyAnswerId: number;
   content: string;
   answeredAt: string;
+  isPublic?: boolean;
 }
 
 export interface UpdateAnswerRequest {
   answer: string;
+  isPublic?: boolean;
 }
 
 export interface UpdateAnswerResponse {
   dailyAnswerId: number;
   content: string;
   answeredAt: string;
+  isPublic?: boolean;
 }
 
 export type HistoryStatus = 'ANSWERED' | 'UNANSWERED' | 'NO_QUESTION';
@@ -117,6 +121,8 @@ export interface AnswerInfoDto {
   dailyAnswerId: number;
   content: string;
   answeredAt: string;
+  isPublic?: boolean;
+  likeCount?: number;
 }
 
 export interface QuestionHistoryItemDto {
@@ -144,4 +150,39 @@ export interface AppVersionCheckResponse {
   latestVersion: string;
   minVersion: string;
   serverLive: boolean;
+}
+
+// ============================================
+// Feed Types (모두의 생각)
+// ============================================
+
+export interface FeedItemDto {
+  feedId: number;
+  dailyQuestionId: number;
+  questionContent: string;
+  questionDescription: string | null;
+  answerContent: string;
+  answeredAt: string;
+  authorNickname: string;
+  isLiked: boolean;
+  likeCount: number;
+}
+
+export interface GetFeedListResponse {
+  items: FeedItemDto[];
+  nextCursor: number | null;
+  hasMore: boolean;
+}
+
+export interface GetFeedDetailResponse extends FeedItemDto {}
+
+export interface ToggleLikeResponse {
+  feedId: number;
+  isLiked: boolean;
+  likeCount: number;
+}
+
+export interface TogglePublicResponse {
+  dailyAnswerId: number;
+  isPublic: boolean;
 }

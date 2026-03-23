@@ -22,6 +22,7 @@
   },
   "tabs": {
     "home": "Home",
+    "feed": "Thoughts",
     "settings": "Settings"
   },
   "error": {

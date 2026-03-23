@@ -38,6 +38,8 @@ import { getFontStyle } from '@/shared/theme/typography';
 import { SCREEN, sp } from '@/utils/responsive';
 import { canReloadQuestion, getReloadCountDisplay } from '../constants/limits';
 import { logEvent, AnalyticsEvents } from '@/services/firebase';
+import { PublicStatusBadge } from '@/features/feed/components/PublicStatusBadge';
+import { useTogglePublic } from '@/features/feed/hooks/mutations/useFeedMutations';
 
 const SWIPE_THRESHOLD = SCREEN.width * 0.2; // 20% - 더 쉽게 넘어가도록 조정 (이전: 0.3)
 
@@ -475,6 +477,13 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
     setIsAlertVisible(true);
   }, [currentDate]);
 
+  // 공개/비공개 토글
+  const togglePublicMutation = useTogglePublic();
+  const handleTogglePublic = useCallback(() => {
+    if (!currentHistory?.answer) return;
+    togglePublicMutation.mutate(currentHistory.answer.dailyAnswerId);
+  }, [currentHistory, togglePublicMutation]);
+
   // 답변 수정 화면으로 이동
   const handleEditAnswer = useCallback(() => {
     if (!currentItem?.answer) return;
@@ -487,9 +496,10 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
         question: currentItem.question,
         description: currentItem.description || '',
         existingAnswer: currentItem.answer,
+        existingIsPublic: String(currentHistory?.answer?.isPublic ?? false),
       },
     });
-  }, [currentItem, currentDate, router]);
+  }, [currentItem, currentDate, currentHistory, router]);
 
   // 내부 콘텐츠 렌더링 함수
   const renderContent = () => {
@@ -608,6 +618,14 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
                       {currentItem.answer}
                     </Text>
                   </ScrollView>
+                  {/* Public Status Badge */}
+                  <View style={styles.publicStatusContainer}>
+                    <PublicStatusBadge
+                      isPublic={currentHistory?.answer?.isPublic ?? false}
+                      likeCount={currentHistory?.answer?.likeCount ?? 0}
+                      onToggle={handleTogglePublic}
+                    />
+                  </View>
                 </>
               ) : (
                 <View style={styles.noAnswerContainer}>
@@ -726,6 +744,10 @@ const styles = StyleSheet.create({
   },
   answerSection: {
     flex: 1, // 나머지 공간 전부 차지
+  },
+  publicStatusContainer: {
+    marginTop: 12,
+    paddingTop: 8,
   },
   answerScroll: {
     flex: 1,

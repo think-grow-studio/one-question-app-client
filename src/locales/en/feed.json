@@ -1,0 +1,17 @@
+{
+  "title": "Everyone's Thoughts",
+  "empty": "No public thoughts yet",
+  "emptyDesc": "Be the first to share your thoughts",
+  "loading": "Loading...",
+  "detail": {
+    "answer": "Answer",
+    "likeButton": "Like",
+    "likedButton": "Liked"
+  },
+  "publicToggle": {
+    "label": "Share to Everyone's Thoughts",
+    "helper": "When shared, others can see your answer with an anonymous nickname",
+    "publicStatus": "Public",
+    "privateStatus": "Private"
+  }
+}

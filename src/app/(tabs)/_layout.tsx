@@ -3,6 +3,7 @@ import { Tabs } from 'expo-router';
 import { useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { HomeIcon } from '@/shared/icons/HomeIcon';
+import { FeedIcon } from '@/shared/icons/FeedIcon';
 import { SettingsIcon } from '@/shared/icons/SettingsIcon';
 import { useAccentColors, getFontStyle } from '@/shared/theme';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
@@ -38,6 +39,20 @@ export default function TabLayout() {
           tabBarLabel: ({ color, focused }) => (
             <Text style={{ color, fontSize: 10, ...getFontStyle(focused ? '700' : '400') }}>
               {t('tabs.home')}
+            </Text>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="feed"
+        options={{
+          title: t('tabs.feed'),
+          tabBarIcon: ({ color, focused }) => (
+            <FeedIcon size={24} color={color} active={focused} />
+          ),
+          tabBarLabel: ({ color, focused }) => (
+            <Text style={{ color, fontSize: 10, ...getFontStyle(focused ? '700' : '400') }}>
+              {t('tabs.feed')}
             </Text>
           ),
         }}

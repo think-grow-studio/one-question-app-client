@@ -255,6 +255,12 @@ function RootLayoutNav() {
             animation: 'slide_from_bottom',
           }}
         />
+        <Stack.Screen
+          name="feed/[id]"
+          options={{
+            animation: 'slide_from_right',
+          }}
+        />
       </Stack>
       <GlobalErrorHandler />
       <VersionCheckDialog
