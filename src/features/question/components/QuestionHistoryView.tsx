@@ -35,18 +35,14 @@ import { useQueryClient } from '@tanstack/react-query';
 import { DatePickerSheet } from './DatePickerSheet';
 import { ReloadOptionSheet } from '@/features/answer/components/ReloadOptionSheet';
 import { getFontStyle } from '@/shared/theme/typography';
+import { formatLocalDate } from '@/shared/utils/date';
 import { SCREEN, sp } from '@/utils/responsive';
 import { canReloadQuestion, getReloadCountDisplay } from '../constants/limits';
 import { logEvent, AnalyticsEvents } from '@/services/firebase';
 
 const SWIPE_THRESHOLD = SCREEN.width * 0.2; // 20% - 더 쉽게 넘어가도록 조정 (이전: 0.3)
 
-const getTodayDateString = () => {
-  const today = new Date();
-  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(
-    today.getDate()
-  ).padStart(2, '0')}`;
-};
+const getTodayDateString = () => formatLocalDate();
 
 export const QuestionHistoryView = memo(function QuestionHistoryView() {
   const router = useRouter();
@@ -248,7 +244,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
 
     const [year, month, day] = currentDateRef.current.split('-').map(Number);
     const prevDate = new Date(year, month - 1, day - 1);
-    const prevDateStr = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}-${String(prevDate.getDate()).padStart(2, '0')}`;
+    const prevDateStr = formatLocalDate(prevDate);
 
     // cycleStartDate 이전으로 이동 불가
     if (prevDateStr < cycleStartDate) {
@@ -272,7 +268,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
 
     const [year, month, day] = currentDateRef.current.split('-').map(Number);
     const prevDate = new Date(year, month - 1, day - 1);
-    const prevDateStr = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}-${String(prevDate.getDate()).padStart(2, '0')}`;
+    const prevDateStr = formatLocalDate(prevDate);
 
     if (prevDateStr < cycleStartDate) {
       return false;
@@ -287,11 +283,10 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
     // 현재 날짜 문자열에서 다음 날 계산
     const [year, month, day] = currentDateRef.current.split('-').map(Number);
     const nextDate = new Date(year, month - 1, day + 1);
-    const nextDateStr = `${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, '0')}-${String(nextDate.getDate()).padStart(2, '0')}`;
+    const nextDateStr = formatLocalDate(nextDate);
 
     // 오늘 날짜를 넘어가지 못하게 제한
-    const today = new Date();
-    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const todayStr = formatLocalDate();
 
     if (nextDateStr <= todayStr) {
       setCurrentDate(nextDateStr);
@@ -323,8 +318,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
         if (gestureState.dx < -SWIPE_THRESHOLD) {
           // 왼쪽으로 스와이프 -> 다음 날 (미래로)
           // 오늘 날짜인지 확인 (문자열 비교로 타임존 이슈 방지)
-          const today = new Date();
-          const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+          const todayStr = formatLocalDate();
 
           // 오늘 날짜면 스와이프 불가
           if (currentDateRef.current >= todayStr) {

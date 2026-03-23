@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { formatLocalDate } from '@/shared/utils/date';
 
 /**
  * DatePicker UI 상태만 관리하는 스토어
@@ -12,7 +13,7 @@ interface DatePickerStore {
 }
 
 export const useDatePickerStore = create<DatePickerStore>((set) => ({
-  currentDate: new Date().toISOString().split('T')[0], // 'YYYY-MM-DD' 형식
+  currentDate: formatLocalDate(), // 'YYYY-MM-DD' 형식 (로컬 시간 기준)
   isDatePickerVisible: false,
   setCurrentDate: (date) => {
     set({ currentDate: date });
