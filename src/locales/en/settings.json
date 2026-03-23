@@ -20,7 +20,11 @@
     "am": "AM",
     "pm": "PM",
     "pushTitle": "One Question",
-    "pushBody": "Answer today's question."
+    "pushBody": "Answer today's question.",
+    "exactAlarmTitle": "Notification Permission Required",
+    "exactAlarmMessage": "To receive notifications at the exact time, please allow \"Exact Alarm\" permission in Settings.",
+    "exactAlarmLater": "Later",
+    "exactAlarmGoToSettings": "Go to Settings"
   },
   "language": {
     "title": "Language",

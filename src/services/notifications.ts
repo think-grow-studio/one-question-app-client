@@ -96,15 +96,19 @@ export async function scheduleDailyNotification(
         type: Notifications.SchedulableTriggerInputTypes.DAILY,
         hour,
         minute,
-        second: 0,
       },
     });
 
     console.log(`알림 스케줄됨: ${hour}:${minute.toString().padStart(2, '0')}`);
 
-    // 디버그: 예약된 알림 확인
+    // 실제 등록 여부 검증
     const scheduled = await Notifications.getAllScheduledNotificationsAsync();
     console.log('예약된 알림 목록:', JSON.stringify(scheduled, null, 2));
+    const isRegistered = scheduled.some(n => n.identifier === identifier);
+    if (!isRegistered) {
+      console.warn('알림이 실제로 등록되지 않았습니다. 정확한 알람 권한을 확인하세요.');
+      return null;
+    }
     return identifier;
   } catch (error) {
     console.error('알림 스케줄링 실패:', error);

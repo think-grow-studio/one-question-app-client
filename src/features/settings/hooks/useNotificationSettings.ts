@@ -1,4 +1,6 @@
 import { useCallback, useEffect } from 'react';
+import { Alert, Linking, Platform } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useNotificationStore } from '@/stores/useNotificationStore';
 import {
   requestNotificationPermission,
@@ -9,6 +11,18 @@ import {
 
 export function useNotificationSettings() {
   const { isEnabled, hour, minute, setEnabled, setTime } = useNotificationStore();
+  const { t } = useTranslation('settings');
+
+  const showExactAlarmPermissionAlert = useCallback(() => {
+    Alert.alert(
+      t('notification.exactAlarmTitle'),
+      t('notification.exactAlarmMessage'),
+      [
+        { text: t('notification.exactAlarmLater') },
+        { text: t('notification.exactAlarmGoToSettings'), onPress: () => Linking.openSettings() },
+      ]
+    );
+  }, [t]);
 
   // 알림 활성화/비활성화 토글
   const toggleNotification = useCallback(async () => {
@@ -16,7 +30,11 @@ export function useNotificationSettings() {
       // 활성화하려는 경우 권한 요청
       const hasPermission = await requestNotificationPermission();
       if (hasPermission) {
-        await scheduleDailyNotification(hour, minute);
+        const id = await scheduleDailyNotification(hour, minute);
+        if (!id && Platform.OS === 'android') {
+          showExactAlarmPermissionAlert();
+          return; // 스케줄 실패 시 토글 OFF 유지
+        }
         setEnabled(true);
       }
     } else {
@@ -24,7 +42,7 @@ export function useNotificationSettings() {
       await cancelDailyNotification();
       setEnabled(false);
     }
-  }, [isEnabled, hour, minute, setEnabled]);
+  }, [isEnabled, hour, minute, setEnabled, showExactAlarmPermissionAlert]);
 
   // 알림 시간 변경
   const updateNotificationTime = useCallback(
@@ -33,10 +51,14 @@ export function useNotificationSettings() {
 
       // 이미 활성화된 경우 새 시간으로 다시 스케줄
       if (isEnabled) {
-        await scheduleDailyNotification(newHour, newMinute);
+        const id = await scheduleDailyNotification(newHour, newMinute);
+        if (!id && Platform.OS === 'android') {
+          showExactAlarmPermissionAlert();
+          setEnabled(false); // 스케줄 실패 시 토글 OFF
+        }
       }
     },
-    [isEnabled, setTime]
+    [isEnabled, setTime, showExactAlarmPermissionAlert]
   );
 
   // 앱 시작 시 알림 상태 동기화

@@ -261,6 +261,7 @@ export function TimePickerSheet({
                 showsVerticalScrollIndicator={false}
                 snapToInterval={ITEM_HEIGHT}
                 decelerationRate="fast"
+                onScrollEndDrag={handleHourScroll}
                 onMomentumScrollEnd={handleHourScroll}
                 contentContainerStyle={styles.pickerContent}
               >
@@ -291,6 +292,7 @@ export function TimePickerSheet({
                 showsVerticalScrollIndicator={false}
                 snapToInterval={ITEM_HEIGHT}
                 decelerationRate="fast"
+                onScrollEndDrag={handleMinuteScroll}
                 onMomentumScrollEnd={handleMinuteScroll}
                 contentContainerStyle={styles.pickerContent}
               >

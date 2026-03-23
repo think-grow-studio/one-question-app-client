@@ -20,7 +20,11 @@
     "am": "오전",
     "pm": "오후",
     "pushTitle": "One Question",
-    "pushBody": "오늘의 질문에 답을 해보세요."
+    "pushBody": "오늘의 질문에 답을 해보세요.",
+    "exactAlarmTitle": "알림 설정 필요",
+    "exactAlarmMessage": "정확한 시간에 알림을 받으려면 설정에서 \"정확한 알람\" 권한을 허용해 주세요.",
+    "exactAlarmLater": "나중에",
+    "exactAlarmGoToSettings": "설정으로 이동"
   },
   "language": {
     "title": "언어",
