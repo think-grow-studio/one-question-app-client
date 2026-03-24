@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Text } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useTheme } from 'tamagui';
@@ -6,6 +7,8 @@ import { HomeIcon } from '@/shared/icons/HomeIcon';
 import { SettingsIcon } from '@/shared/icons/SettingsIcon';
 import { useAccentColors, getFontStyle } from '@/shared/theme';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
+import { useDatePickerStore } from '@/features/question/stores/useDatePickerStore';
+import { formatLocalDate } from '@/shared/utils/date';
 
 export default function TabLayout() {
   const theme = useTheme();
@@ -14,6 +17,11 @@ export default function TabLayout() {
 
   // member 데이터 prefetch (하위 화면에서 캐시된 데이터 사용)
   useMemberMe();
+
+  // tabs 마운트 시 오늘 날짜로 동기화 (앱 시작 시점과 로그인 완료 시점의 날짜가 다를 수 있음)
+  useEffect(() => {
+    useDatePickerStore.getState().setCurrentDate(formatLocalDate());
+  }, []);
 
   return (
     <Tabs
