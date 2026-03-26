@@ -13,6 +13,7 @@ import { GoogleIcon } from '@/shared/icons/GoogleIcon';
 import { AppleIcon } from '@/shared/icons/AppleIcon';
 import { InfoIcon } from '@/shared/icons/InfoIcon';
 import { AlertDialog } from '@/shared/ui/AlertDialog/AlertDialog';
+import { config } from '@/constants/config';
 import { useAlertDialog } from '@/shared/ui/AlertDialog/useAlertDialog';
 import { useWithdrawMutation } from '@/features/auth/hooks/mutations/useAuthMutations';
 import { logScreenView, logEvent, AnalyticsEvents } from '@/services/firebase';
@@ -194,7 +195,7 @@ export default function SettingsScreen() {
                 <Text variant="body" muted>
                   {t('appInfo.version')}
                 </Text>
-                <Text variant="body">1.0.0</Text>
+                <Text variant="body">{config.appVersion}</Text>
               </View>
             </YStack>
             <Pressable

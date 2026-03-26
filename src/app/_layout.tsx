@@ -28,6 +28,7 @@ import { AppErrorBoundary } from '@/shared/error/AppErrorBoundary';
 import { VersionCheckDialog } from '@/shared/ui/VersionCheckDialog';
 import { appVersionService } from '@/services/appVersionService';
 import { meetsMinVersion, hasNewerVersion } from '@/services/versionComparator';
+import { formatLocalDate } from '@/shared/utils/date';
 import { config } from '@/constants/config';
 import { APP_STORE_URLS } from '@/constants/appStoreUrls';
 import '@/features/admob/config/adInit'; // AdMob SDK 초기화
@@ -74,11 +75,7 @@ function RootLayoutNav() {
 
   const rootBackgroundColor = mode === 'dark' ? '#1C1C1E' : '#FFFFFF';
 
-  // Get today's date in YYYY-MM-DD format
-  const getTodayDateString = (): string => {
-    const now = new Date();
-    return now.toISOString().split('T')[0];
-  };
+  const getTodayDateString = (): string => formatLocalDate();
 
   // Check if version check was already done today
   const wasCheckedToday = async (): Promise<boolean> => {
