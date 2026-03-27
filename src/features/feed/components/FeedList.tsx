@@ -7,7 +7,7 @@ import { Text } from '@/shared/ui/Text';
 import { useFeedList } from '../hooks/queries/useFeedQueries';
 import { FeedCard } from './FeedCard';
 import { useAccentColors } from '@/shared/theme';
-import type { FeedItemDomain } from '../domain/feedDomain';
+import type { FeedItemDomain } from '../types/api';
 
 export function FeedList() {
   const { t } = useTranslation('feed');
@@ -83,7 +83,8 @@ export function FeedList() {
 
 const styles = StyleSheet.create({
   listContent: {
-    paddingVertical: 8,
+    paddingTop: 4,
+    paddingBottom: 24,
   },
   footer: {
     paddingVertical: 20,

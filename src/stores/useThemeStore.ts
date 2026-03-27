@@ -12,44 +12,52 @@ export const ACCENT_COLORS = {
     primaryHover: '#3A7BC8',
     background: '#F0F7FF',
     textOnPrimary: '#FFFFFF',
+    like: '#4A90E2',
     // 다크모드
     primaryDark: '#5BA3F5',
     primaryHoverDark: '#4A90E2',
     backgroundDark: '#1C1C1E',
     textOnPrimaryDark: '#FFFFFF',
+    likeDark: '#5BA3F5',
   },
   lavender: {
     primary: '#A78BFA',
     primaryHover: '#9775F0',
     background: '#F3E8FF',
     textOnPrimary: '#FFFFFF',
+    like: '#A78BFA',
     // 다크모드
     primaryDark: '#B79BFF',
     primaryHoverDark: '#A78BFA',
     backgroundDark: '#1C1C1E',
     textOnPrimaryDark: '#FFFFFF',
+    likeDark: '#B79BFF',
   },
   green: {
     primary: '#52B788',
     primaryHover: '#45A078',
     background: '#ECFDF5',
     textOnPrimary: '#FFFFFF',
+    like: '#52B788',
     // 다크모드
     primaryDark: '#62C798',
     primaryHoverDark: '#52B788',
     backgroundDark: '#1C1C1E',
     textOnPrimaryDark: '#FFFFFF',
+    likeDark: '#62C798',
   },
   white: {
     primary: '#2D3436',
     primaryHover: '#1D2426',
     background: '#FFFFFF',
     textOnPrimary: '#FFFFFF',
+    like: '#FF6B6B',
     // 다크모드 (흰색 테마는 다크모드에서 반전)
     primaryDark: '#FFFFFF',
     primaryHoverDark: '#E0E0E0',
     backgroundDark: '#1C1C1E',
     textOnPrimaryDark: '#2D3436',
+    likeDark: '#FF6B6B',
   },
 } as const;
 
@@ -70,6 +78,7 @@ export function getAccentColors(mode: ThemeMode, accentColor: AccentColor) {
     primaryHover: isDark ? colors.primaryHoverDark : colors.primaryHover,
     background: isDark ? colors.backgroundDark : colors.background,
     textOnPrimary: isDark ? colors.textOnPrimaryDark : colors.textOnPrimary,
+    like: isDark ? colors.likeDark : colors.like,
   };
 }
 

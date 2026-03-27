@@ -7,17 +7,10 @@ import { getFontStyle } from '@/shared/theme/typography';
 import { useAccentColors } from '@/shared/theme';
 import { useFeedDetail } from '../hooks/queries/useFeedQueries';
 import { useToggleLike } from '../hooks/mutations/useFeedMutations';
+import { formatFeedDate } from '../utils/feedUtils';
 
 interface FeedDetailViewProps {
   feedId: number;
-}
-
-function formatDetailDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}.${m}.${d}`;
 }
 
 export function FeedDetailView({ feedId }: FeedDetailViewProps) {
@@ -46,11 +39,11 @@ export function FeedDetailView({ feedId }: FeedDetailViewProps) {
     >
       {/* Date */}
       <Text variant="caption" muted style={styles.date}>
-        {formatDetailDate(data.answeredAt)}
+        {formatFeedDate(data.answeredAt)}
       </Text>
 
       {/* Question */}
-      <Text variant="subheading" style={styles.question}>
+      <Text variant="subheading" style={styles.question} {...getFontStyle('700')}>
         {data.questionContent}
       </Text>
 
@@ -61,12 +54,8 @@ export function FeedDetailView({ feedId }: FeedDetailViewProps) {
         </Text>
       )}
 
-      {/* Divider */}
-      <YStack
-        height={1}
-        bg="$borderColor"
-        my="$4"
-      />
+      {/* Breathing space instead of divider */}
+      <YStack height={32} />
 
       {/* Answer */}
       <Text variant="body" style={styles.answer}>
@@ -74,30 +63,29 @@ export function FeedDetailView({ feedId }: FeedDetailViewProps) {
       </Text>
 
       {/* Author + Like */}
-      <YStack
-        mt="$6"
-        pt="$4"
-        borderTopWidth={1}
-        borderTopColor="$borderColor"
-        gap="$3"
-      >
+      <YStack mt="$8" gap="$4">
         {/* Author */}
-        <XStack alignItems="center" gap="$2">
+        <XStack alignItems="center" gap="$3">
           <YStack
-            width={32}
-            height={32}
-            borderRadius={16}
+            width={36}
+            height={36}
+            borderRadius={18}
             bg="$backgroundSoft"
             justifyContent="center"
             alignItems="center"
           >
-            <Text variant="caption" {...getFontStyle('600')}>
+            <Text variant="caption" {...getFontStyle('700')}>
               {data.authorNickname.charAt(0)}
             </Text>
           </YStack>
-          <Text variant="bodySmall" muted>
-            {data.authorNickname}
-          </Text>
+          <YStack>
+            <Text variant="bodySmall" {...getFontStyle('600')}>
+              {data.authorNickname}
+            </Text>
+            <Text variant="caption" muted style={{ fontSize: 11 }}>
+              {formatFeedDate(data.answeredAt)}
+            </Text>
+          </YStack>
         </XStack>
 
         {/* Like button */}
@@ -107,28 +95,28 @@ export function FeedDetailView({ feedId }: FeedDetailViewProps) {
             styles.likeButton,
             {
               backgroundColor: data.isLiked
-                ? 'rgba(255, 107, 107, 0.1)'
+                ? `${accent.like}1A`
                 : (theme.backgroundSoft?.val ?? '#f5f5f5'),
-              opacity: pressed ? 0.7 : 1,
+              transform: [{ scale: pressed ? 0.96 : 1 }],
             },
           ]}
         >
           <XStack alignItems="center" gap="$2">
             <HeartIcon
               size={18}
-              color={data.isLiked ? '#FF6B6B' : (theme.colorMuted?.val ?? '#999')}
+              color={data.isLiked ? accent.like : (theme.colorMuted?.val ?? '#999')}
               filled={data.isLiked}
             />
             <Text
               variant="bodySmall"
-              color={data.isLiked ? '#FF6B6B' : '$colorMuted'}
+              color={data.isLiked ? accent.like : '$colorMuted'}
               {...getFontStyle('600')}
             >
               {data.isLiked ? t('detail.likedButton') : t('detail.likeButton')}
             </Text>
             <Text
               variant="bodySmall"
-              color={data.isLiked ? '#FF6B6B' : '$colorMuted'}
+              color={data.isLiked ? accent.like : '$colorMuted'}
             >
               {data.likeCount}
             </Text>
@@ -144,29 +132,31 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
+    paddingTop: 24,
+    paddingHorizontal: 24,
+    paddingBottom: 48,
   },
   date: {
     fontSize: 12,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   question: {
-    lineHeight: 30,
+    lineHeight: 32,
     marginBottom: 8,
   },
   description: {
-    lineHeight: 20,
+    lineHeight: 22,
+    marginTop: 4,
   },
   answer: {
-    lineHeight: 26,
+    lineHeight: 28,
   },
   likeButton: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 24,
   },
 });

@@ -1,5 +1,7 @@
 {
   "title": "모두의 생각",
+  "headerLabel": "EVERYONE'S THOUGHTS",
+  "headerDesc": "같은 질문, 다른 생각들을 만나보세요",
   "empty": "아직 공개된 생각이 없어요",
   "emptyDesc": "첫 번째로 생각을 공유해보세요",
   "loading": "불러오는 중...",

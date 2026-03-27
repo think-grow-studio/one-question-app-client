@@ -1,5 +1,7 @@
 {
   "title": "Everyone's Thoughts",
+  "headerLabel": "EVERYONE'S THOUGHTS",
+  "headerDesc": "Same question, different perspectives",
   "empty": "No public thoughts yet",
   "emptyDesc": "Be the first to share your thoughts",
   "loading": "Loading...",

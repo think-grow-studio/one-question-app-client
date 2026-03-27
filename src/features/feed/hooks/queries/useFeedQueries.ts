@@ -1,6 +1,6 @@
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { feedApi } from '../../api/feedApi';
-import { fromFeedItemDto } from '../../domain/feedDomain';
+import { fromFeedItemDto } from '../../types/api';
 
 export const feedQueryKeys = {
   all: ['feed'] as const,
