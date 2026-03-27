@@ -6,9 +6,13 @@
   "emptyDesc": "Be the first to share your thoughts",
   "loading": "Loading...",
   "detail": {
+    "questionLabel": "Q.",
+    "answerLabel": "A.",
     "answer": "Answer",
     "likeButton": "Like",
-    "likedButton": "Liked"
+    "likedButton": "Liked",
+    "likeCount_one": "{{count}} like",
+    "likeCount_other": "{{count}} likes"
   },
   "publicToggle": {
     "label": "Share to Everyone's Thoughts",
