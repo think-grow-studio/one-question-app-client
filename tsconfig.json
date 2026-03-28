@@ -3,7 +3,7 @@
   "compilerOptions": {
     "strict": true,
     "baseUrl": ".",
-    "types": ["tamagui"],
+    "types": ["tamagui", "jest"],
     "paths": {
       "@/*": ["src/*"],
       "@/app/*": ["src/app/*"],

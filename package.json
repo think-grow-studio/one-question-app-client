@@ -21,7 +21,12 @@
     "update-preview": "eas update --branch preview --message",
     "update-production": "APP_ENV=production eas update --branch production --message",
     "update-development": "eas update --branch development --message",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "jest": {
+    "preset": "jest-expo/ios"
   },
   "dependencies": {
     "@gorhom/bottom-sheet": "^5.2.8",
@@ -72,10 +77,14 @@
   },
   "devDependencies": {
     "@tamagui/babel-plugin": "^1.141.4",
+    "@types/jest": "^29.5.14",
     "@types/react": "~19.1.0",
     "babel-plugin-module-resolver": "^5.0.2",
     "babel-preset-expo": "^54.0.8",
+    "jest": "^29.7.0",
+    "jest-expo": "~54.0.0",
     "patch-package": "^8.0.1",
+    "react-native-worklets": "^0.8.1",
     "typescript": "~5.9.2"
   },
   "private": true
