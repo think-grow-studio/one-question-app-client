@@ -1,13 +1,13 @@
 import { useCallback, useEffect } from 'react';
 import { Alert, Linking, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useNotificationStore } from '@/stores/useNotificationStore';
+import { useNotificationStore } from '@/features/settings/stores/useNotificationStore';
 import {
   requestNotificationPermission,
   getNotificationPermissionStatus,
   scheduleDailyNotification,
   cancelDailyNotification,
-} from '@/services/notifications';
+} from '@/features/settings/services/notifications';
 
 export function useNotificationSettings() {
   const { isEnabled, hour, minute, setEnabled, setTime } = useNotificationStore();

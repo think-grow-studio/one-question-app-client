@@ -7,7 +7,7 @@ import type {
   UpdateAnswerResponse,
   GetQuestionHistoryResponse,
   HistoryDirection,
-} from '@/types/api';
+} from '@/shared/types/api';
 
 // Question API
 export const questionApi = {

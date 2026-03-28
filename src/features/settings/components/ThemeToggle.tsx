@@ -3,7 +3,7 @@ import { XStack, useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
 import { ThemeModeIcon } from '@/shared/icons/ThemeModeIcon';
-import { useThemeStore } from '@/stores/useThemeStore';
+import { useThemeStore } from '@/shared/stores/useThemeStore';
 import { useThemeTransition } from '@/shared/ui/ThemeTransitionProvider';
 import { useAccentColors, getFontStyle } from '@/shared/theme';
 import { logEvent, AnalyticsEvents } from '@/services/firebase';

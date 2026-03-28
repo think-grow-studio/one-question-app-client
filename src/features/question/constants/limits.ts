@@ -1,4 +1,4 @@
-import { MemberPermission } from '@/types/api';
+import { MemberPermission } from '@/shared/types/api';
 
 /**
  * 멤버십 등급별 질문 reload 제한

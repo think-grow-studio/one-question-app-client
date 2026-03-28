@@ -28,7 +28,7 @@ import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
 import { PublicToggle } from '@/features/feed/components/PublicToggle';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 import { shouldHideAds } from '@/features/member/constants/permissions';
-import { sp } from '@/utils/responsive';
+import { sp } from '@/shared/utils/responsive';
 import { logScreenView, logEvent, AnalyticsEvents } from '@/services/firebase';
 
 interface QuestionData {

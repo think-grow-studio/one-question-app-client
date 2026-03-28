@@ -7,7 +7,7 @@ import { Text } from '@/shared/ui/Text';
 import { ThemeToggle } from '@/features/settings/components/ThemeToggle';
 import { AccentColorPicker } from '@/features/settings/components/AccentColorPicker';
 import { NotificationSettings } from '@/features/settings/components/NotificationSettings';
-import { useAuthStore } from '@/stores/useAuthStore';
+import { useAuthStore } from '@/shared/stores/useAuthStore';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 import { GoogleIcon } from '@/shared/icons/GoogleIcon';
 import { AppleIcon } from '@/shared/icons/AppleIcon';

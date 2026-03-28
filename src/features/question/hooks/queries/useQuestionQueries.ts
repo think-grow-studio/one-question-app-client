@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { questionApi } from '../../api/questionApi';
-import type { HistoryDirection } from '@/types/api';
+import type { HistoryDirection } from '@/shared/types/api';
 import { fromHistoryItem, type DailyQuestionDomain } from '../../domain/questionDomain';
 
 /**

@@ -6,7 +6,7 @@ import {
   useThemeStore,
   AccentColor,
   ACCENT_COLORS,
-} from '@/stores/useThemeStore';
+} from '@/shared/stores/useThemeStore';
 
 const ACCENT_OPTIONS: { key: AccentColor; label: string }[] = [
   { key: 'blue', label: '하늘' },

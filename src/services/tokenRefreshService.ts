@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { config } from '@/constants/config';
 import { storage } from './storage';
-import { AuthResponse } from '@/types/api';
+import { AuthResponse } from '@/shared/types/api';
 
 /**
  * Token Refresh Mutex Service

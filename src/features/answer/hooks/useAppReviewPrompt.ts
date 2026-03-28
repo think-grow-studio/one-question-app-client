@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useAppReviewStore } from '@/stores/useAppReviewStore';
+import { useAppReviewStore } from '@/features/answer/stores/useAppReviewStore';
 import { requestAppReview } from '@/services/appReview';
 
 export function useAppReviewPrompt() {

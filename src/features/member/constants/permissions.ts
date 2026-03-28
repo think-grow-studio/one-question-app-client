@@ -1,4 +1,4 @@
-import { MemberPermission } from '@/types/api';
+import { MemberPermission } from '@/shared/types/api';
 
 export const AD_FREE_PERMISSIONS: MemberPermission[] = [MemberPermission.PREMIUM];
 

@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import { YStack, styled, GetProps, useTheme } from 'tamagui';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar, View, StyleSheet } from 'react-native';
-import { useThemeStore } from '@/stores/useThemeStore';
+import { useThemeStore } from '@/shared/stores/useThemeStore';
 
 const ScreenContainer = styled(YStack, {
   name: 'Screen',

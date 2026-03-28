@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { memberApi } from '@/features/member/api/memberApi';
 import { memberQueryKeys } from '@/features/member/hooks/queries/useMemberQueries';
-import { LANGUAGE_LOCALE_MAP, type Language } from '@/stores/useLanguageStore';
+import { LANGUAGE_LOCALE_MAP, type Language } from '@/shared/stores/useLanguageStore';
 
 export function useUpdateLocaleMutation() {
   const queryClient = useQueryClient();

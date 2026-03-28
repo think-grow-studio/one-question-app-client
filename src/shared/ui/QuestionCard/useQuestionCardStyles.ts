@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { useTheme } from 'tamagui';
 import { useAccentColors, getFontStyle } from '@/shared/theme';
-import { useThemeStore } from '@/stores/useThemeStore';
-import { fs, sp, radius, cs, deviceValue, SCREEN } from '@/utils/responsive';
+import { useThemeStore } from '@/shared/stores/useThemeStore';
+import { fs, sp, radius, cs, deviceValue, SCREEN } from '@/shared/utils/responsive';
 
 export function useQuestionCardStyles() {
   const theme = useTheme();

@@ -1,5 +1,5 @@
 import { AlertDialog } from '@/shared/ui/AlertDialog';
-import { useApiErrorStore } from '@/stores/useApiErrorStore';
+import { useApiErrorStore } from '@/shared/stores/useApiErrorStore';
 import { useTranslation } from 'react-i18next';
 
 export function GlobalErrorHandler() {

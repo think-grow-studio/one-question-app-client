@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { questionApi } from '../../api/questionApi';
 import { questionQueryKeys, getCalendarBaseDate } from '../queries/useQuestionQueries';
-import type { ServeDailyQuestionResponse } from '@/types/api';
+import type { ServeDailyQuestionResponse } from '@/shared/types/api';
 import { fromServeDailyQuestion } from '../../domain/questionDomain';
 
 export function useServeDailyQuestion(options?: {

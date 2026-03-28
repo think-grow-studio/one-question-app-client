@@ -15,7 +15,7 @@ import { AdBadge } from '@/shared/ui/ads/AdBadge';
 import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 import { shouldHideAds } from '@/features/member/constants/permissions';
-import { fs, sp, radius, cs, SHEET_HEIGHTS, SHEET_MAX_WIDTH } from '@/utils/responsive';
+import { fs, sp, radius, cs, SHEET_HEIGHTS, SHEET_MAX_WIDTH } from '@/shared/utils/responsive';
 
 const DISMISS_THRESHOLD = 100;
 

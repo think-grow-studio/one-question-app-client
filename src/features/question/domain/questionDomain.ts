@@ -6,7 +6,7 @@ import type {
   HistoryStatus,
   CreateAnswerResponse,
   UpdateAnswerResponse,
-} from '@/types/api';
+} from '@/shared/types/api';
 
 /**
  * 캐시용 도메인 모델

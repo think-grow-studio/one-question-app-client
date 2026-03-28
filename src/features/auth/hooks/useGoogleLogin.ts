@@ -8,8 +8,8 @@ import {
 } from '@react-native-google-signin/google-signin';
 import Constants from 'expo-constants';
 import { authApi } from '@/features/auth/api/authApi';
-import { useAuthStore } from '@/stores/useAuthStore';
-import { GoogleAuthRequest } from '@/types/api';
+import { useAuthStore } from '@/shared/stores/useAuthStore';
+import { GoogleAuthRequest } from '@/shared/types/api';
 
 // Google Sign-In 설정
 let isGoogleSignInConfigured = false;

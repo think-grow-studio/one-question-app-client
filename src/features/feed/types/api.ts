@@ -1,4 +1,4 @@
-import type { FeedItemDto } from '@/types/api';
+import type { FeedItemDto } from '@/shared/types/api';
 
 export interface FeedItemDomain {
   feedId: number;

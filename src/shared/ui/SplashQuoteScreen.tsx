@@ -12,7 +12,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { useThemeStore } from '@/stores/useThemeStore';
+import { useThemeStore } from '@/shared/stores/useThemeStore';
 
 interface Props {
   onFinish: () => void;

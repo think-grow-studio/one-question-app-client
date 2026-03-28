@@ -2,7 +2,7 @@ import { memo, useMemo } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useTheme } from 'tamagui';
 import { useAccentColors, getFontStyle } from '@/shared/theme';
-import { fs, sp, radius, deviceValue } from '@/utils/responsive';
+import { fs, sp, radius, deviceValue } from '@/shared/utils/responsive';
 
 export type LoadingOverlayProps = {
   visible: boolean;

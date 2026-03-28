@@ -1,4 +1,4 @@
-import type { FeedItemDto } from '@/types/api';
+import type { FeedItemDto } from '@/shared/types/api';
 
 export const MOCK_ANONYMOUS_NICKNAMES = [
   '고요한 바다', '따뜻한 햇살', '생각하는 구름', '조용한 파도',

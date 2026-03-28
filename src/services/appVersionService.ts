@@ -1,5 +1,5 @@
 import { apiClient } from './apiClient';
-import { AppVersionCheckResponse, PlatformType } from '@/types/api';
+import { AppVersionCheckResponse, PlatformType } from '@/shared/types/api';
 import { Platform } from 'react-native';
 import { config } from '@/constants/config';
 

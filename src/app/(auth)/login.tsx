@@ -8,8 +8,8 @@ import { useGoogleLogin } from '@/features/auth/hooks/useGoogleLogin';
 import { Pressable, ActivityIndicator } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { getFontStyle } from '@/shared/theme/typography';
-import { sp, cs, radius, fs } from '@/utils/responsive';
-import { useThemeStore } from '@/stores/useThemeStore';
+import { sp, cs, radius, fs } from '@/shared/utils/responsive';
+import { useThemeStore } from '@/shared/stores/useThemeStore';
 import * as WebBrowser from 'expo-web-browser';
 import { logScreenView, logEvent, AnalyticsEvents } from '@/services/firebase';
 

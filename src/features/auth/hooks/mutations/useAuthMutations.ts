@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { authApi } from '@/features/auth/api/authApi';
-import { useAuthStore } from '@/stores/useAuthStore';
+import { useAuthStore } from '@/shared/stores/useAuthStore';
 
 /**
  * 회원탈퇴 Mutation

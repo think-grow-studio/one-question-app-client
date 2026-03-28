@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { HistoryDirection } from '@/types/api';
+import type { HistoryDirection } from '@/shared/types/api';
 
 interface SlideDirectionStore {
   direction: HistoryDirection;

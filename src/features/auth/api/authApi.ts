@@ -4,7 +4,7 @@ import type {
   AppleAuthRequest,
   AuthResponse,
   ReissueTokenRequest,
-} from '@/types/api';
+} from '@/shared/types/api';
 
 export const authApi = {
   googleLogin: (data: GoogleAuthRequest) =>

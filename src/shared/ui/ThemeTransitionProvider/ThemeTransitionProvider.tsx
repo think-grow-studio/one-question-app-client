@@ -13,7 +13,7 @@ import Animated, {
   runOnJS,
   Easing,
 } from 'react-native-reanimated';
-import { useThemeStore } from '@/stores/useThemeStore';
+import { useThemeStore } from '@/shared/stores/useThemeStore';
 
 // 테마별 배경색 (순수 흰/검 대신 약간 부드러운 색상)
 const THEME_COLORS = {

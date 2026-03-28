@@ -3,7 +3,7 @@ import type {
   GetFeedDetailResponse,
   ToggleLikeResponse,
   TogglePublicResponse,
-} from '@/types/api';
+} from '@/shared/types/api';
 // import { apiClient } from '@/services/apiClient';
 import { MOCK_FEED_ITEMS } from './__mocks__/feedMockData';
 

@@ -1,12 +1,12 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import * as Localization from 'expo-localization';
 import { config } from '@/constants/config';
-import { LANGUAGE_LOCALE_MAP } from '@/stores/useLanguageStore';
+import { LANGUAGE_LOCALE_MAP } from '@/shared/stores/useLanguageStore';
 import { storage } from './storage';
 import i18n from '@/locales';
-import { useApiErrorStore } from '@/stores/useApiErrorStore';
-import { useAuthStore } from '@/stores/useAuthStore';
-import { ApiErrorResponse, AuthResponse } from '@/types/api';
+import { useApiErrorStore } from '@/shared/stores/useApiErrorStore';
+import { useAuthStore } from '@/shared/stores/useAuthStore';
+import { ApiErrorResponse, AuthResponse } from '@/shared/types/api';
 import { tokenRefreshService } from './tokenRefreshService';
 import { recordError } from '@/services/firebase';
 

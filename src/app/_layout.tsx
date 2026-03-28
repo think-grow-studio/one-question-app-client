@@ -19,15 +19,15 @@ import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import tamaguiConfig from '../../tamagui.config';
 import { queryClient } from '@/services/queryClient';
-import { useThemeStore } from '@/stores/useThemeStore';
-import { useAuthStore } from '@/stores/useAuthStore';
+import { useThemeStore } from '@/shared/stores/useThemeStore';
+import { useAuthStore } from '@/shared/stores/useAuthStore';
 import { ThemeTransitionProvider } from '@/shared/ui/ThemeTransitionProvider';
 import i18n from '@/locales'; // i18n 초기화
 import { GlobalErrorHandler } from '@/shared/error/GlobalErrorHandler';
 import { AppErrorBoundary } from '@/shared/error/AppErrorBoundary';
 import { VersionCheckDialog } from '@/shared/ui/VersionCheckDialog';
 import { appVersionService } from '@/services/appVersionService';
-import { meetsMinVersion, hasNewerVersion } from '@/services/versionComparator';
+import { meetsMinVersion, hasNewerVersion } from '@/shared/utils/versionComparator';
 import { formatLocalDate } from '@/shared/utils/date';
 import { config } from '@/constants/config';
 import { APP_STORE_URLS } from '@/constants/appStoreUrls';

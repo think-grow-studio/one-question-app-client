@@ -2,7 +2,7 @@ import { Modal, View, Text, Pressable, StyleSheet, TouchableWithoutFeedback } fr
 import { useTheme } from 'tamagui';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useAccentColors, getFontStyle } from '@/shared/theme';
-import { fs, sp, radius, deviceValue } from '@/utils/responsive';
+import { fs, sp, radius, deviceValue } from '@/shared/utils/responsive';
 
 export interface ReviewPromptDialogProps {
   visible: boolean;

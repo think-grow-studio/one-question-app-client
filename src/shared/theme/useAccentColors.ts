@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useThemeStore, getAccentColors } from '@/stores/useThemeStore';
+import { useThemeStore, getAccentColors } from '@/shared/stores/useThemeStore';
 
 export function useAccentColors() {
   const { mode, accentColor } = useThemeStore();

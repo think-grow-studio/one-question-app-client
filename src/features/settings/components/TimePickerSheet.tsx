@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
 import { Button } from '@/shared/ui/Button';
 import { useAccentColors, getFontStyle } from '@/shared/theme';
-import { cs, fs, sp, radius, SHEET_MAX_WIDTH } from '@/utils/responsive';
+import { cs, fs, sp, radius, SHEET_MAX_WIDTH } from '@/shared/utils/responsive';
 
 const VISIBLE_ITEMS = 5;
 

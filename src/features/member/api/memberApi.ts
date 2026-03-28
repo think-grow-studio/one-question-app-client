@@ -1,5 +1,5 @@
 import { apiClient } from '@/services/apiClient';
-import type { GetMemberResponse, UpdateMemberRequest } from '@/types/api';
+import type { GetMemberResponse, UpdateMemberRequest } from '@/shared/types/api';
 
 export const memberApi = {
   getMe: () => apiClient.get<GetMemberResponse>('/api/v1/members/me'),

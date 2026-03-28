@@ -3,7 +3,7 @@ import { Text, View, StyleSheet } from 'react-native';
 import { useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { getFontStyle } from '@/shared/theme/typography';
-import { fs, sp, radius } from '@/utils/responsive';
+import { fs, sp, radius } from '@/shared/utils/responsive';
 
 type AdBadgeProps = {
   size?: 'default' | 'compact';

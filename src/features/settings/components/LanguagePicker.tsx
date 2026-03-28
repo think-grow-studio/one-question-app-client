@@ -5,8 +5,8 @@ import Animated, { FadeIn, SlideInDown, SlideOutDown } from 'react-native-reanim
 import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
 import { useAccentColors, getFontStyle } from '@/shared/theme';
-import { sp, radius, SHEET_MAX_WIDTH } from '@/utils/responsive';
-import { useLanguageStore, SUPPORTED_LANGUAGES, type Language } from '@/stores/useLanguageStore';
+import { sp, radius, SHEET_MAX_WIDTH } from '@/shared/utils/responsive';
+import { useLanguageStore, SUPPORTED_LANGUAGES, type Language } from '@/shared/stores/useLanguageStore';
 import { useUpdateLocaleMutation } from '@/features/member/hooks/mutations/useMemberMutations';
 import { logEvent, AnalyticsEvents } from '@/services/firebase';
 
