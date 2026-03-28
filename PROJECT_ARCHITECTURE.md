@@ -24,7 +24,7 @@ This document is written to guide **AI-assisted frontend implementation**.
 **🔴 Large Project (20+ features, 5+ devs)**
 - Full architecture with slices and comprehensive testing (Section 22.3)
 
-**This project's estimated scale: 🟢 Small (5-6 features, ~10 screens)**
+**This project's estimated scale: 🟢 Small (7 features, ~6 screens, ~125 files)**
 
 **Required Setup:**
 - New Architecture enabled (see Section 1.8)
@@ -277,12 +277,13 @@ Reasons:
 ### 2.3 Example Structure
 
 services/
-├─ apiClient.ts # Axios instance
-├─ authService.ts # Token refresh / auth helpers
-└─ interceptors.ts # Axios interceptors
-
-yaml
-코드 복사
+├─ apiClient.ts        # Axios instance + interceptors
+├─ queryClient.ts      # TanStack Query config
+├─ storage.ts          # AsyncStorage wrapper
+├─ tokenRefreshService.ts  # Token refresh logic
+├─ appVersionService.ts    # App version check
+├─ appReview.ts        # App store review wrapper
+└─ firebase/           # Analytics & crashlytics
 
 ---
 
@@ -291,19 +292,22 @@ yaml
 ### 3.1 Root Structure
 
 src/
-├─ app/ # Routing & screens (Expo Router only)
-├─ features/ # Domain-based logic
-├─ services/ # API & infrastructure
-├─ stores/ # Zustand stores
-├─ shared/ # Shared UI & theme
-├─ hooks/ # Global reusable hooks
-├─ types/ # Global TypeScript types
-├─ constants/ # App-wide constants
-├─ utils/ # Pure utility functions
-└─ assets/ # Images, icons, fonts
-
-yaml
-코드 복사
+├─ app/           # Routing & screens (Expo Router only)
+├─ features/      # Domain-based logic (each feature owns its stores, services, etc.)
+├─ services/      # Infrastructure only (apiClient, queryClient, storage, firebase)
+├─ shared/        # Cross-cutting concerns used by 2+ features
+│  ├─ stores/     # Global Zustand stores (theme, auth, language, apiError)
+│  ├─ types/      # Global TypeScript types (API contracts)
+│  ├─ utils/      # Global utilities (responsive, date, versionComparator)
+│  ├─ ui/         # Shared UI components
+│  ├─ icons/      # Icon components
+│  ├─ theme/      # Theme config
+│  ├─ layout/     # Layout components (Screen)
+│  ├─ hooks/      # Cross-feature reusable hooks
+│  └─ error/      # Error boundary & global error handler
+├─ constants/     # App-wide constants (config, appStoreUrls)
+├─ locales/       # i18n translations
+└─ assets/        # Images, icons, fonts
 
 ---
 
@@ -500,7 +504,7 @@ features/question/
 6. **Utils Layer** (`utils/`):
    - 순수 함수만
    - Feature 전용 헬퍼
-   - 공통 유틸은 `utils/`에
+   - 공통 유틸은 `shared/utils/`에
 
 ---
 
@@ -508,24 +512,29 @@ features/question/
 
 Purpose:
 
-- Infrastructure-level concerns
+- **Infrastructure-level concerns only**
+- Business logic services belong in their respective `features/*/services/`
 
-**Minimal Structure (Small projects):**
+**Current Structure:**
 ```
 services/
-├─ apiClient.ts    # Axios + interceptors
-├─ queryClient.ts  # TanStack Query config
-└─ storage.ts      # Secure + AsyncStorage wrapper
+├─ apiClient.ts           # Axios instance + interceptors + token injection
+├─ queryClient.ts         # TanStack Query config
+├─ storage.ts             # AsyncStorage wrapper
+├─ tokenRefreshService.ts # Token refresh with mutex
+├─ appVersionService.ts   # App version check API
+├─ appReview.ts           # expo-store-review wrapper
+└─ firebase/
+   ├─ firebaseApp.ts      # Firebase initialization
+   ├─ analytics.ts        # Event tracking
+   ├─ crashlytics.ts      # Error reporting
+   └─ index.ts
 ```
 
-**Extended Structure (Larger projects):**
+**Feature-level services (business logic):**
 ```
-services/
-├─ apiClient.ts
-├─ queryClient.ts
-├─ storage.ts
-├─ authService.ts  # Complex auth logic
-└─ pushService.ts  # Push notifications
+features/settings/services/
+└─ notifications.ts       # Notification scheduling & permissions
 ```
 
 Responsibilities:
@@ -540,62 +549,101 @@ Rules:
 - Features must use `apiClient`
 - No direct `fetch` usage outside this layer
 - Keep services focused (< 100 lines each)
+- **Infrastructure** (used by multiple features) → `services/`
+- **Business logic** (used by single feature) → `features/*/services/`
 
 ---
 
-## 7. State Stores (`stores/`)
+## 7. State Stores (Zustand)
 
-Structure:
-stores/
-├─ authStore.ts
-├─ categoryStore.ts
-└─ uiStore.ts
+Stores are organized by scope — **not in a single top-level directory**.
 
-yaml
-코드 복사
+**Cross-cutting stores** (`shared/stores/`) — used by 3+ modules across features, services, and shared:
+```
+shared/stores/
+├─ useThemeStore.ts        # Theme mode & accent color
+├─ useAuthStore.ts         # Auth state (login, logout, init)
+├─ useLanguageStore.ts     # Language/locale state
+└─ useApiErrorStore.ts     # Global API error display
+```
+
+**Feature-local stores** — used only within a single feature:
+```
+features/answer/stores/
+└─ useAppReviewStore.ts    # App review prompt flow
+
+features/settings/stores/
+└─ useNotificationStore.ts # Notification settings
+
+features/question/stores/
+├─ useDatePickerStore.ts   # Date picker state
+└─ useSlideDirectionStore.ts # Slide animation direction
+```
 
 Rules:
 
 - Client/UI state only
 - No server data
 - Keep stores small and focused
+- **Single-consumer store** → `features/*/stores/`
+- **Cross-cutting store** (used by services, shared, or 3+ features) → `shared/stores/`
 
 ---
 
-## 8. Shared UI & Theme (`shared/`)
+## 8. Shared Layer (`shared/`)
+
+Purpose:
+
+- Cross-cutting concerns used by **2+ features or infrastructure**
 
 Structure:
+```
 shared/
-├─ ui/
-│ ├─ Button.tsx
-│ ├─ Text.tsx
-│ └─ Modal.tsx
-├─ layout/
-│ └─ Screen.tsx
-└─ theme/
-├─ tamagui.config.ts
-└─ tokens.ts
-
-yaml
-코드 복사
+├─ stores/       # Global Zustand stores (see Section 7)
+├─ types/        # Global TypeScript types (API contracts)
+│  └─ api.ts
+├─ utils/        # Global utilities
+│  ├─ responsive.ts       # Responsive scaling (hs, vs, ms, fs, sp)
+│  ├─ date.ts             # Date formatting
+│  └─ versionComparator.ts # Semantic version comparison
+├─ ui/           # Shared UI components
+│  ├─ Button.tsx
+│  ├─ Text.tsx
+│  ├─ AlertDialog/
+│  ├─ QuestionCard/
+│  ├─ ScreenHeader/
+│  └─ ...
+├─ icons/        # Icon components (SVG-based)
+├─ layout/       # Layout components
+│  └─ Screen.tsx
+├─ hooks/        # Cross-feature reusable hooks
+│  └─ useThrottledCallback.ts
+├─ theme/        # Theme configuration
+│  └─ useAccentColors.ts
+└─ error/        # Error handling
+   ├─ AppErrorBoundary.tsx
+   └─ GlobalErrorHandler.tsx
+```
 
 Rules:
 
 - Shared components must be platform-agnostic
 - Feature-specific UI belongs in `features/*/components`
+- Only add to `shared/` when used by 2+ features — not preemptively
 
 ---
 
-## 9. Hooks (`hooks/`)
+## 9. Hooks (`shared/hooks/`)
 
 Purpose:
 
-- Cross-feature reusable logic
+- Cross-feature reusable logic (lives inside `shared/`)
 
 Rules:
 
 - No domain-specific logic
 - No direct API calls
+- Feature-specific hooks belong in `features/*/hooks/`
 
 ---
 
@@ -709,7 +757,7 @@ useRefreshOnFocus(refetch)
 **Persist Middleware Pattern:**
 
 ```typescript
-// stores/authStore.ts
+// shared/stores/useAuthStore.ts
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import AsyncStorage from '@react-native-async-storage/async-storage'
@@ -744,13 +792,13 @@ For most projects, simple stores are sufficient.
 
 ```typescript
 // ❌ Overkill for small projects (< 10 features)
-stores/slices/userSlice.ts
-stores/slices/settingsSlice.ts
+shared/stores/slices/userSlice.ts
+shared/stores/slices/settingsSlice.ts
 
 // ✅ Better: Keep stores simple and focused
-stores/authStore.ts      // ~50-100 lines
-stores/uiStore.ts        // ~30-50 lines
-stores/categoryStore.ts  // ~20-30 lines
+shared/stores/useAuthStore.ts   // ~50-100 lines, cross-cutting
+shared/stores/useThemeStore.ts  // ~30-50 lines, cross-cutting
+features/answer/stores/useAppReviewStore.ts  // ~20-30 lines, feature-local
 ```
 
 **When you really need slices (>200 lines):**
@@ -915,49 +963,47 @@ export function setupInterceptors(axiosInstance) {
 
 ### 16.1 Type Structure
 
-**For small-to-medium projects (5-10 features):**
+**Current structure (small-to-medium):**
+
+Global API types live in `shared/types/`, feature-specific types live in `features/*/types/`:
 
 ```
-types/
-├─ api.ts         # All API response types
-├─ index.ts       # Domain models (transformed from API)
-└─ navigation.ts  # Navigation params
+shared/types/
+└─ api.ts              # Shared API contracts (request/response types used across features)
+
+features/feed/types/
+└─ api.ts              # Feed-specific types (extends shared types)
+
+features/question/types/
+└─ api.ts              # Question-specific types
 ```
 
 **For larger projects (10+ features):**
 
 ```
-types/
-├─ api/           # API contract types
+shared/types/
+├─ api/
 │  ├─ auth.ts
 │  ├─ question.ts
 │  └─ user.ts
-├─ models/        # Domain models (transformed from API)
+├─ models/
 │  ├─ Question.ts
 │  └─ User.ts
-└─ ui/            # UI-specific types
+└─ ui/
    └─ navigation.ts
 ```
 
 **Simple Example (Recommended for most projects):**
 ```typescript
-// types/api.ts
+// shared/types/api.ts
 export interface QuestionResponse {
   id: string
   question_text: string
   created_at: string
 }
 
-// types/index.ts
-export interface Question {
-  id: string
-  text: string
-  createdAt: Date  // transformed
-}
-
-// features/question/api.ts
-import { QuestionResponse } from '@/types/api'
-import { Question } from '@/types'
+// features/question/api/questionApi.ts
+import { QuestionResponse } from '@/shared/types/api'
 
 function transformQuestion(raw: QuestionResponse): Question {
   return {
@@ -969,8 +1015,8 @@ function transformQuestion(raw: QuestionResponse): Question {
 ```
 
 **Rule of thumb:**
-- < 10 features → Simple structure (3 files)
-- \> 10 features → Nested structure (folders)
+- < 10 features → `shared/types/api.ts` (single file)
+- \> 10 features → `shared/types/api/` (nested folders)
 
 ---
 
@@ -1005,22 +1051,18 @@ export const secureStorage = {
 ```
 
 ```typescript
-// services/authService.ts
-import { secureStorage } from './secureStorage'
+// services/storage.ts — token storage is handled via storage service
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
-export const authService = {
-  async saveTokens(accessToken: string, refreshToken: string) {
-    await secureStorage.setToken('accessToken', accessToken)
-    await secureStorage.setToken('refreshToken', refreshToken)
-  },
-
+export const storage = {
   async getAccessToken() {
-    return await secureStorage.getToken('accessToken')
+    return await AsyncStorage.getItem('accessToken')
   },
-
-  async clearTokens() {
-    await secureStorage.deleteToken('accessToken')
-    await secureStorage.deleteToken('refreshToken')
+  async setAccessToken(token: string) {
+    await AsyncStorage.setItem('accessToken', token)
+  },
+  async clear() {
+    await AsyncStorage.multiRemove(['accessToken', 'refreshToken'])
   },
 }
 ```
@@ -1034,14 +1076,14 @@ export const authService = {
 ```typescript
 // services/apiClient.ts
 import axios from 'axios'
-import { authService } from './authService'
+import { storage } from './storage'
 
 export const apiClient = axios.create({
   baseURL: config.apiUrl,
 })
 
 apiClient.interceptors.request.use(async (config) => {
-  const token = await authService.getAccessToken()
+  const token = await storage.getAccessToken()
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
@@ -1276,41 +1318,25 @@ import { useQuestions, QuestionCard } from '@/features/question'
 **tsconfig.json:**
 ```json
 {
+  "extends": "expo/tsconfig.base",
   "compilerOptions": {
+    "strict": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
+      "@/app/*": ["src/app/*"],
       "@/features/*": ["src/features/*"],
-      "@/shared/*": ["src/shared/*"],
       "@/services/*": ["src/services/*"],
-      "@/hooks/*": ["src/hooks/*"],
-      "@/types/*": ["src/types/*"]
+      "@/shared/*": ["src/shared/*"],
+      "@/constants/*": ["src/constants/*"],
+      "@/assets/*": ["src/assets/*"]
     }
   }
 }
 ```
 
-**babel.config.js:**
-```javascript
-module.exports = {
-  plugins: [
-    [
-      'module-resolver',
-      {
-        root: ['./src'],
-        alias: {
-          '@': './src',
-          '@/features': './src/features',
-          '@/shared': './src/shared',
-          '@/services': './src/services',
-          '@/hooks': './src/hooks',
-          '@/types': './src/types',
-        },
-      },
-    ],
-  ],
-}
-```
+> Note: `@/*` covers all paths. The explicit aliases are for IDE autocompletion clarity.
+> Removed aliases: `@/stores/*`, `@/types/*`, `@/utils/*`, `@/hooks/*` (directories no longer exist at top level).
 
 ---
 
@@ -1344,86 +1370,93 @@ module.exports = {
 
 ### 22.1 Small Project (< 10 features, 1-2 developers)
 
-**Recommended for "오늘의 질문" scale:**
+**Current "질문하나" structure:**
 
 ```
 src/
-├─ app/                      # Routing (~10 screens)
+├─ app/                      # Routing (~6 screens)
 │  ├─ _layout.tsx
-│  ├─ (auth)/
+│  ├─ (auth)/login.tsx
 │  ├─ (tabs)/
-│  └─ +not-found.tsx
-├─ features/                 # 5-6 features
-│  ├─ question/              # 예: 질문 도메인
+│  │  ├─ index.tsx           # Home (Today)
+│  │  ├─ feed.tsx            # Public feed
+│  │  └─ settings.tsx
+│  ├─ answer/index.tsx
+│  └─ feed/[id].tsx
+├─ features/                 # 7 features
+│  ├─ question/              # 질문 도메인 (largest feature)
 │  │  ├─ api/
 │  │  │  └─ questionApi.ts
 │  │  ├─ hooks/
 │  │  │  ├─ queries/
-│  │  │  │  └─ useQuestionQueries.ts
 │  │  │  └─ mutations/
-│  │  │     └─ useQuestionMutations.ts
-│  │  ├─ stores/
-│  │  │  └─ useQuestionFormStore.ts  # (필요시만)
+│  │  ├─ stores/             # Feature-local stores
 │  │  ├─ components/
-│  │  │  ├─ QuestionCard.tsx
-│  │  │  └─ QuestionList.tsx
+│  │  ├─ constants/
+│  │  ├─ domain/
+│  │  └─ types/
+│  ├─ feed/                  # 피드 도메인
+│  │  ├─ api/
+│  │  ├─ hooks/
+│  │  ├─ components/
 │  │  ├─ types/
-│  │  │  ├─ api.ts           # Request/Response 타입
-│  │  │  └─ store.ts         # Store 타입 (필요시)
-│  │  └─ utils/              # (optional)
-│  │     └─ questionUtils.ts
-│  ├─ collection/            # 예: 도감 도메인
-│  │  ├─ api/
-│  │  │  └─ collectionApi.ts
+│  │  └─ utils/
+│  ├─ answer/                # 답변 도메인
+│  │  ├─ components/
 │  │  ├─ hooks/
-│  │  │  └─ queries/
-│  │  │     └─ useCollectionQueries.ts
-│  │  └─ components/
-│  │     └─ CollectionGrid.tsx
-│  ├─ community/             # 예: 커뮤니티 도메인
+│  │  └─ stores/             # Feature-local store
+│  ├─ settings/              # 설정 도메인
+│  │  ├─ components/
+│  │  ├─ hooks/
+│  │  ├─ stores/             # Feature-local store
+│  │  └─ services/           # Feature-local service (notifications)
+│  ├─ auth/                  # 인증 (minimal)
+│  │  ├─ api/
+│  │  └─ hooks/
+│  ├─ member/                # 회원
 │  │  ├─ api/
 │  │  ├─ hooks/
-│  │  └─ components/
-│  ├─ auth/                  # 간단한 feature는 minimal 구조
-│  │  ├─ api.ts
-│  │  ├─ hooks.ts
-│  │  └─ components/
-│  └─ settings/              # 간단한 feature
-│     ├─ api.ts              # (필요시만)
-│     └─ components/
-├─ services/                 # Minimal
+│  │  └─ constants/
+│  └─ admob/                 # 광고
+│     ├─ config/
+│     └─ hooks/
+├─ services/                 # Infrastructure only
 │  ├─ apiClient.ts
 │  ├─ queryClient.ts
-│  └─ storage.ts
-├─ stores/                   # 전역 stores만
-│  ├─ authStore.ts
-│  ├─ uiStore.ts
-│  └─ categoryStore.ts       # 카테고리 선택 상태
-├─ shared/
-│  ├─ ui/                    # 공통 UI 컴포넌트
-│  └─ theme/                 # 테마 설정
-├─ types/                    # 전역 타입만
-│  ├─ api.ts                 # 공통 API 타입
-│  ├─ index.ts               # 공통 도메인 모델
-│  └─ navigation.ts          # 네비게이션 타입
+│  ├─ storage.ts
+│  ├─ tokenRefreshService.ts
+│  ├─ appVersionService.ts
+│  ├─ appReview.ts
+│  └─ firebase/
+├─ shared/                   # Cross-cutting concerns
+│  ├─ stores/                # Global stores (theme, auth, language, apiError)
+│  ├─ types/                 # Global API types
+│  ├─ utils/                 # Global utilities (responsive, date, versionComparator)
+│  ├─ ui/                    # Shared UI components
+│  ├─ icons/                 # Icon components
+│  ├─ layout/                # Screen layout
+│  ├─ hooks/                 # Cross-feature hooks
+│  ├─ theme/                 # Theme config
+│  └─ error/                 # Error boundary & handler
 ├─ constants/
-│  └─ config.ts
-├─ utils/                    # 전역 유틸리티
+│  ├─ config.ts
+│  └─ appStoreUrls.ts
+├─ locales/                  # i18n translations (ko, en)
 └─ assets/
 ```
 
 **Key Points:**
-1. ✅ **Feature 내부는 세분화**: api/, hooks/, components/, types/
-2. ✅ **간단한 feature는 minimal**: auth, settings는 파일 구조
-3. ✅ **전역 vs Feature**: 전역 stores + types는 root에, feature별은 내부에
-4. ✅ **확장 가능**: 나중에 Medium으로 전환 쉬움
+1. ✅ **Feature 내부는 필요한 만큼만**: 모든 feature에 동일한 하위 폴더 강제하지 않음
+2. ✅ **Store 위치는 scope로 결정**: single-consumer → feature, cross-cutting → shared
+3. ✅ **services/는 인프라만**: 비즈니스 로직은 features/*/services/로
+4. ✅ **shared/가 cross-cutting 허브**: stores, types, utils, ui 모두 여기에
+5. ✅ **확장 가능**: 나중에 Medium으로 전환 쉬움
 
 **What to skip initially:**
 - ❌ Barrel exports (`index.ts`)
 - ❌ Slices pattern
 - ❌ Comprehensive testing
 - ❌ Nested type folders (request/response/params 분리)
-- ❌ Custom ErrorBoundary
 
 ---
 
@@ -1432,36 +1465,33 @@ src/
 ```
 src/
 ├─ app/
-├─ features/         # 10-20 features
+├─ features/          # 10-20 features
 │  └─ <feature>/
-│     ├─ api.ts
-│     ├─ hooks.ts
+│     ├─ api/
+│     ├─ hooks/
 │     ├─ components/
-│     ├─ types.ts
-│     └─ index.ts   # Add barrel exports
-├─ services/
+│     ├─ stores/      # Feature-local stores
+│     ├─ services/    # Feature-local services
+│     ├─ types/
+│     └─ index.ts     # Add barrel exports
+├─ services/          # Infrastructure only
 │  ├─ apiClient.ts
 │  ├─ queryClient.ts
 │  ├─ storage.ts
-│  ├─ authService.ts
-│  └─ pushService.ts
-├─ stores/
-│  ├─ authStore.ts
-│  ├─ uiStore.ts
-│  └─ dataStore.ts
+│  └─ firebase/
 ├─ shared/
+│  ├─ stores/         # Cross-cutting stores
+│  ├─ types/          # Nested structure (api/, models/, ui/)
+│  ├─ utils/
 │  ├─ ui/
 │  ├─ layout/
-│  ├─ error/        # Custom ErrorBoundary
+│  ├─ hooks/
+│  ├─ error/
 │  └─ theme/
-├─ types/            # Nested structure
-│  ├─ api/
-│  ├─ models/
-│  └─ ui/
 ├─ constants/
-├─ utils/
+├─ locales/
 ├─ assets/
-└─ __tests__/        # Comprehensive tests
+└─ __tests__/         # Comprehensive tests
 ```
 
 **When to upgrade:**
@@ -1477,13 +1507,15 @@ src/
 ```
 src/
 ├─ app/
-├─ features/         # 20+ features
+├─ features/          # 20+ features
 │  └─ <feature>/
-│     ├─ api.ts
-│     ├─ hooks.ts
+│     ├─ api/
+│     ├─ hooks/
 │     ├─ components/
-│     ├─ types.ts
-│     └─ index.ts
+│     ├─ stores/
+│     ├─ services/
+│     ├─ types/
+│     └─ index.ts     # Barrel exports required
 ├─ services/
 │  ├─ api/
 │  │  ├─ client.ts
@@ -1491,25 +1523,21 @@ src/
 │  ├─ storage/
 │  │  ├─ secure.ts
 │  │  └─ async.ts
-│  ├─ auth/
 │  └─ analytics/
-├─ stores/
-│  ├─ slices/       # Now justified
-│  ├─ authStore.ts
-│  └─ appStore.ts
 ├─ shared/
+│  ├─ stores/         # Cross-cutting stores (slices pattern if >200 lines)
+│  ├─ types/
+│  │  ├─ api/
+│  │  ├─ models/
+│  │  └─ ui/
+│  ├─ utils/
 │  ├─ ui/
 │  ├─ layout/
 │  ├─ error/
 │  ├─ hooks/
 │  └─ theme/
-├─ types/
-│  ├─ api/
-│  ├─ models/
-│  ├─ ui/
-│  └─ utils/
 ├─ constants/
-├─ utils/
+├─ locales/
 ├─ assets/
 └─ __tests__/
 ```
@@ -1734,7 +1762,7 @@ const formattedNumber = new Intl.NumberFormat(i18n.language).format(number)
 **Create a language store:**
 
 ```typescript
-// stores/languageStore.ts
+// shared/stores/useLanguageStore.ts
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import AsyncStorage from '@react-native-async-storage/async-storage'
@@ -1768,7 +1796,7 @@ export const useLanguageStore = create<LanguageState>()(
 
 ```typescript
 // features/settings/components/LanguagePicker.tsx
-import { useLanguageStore } from '@/stores/languageStore'
+import { useLanguageStore } from '@/shared/stores/useLanguageStore'
 import { useTranslation } from 'react-i18next'
 
 const LANGUAGES = [
