@@ -84,26 +84,26 @@ export interface ServeDailyQuestionResponse {
 
 export interface CreateAnswerRequest {
   answer: string;
-  isPublic?: boolean;
+  publish?: boolean;
 }
 
 export interface CreateAnswerResponse {
   dailyAnswerId: number;
   content: string;
   answeredAt: string;
-  isPublic?: boolean;
+  published?: boolean;
 }
 
 export interface UpdateAnswerRequest {
   answer: string;
-  isPublic?: boolean;
+  publish?: boolean;
 }
 
 export interface UpdateAnswerResponse {
   dailyAnswerId: number;
   content: string;
   answeredAt: string;
-  isPublic?: boolean;
+  published?: boolean;
 }
 
 export type HistoryStatus = 'ANSWERED' | 'UNANSWERED' | 'NO_QUESTION';
@@ -121,8 +121,7 @@ export interface AnswerInfoDto {
   dailyAnswerId: number;
   content: string;
   answeredAt: string;
-  isPublic?: boolean;
-  likeCount?: number;
+  published?: boolean;
 }
 
 export interface QuestionHistoryItemDto {
@@ -153,36 +152,28 @@ export interface AppVersionCheckResponse {
 }
 
 // ============================================
-// Feed Types (모두의 생각)
+// Feed Types (모두의 생각) — AnswerPost API
 // ============================================
 
-export interface FeedItemDto {
-  feedId: number;
-  dailyQuestionId: number;
+export interface AnswerPostFeedItemDto {
+  answerPostId: number;
   questionContent: string;
-  questionDescription: string | null;
+  description: string | null;
   answerContent: string;
-  answeredAt: string;
-  authorNickname: string;
-  isLiked: boolean;
+  anonymousNickname: string;
+  postedAt: string;
   likeCount: number;
+  liked: boolean;
+  mine: boolean;
 }
 
-export interface GetFeedListResponse {
-  items: FeedItemDto[];
-  nextCursor: number | null;
-  hasMore: boolean;
+export interface AnswerPostFeedResponse {
+  items: AnswerPostFeedItemDto[];
+  hasNext: boolean;
+  nextCursor: string | null;
 }
-
-export interface GetFeedDetailResponse extends FeedItemDto {}
 
 export interface ToggleLikeResponse {
-  feedId: number;
-  isLiked: boolean;
-  likeCount: number;
+  liked: boolean;
 }
 
-export interface TogglePublicResponse {
-  dailyAnswerId: number;
-  isPublic: boolean;
-}

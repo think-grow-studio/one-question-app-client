@@ -27,8 +27,11 @@ export function FeedList() {
 
   const allItems = data?.pages.flatMap((page) => page.items) ?? [];
 
-  const handlePress = (feedId: number) => {
-    router.push({ pathname: '/feed/[id]', params: { id: String(feedId) } });
+  const handlePress = (item: FeedItemDomain) => {
+    router.push({
+      pathname: '/feed/[id]',
+      params: { id: String(item.answerPostId), item: JSON.stringify(item) },
+    });
   };
 
   const handleEndReached = () => {
@@ -62,9 +65,9 @@ export function FeedList() {
     <FlashList<FeedItemDomain>
       data={allItems}
       renderItem={({ item }) => (
-        <FeedCard item={item} onPress={() => handlePress(item.feedId)} />
+        <FeedCard item={item} onPress={() => handlePress(item)} />
       )}
-      keyExtractor={(item) => String(item.feedId)}
+      keyExtractor={(item) => String(item.answerPostId)}
       onEndReached={handleEndReached}
       onEndReachedThreshold={0.3}
       onRefresh={refetch}

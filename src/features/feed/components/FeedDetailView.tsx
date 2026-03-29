@@ -1,6 +1,6 @@
 import { ScrollView, Pressable, View, ActivityIndicator } from 'react-native';
 import { YStack, XStack, useTheme } from 'tamagui';
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
 import { HeartIcon } from '@/shared/icons/HeartIcon';
@@ -8,35 +8,43 @@ import { getFontStyle } from '@/shared/theme/typography';
 import { useAccentColors } from '@/shared/theme';
 import { useThemeStore } from '@/shared/stores/useThemeStore';
 import { fs, sp, radius, cs, deviceValue, SCREEN } from '@/shared/utils/responsive';
-import { useFeedDetail } from '../hooks/queries/useFeedQueries';
 import { useToggleLike } from '../hooks/mutations/useFeedMutations';
 import { formatFeedDate } from '../utils/feedUtils';
+import type { FeedItemDomain } from '../types/api';
 
 interface FeedDetailViewProps {
-  feedId: number;
+  item: FeedItemDomain;
 }
 
-export function FeedDetailView({ feedId }: FeedDetailViewProps) {
+export function FeedDetailView({ item }: FeedDetailViewProps) {
   const { t } = useTranslation('feed');
   const theme = useTheme();
   const accent = useAccentColors();
   const { mode } = useThemeStore();
   const isDark = mode === 'dark';
-  const { data, isLoading } = useFeedDetail(feedId);
   const toggleLikeMutation = useToggleLike();
+
+  // Optimistic like state (API 응답에 likeCount 없음)
+  const [liked, setLiked] = useState(item.liked);
+  const [likeCount, setLikeCount] = useState(item.likeCount);
 
   const styles = useFeedDetailStyles();
 
-  if (isLoading || !data) {
-    return (
-      <YStack flex={1} justifyContent="center" alignItems="center">
-        <ActivityIndicator size="small" color={accent.primary} />
-      </YStack>
-    );
-  }
-
   const handleToggleLike = () => {
-    toggleLikeMutation.mutate(feedId);
+    const prevLiked = liked;
+    const prevCount = likeCount;
+
+    // Optimistic update
+    setLiked(!prevLiked);
+    setLikeCount(prevCount + (prevLiked ? -1 : 1));
+
+    toggleLikeMutation.mutate(item.answerPostId, {
+      onError: () => {
+        // Rollback on error
+        setLiked(prevLiked);
+        setLikeCount(prevCount);
+      },
+    });
   };
 
   return (
@@ -50,17 +58,16 @@ export function FeedDetailView({ feedId }: FeedDetailViewProps) {
               {t('detail.questionLabel')}
             </Text>
             <Text style={styles.metaText} numberOfLines={1}>
-              {data.authorNickname} · {formatFeedDate(data.answeredAt)}
+              {item.anonymousNickname} · {formatFeedDate(item.postedAt)}
             </Text>
           </XStack>
 
           <Text style={styles.questionText} numberOfLines={2} adjustsFontSizeToFit>
-            {data.questionContent}
+            {item.questionContent}
           </Text>
-
-          {data.questionDescription && (
-            <Text style={styles.questionDescription} numberOfLines={1} adjustsFontSizeToFit>
-              {data.questionDescription}
+          {item.questionDescription && (
+            <Text style={styles.descriptionText} numberOfLines={1} adjustsFontSizeToFit>
+              {item.questionDescription}
             </Text>
           )}
         </View>
@@ -81,7 +88,7 @@ export function FeedDetailView({ feedId }: FeedDetailViewProps) {
             nestedScrollEnabled
           >
             <Text style={styles.answerText}>
-              {data.answerContent}
+              {item.answerContent}
             </Text>
           </ScrollView>
         </View>
@@ -94,7 +101,7 @@ export function FeedDetailView({ feedId }: FeedDetailViewProps) {
           style={({ pressed }) => [
             styles.likeButton,
             {
-              backgroundColor: data.isLiked
+              backgroundColor: liked
                 ? `${accent.like}1A`
                 : (isDark ? theme.background?.val : theme.backgroundSoft?.val) ?? '#f5f5f5',
               transform: [{ scale: pressed ? 0.96 : 1 }],
@@ -104,24 +111,24 @@ export function FeedDetailView({ feedId }: FeedDetailViewProps) {
           <XStack alignItems="center" gap={sp(8)}>
             <HeartIcon
               size={cs(20)}
-              color={data.isLiked ? accent.like : (theme.colorMuted?.val ?? '#999')}
-              filled={data.isLiked}
+              color={liked ? accent.like : (theme.colorMuted?.val ?? '#999')}
+              filled={liked}
             />
             <Text
               style={[
                 styles.likeText,
-                { color: data.isLiked ? accent.like : theme.colorMuted?.val },
+                { color: liked ? accent.like : theme.colorMuted?.val },
               ]}
             >
-              {data.isLiked ? t('detail.likedButton') : t('detail.likeButton')}
+              {liked ? t('detail.likedButton') : t('detail.likeButton')}
             </Text>
             <Text
               style={[
                 styles.likeCount,
-                { color: data.isLiked ? accent.like : theme.colorMuted?.val },
+                { color: liked ? accent.like : theme.colorMuted?.val },
               ]}
             >
-              {data.likeCount}
+              {likeCount}
             </Text>
           </XStack>
         </Pressable>
@@ -184,7 +191,7 @@ function useFeedDetailStyles() {
           letterSpacing: -0.4,
           minHeight: fs(24),
         },
-        questionDescription: {
+        descriptionText: {
           fontSize: fs(14),
           lineHeight: fs(20),
           color: theme.colorMuted?.val,

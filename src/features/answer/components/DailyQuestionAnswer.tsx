@@ -26,6 +26,7 @@ import { useAppReviewPrompt } from '../hooks/useAppReviewPrompt';
 import { useCreateAnswer, useUpdateAnswer } from '@/features/question/hooks/mutations/useQuestionMutations';
 import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
 import { PublicToggle } from '@/features/feed/components/PublicToggle';
+import { ENABLE_PUBLIC_FEED } from '@/shared/constants/features';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 import { shouldHideAds } from '@/features/member/constants/permissions';
 import { sp } from '@/shared/utils/responsive';
@@ -36,7 +37,7 @@ interface QuestionData {
   question: string;
   description?: string;
   existingAnswer?: string;
-  existingIsPublic?: boolean;
+  existingPublished?: boolean;
 }
 
 interface DailyQuestionAnswerProps {
@@ -73,7 +74,7 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
   // 답변 초기값: 수정 모드면 기존 답변, 아니면 빈 문자열
   const [answer, setAnswer] = useState(() => (isEditMode && data.existingAnswer ? data.existingAnswer : ''));
   const [originalAnswer] = useState(() => (isEditMode && data.existingAnswer ? data.existingAnswer : ''));
-  const [isPublic, setIsPublic] = useState(() => data.existingIsPublic ?? false);
+  const [published, setPublished] = useState(() => data.existingPublished ?? false);
 
   // 변경사항 감지 (dirty state)
   const isDirty = answer !== originalAnswer;
@@ -145,14 +146,14 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
           date: data.date,
           answer_length: answer.trim().length,
         });
-        await updateAnswerMutation.mutateAsync({ date: data.date, answer: answer.trim(), isPublic });
+        await updateAnswerMutation.mutateAsync({ date: data.date, answer: answer.trim(), publish: ENABLE_PUBLIC_FEED ? published : false });
       } else {
         // Analytics: 답변 제출
         logEvent(AnalyticsEvents.ANSWER_SUBMIT, {
           date: data.date,
           answer_length: answer.trim().length,
         });
-        await createAnswerMutation.mutateAsync({ date: data.date, answer: answer.trim(), isPublic });
+        await createAnswerMutation.mutateAsync({ date: data.date, answer: answer.trim(), publish: ENABLE_PUBLIC_FEED ? published : false });
         pendingReview.current = prepareReview(); // 새 답변 작성시에만 카운트
       }
 
@@ -309,9 +310,11 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
           </View>
 
           {/* Public Toggle */}
-          <View style={styles.toggleContainer}>
-            <PublicToggle value={isPublic} onValueChange={setIsPublic} />
-          </View>
+          {ENABLE_PUBLIC_FEED && (
+            <View style={styles.toggleContainer}>
+              <PublicToggle value={published} onValueChange={setPublished} />
+            </View>
+          )}
 
           {/* Submit Button */}
           <View style={styles.submitContainer}>

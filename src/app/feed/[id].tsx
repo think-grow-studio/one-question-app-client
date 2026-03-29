@@ -5,13 +5,15 @@ import { Screen } from '@/shared/layout/Screen';
 import { FeedDetailView } from '@/features/feed/components/FeedDetailView';
 import { BackIcon } from '@/shared/icons/BackIcon';
 import { useAccentColors } from '@/shared/theme';
+import type { FeedItemDomain } from '@/features/feed/types/api';
 
 export default function FeedDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { item: itemJson } = useLocalSearchParams<{ id: string; item: string }>();
   const router = useRouter();
   const theme = useTheme();
   const accent = useAccentColors();
-  const feedId = Number(id);
+
+  const item: FeedItemDomain = JSON.parse(itemJson ?? '{}');
 
   return (
     <Screen edges={['top']} bgColor={accent.background}>
@@ -27,7 +29,7 @@ export default function FeedDetailScreen() {
       </XStack>
 
       {/* Content */}
-      <FeedDetailView feedId={feedId} />
+      <FeedDetailView item={item} />
     </Screen>
   );
 }

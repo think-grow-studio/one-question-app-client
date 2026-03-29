@@ -47,8 +47,8 @@ export function useCreateAnswer() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ date, answer, isPublic }: { date: string; answer: string; isPublic?: boolean }) =>
-      questionApi.createAnswer(date, { answer, isPublic }).then((res) => res.data),
+    mutationFn: ({ date, answer, publish }: { date: string; answer: string; publish?: boolean }) =>
+      questionApi.createAnswer(date, { answer, publish }).then((res) => res.data),
     onSuccess: (_, { date }) => {
       queryClient.invalidateQueries({ queryKey: questionQueryKeys.daily(date) });
       // 달력 데이터 갱신 (답변 상태 반영)
@@ -62,8 +62,8 @@ export function useUpdateAnswer() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ date, answer, isPublic }: { date: string; answer: string; isPublic?: boolean }) =>
-      questionApi.updateAnswer(date, { answer, isPublic }).then((res) => res.data),
+    mutationFn: ({ date, answer, publish }: { date: string; answer: string; publish?: boolean }) =>
+      questionApi.updateAnswer(date, { answer, publish }).then((res) => res.data),
     onSuccess: (_, { date }) => {
       queryClient.invalidateQueries({ queryKey: questionQueryKeys.daily(date) });
       // 달력 데이터 갱신 (답변 수정 반영)

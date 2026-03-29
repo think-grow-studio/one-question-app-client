@@ -6,8 +6,8 @@
   "emptyDesc": "Be the first to share your thoughts",
   "loading": "Loading...",
   "detail": {
-    "questionLabel": "Q.",
-    "answerLabel": "A.",
+    "questionLabel": "Question",
+    "answerLabel": "Answer",
     "answer": "Answer",
     "likeButton": "Like",
     "likedButton": "Liked",

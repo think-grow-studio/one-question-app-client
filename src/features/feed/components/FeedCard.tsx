@@ -71,24 +71,24 @@ export function FeedCard({ item, onPress }: FeedCardProps) {
         <XStack justifyContent="space-between" alignItems="center" mt="$1">
           <XStack alignItems="center" gap="$2">
             <Text variant="caption" muted style={styles.meta}>
-              {item.authorNickname}
+              {item.anonymousNickname}
             </Text>
             <Text variant="caption" muted style={styles.metaDot}>
               ·
             </Text>
             <Text variant="caption" muted style={styles.meta}>
-              {formatFeedDate(item.answeredAt)}
+              {formatFeedDate(item.postedAt)}
             </Text>
           </XStack>
           <XStack alignItems="center" gap="$1.5">
             <HeartIcon
               size={14}
-              color={item.isLiked ? accent.like : (theme.colorMuted?.val ?? '#999')}
-              filled={item.isLiked}
+              color={item.liked ? accent.like : (theme.colorMuted?.val ?? '#999')}
+              filled={item.liked}
             />
             <Text
               variant="caption"
-              color={item.isLiked ? accent.like : '$colorMuted'}
+              color={item.liked ? accent.like : '$colorMuted'}
               style={styles.meta}
             >
               {item.likeCount}

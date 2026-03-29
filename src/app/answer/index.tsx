@@ -11,7 +11,7 @@ export default function AnswerScreen() {
     question: string;
     description?: string;
     existingAnswer?: string;
-    existingIsPublic?: string;
+    existingPublished?: string;
   }>();
 
   const isEditMode = params.mode === 'edit';
@@ -20,7 +20,7 @@ export default function AnswerScreen() {
     question: params.question,
     description: params.description,
     existingAnswer: params.existingAnswer,
-    existingIsPublic: params.existingIsPublic === 'true',
+    existingPublished: params.existingPublished === 'true',
   };
 
   return (

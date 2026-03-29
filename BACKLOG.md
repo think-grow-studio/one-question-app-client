@@ -23,6 +23,11 @@
    3. 인프라: LanguagePicker 컴포넌트, useUpdateLocaleMutation 훅 이미 구현됨
       → settings.tsx에 <LanguagePicker /> 추가하면 바로 활성화 가능
 
+모두의 생각 (공개 피드) 기능 임시 OFF
+-> ENABLE_PUBLIC_FEED = false (src/shared/constants/features.ts)
+-> 하단 피드 탭, 답변 공개 토글, 히스토리 공개 뱃지 모두 숨김
+-> 오픈 시 ENABLE_PUBLIC_FEED = true 로 변경하면 복원
+
 ## DONE
 
 (완료된 작업들)
