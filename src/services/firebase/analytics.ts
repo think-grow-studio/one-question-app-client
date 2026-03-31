@@ -35,6 +35,10 @@ export const AnalyticsEvents = {
   LOGIN: 'login',
   LOGOUT: 'logout',
   ACCOUNT_DELETE: 'account_delete',
+  GUEST_LOGIN: 'guest_login',
+  LINK_GOOGLE_START: 'link_google_start',
+  LINK_GOOGLE_SUCCESS: 'link_google_success',
+  LINK_GOOGLE_FAIL: 'link_google_fail',
 
   // 화면 조회 (Navigation)
   SCREEN_VIEW: 'screen_view',

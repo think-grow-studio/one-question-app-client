@@ -41,11 +41,29 @@ export interface ReissueTokenRequest {
   refreshToken: string;
 }
 
+export interface AnonymousAuthRequest {
+  idToken: string;
+}
+
+export interface CheckGoogleLinkRequest {
+  idToken: string;
+}
+
+export interface CheckGoogleLinkResponse {
+  exists: boolean;
+}
+
+export interface LinkToGoogleRequest {
+  idToken: string;
+  email?: string;
+  name?: string;
+}
+
 // ============================================
 // Member Types
 // ============================================
 
-export type AuthProvider = 'GOOGLE' | 'APPLE';
+export type AuthProvider = 'GOOGLE' | 'APPLE' | 'ANONYMOUS';
 
 export enum MemberPermission {
   FREE = 'FREE',

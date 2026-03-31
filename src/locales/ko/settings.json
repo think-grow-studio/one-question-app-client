@@ -51,6 +51,12 @@
     "withdrawCancel": "취소",
     "cycleStartDate": "질문 시작",
     "cycleStartDateTooltip": "질문 시작 일자를 기준으로 366개 이상의 질문이 중복되지 않게 제공됩니다.",
-    "cycleStartDateFormat": "{{year}}년 {{month}}월 {{day}}일"
+    "cycleStartDateFormat": "{{year}}년 {{month}}월 {{day}}일",
+    "providerAnonymous": "게스트",
+    "linkGoogleButton": "Google 계정 연동",
+    "linkGoogleWarning": "계정을 연동하면 데이터를 안전하게 보관할 수 있습니다",
+    "linkGoogleSuccess": "Google 계정이 연동되었습니다",
+    "linkGoogleConflict": "이미 사용 중인 Google 계정입니다",
+    "linkGoogleAlreadyLinked": "이미 연동된 계정입니다"
   }
 }

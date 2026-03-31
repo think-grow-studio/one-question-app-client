@@ -52,6 +52,12 @@
     "cycleStartDate": "Question Start",
     "cycleStartDateTooltip": "Based on your question start date, 366+ unique questions are provided without repetition.",
     "cycleStartDateFormat": "{{monthName}} {{day}}, {{year}}",
-    "months": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    "months": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    "providerAnonymous": "Guest",
+    "linkGoogleButton": "Link Google Account",
+    "linkGoogleWarning": "Link your account to keep your data safe",
+    "linkGoogleSuccess": "Google account linked successfully",
+    "linkGoogleConflict": "This Google account is already in use",
+    "linkGoogleAlreadyLinked": "Account is already linked"
   }
 }

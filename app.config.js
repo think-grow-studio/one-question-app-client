@@ -90,6 +90,7 @@ export default {
       ],
       '@react-native-firebase/app',
       '@react-native-firebase/crashlytics',
+      '@react-native-firebase/auth',
       './plugins/with-modular-headers',
       './plugins/with-localized-app-name',
       '@react-native-google-signin/google-signin',

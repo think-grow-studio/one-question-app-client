@@ -16,6 +16,7 @@ import { AlertDialog } from '@/shared/ui/AlertDialog/AlertDialog';
 import { config } from '@/constants/config';
 import { useAlertDialog } from '@/shared/ui/AlertDialog/useAlertDialog';
 import { useWithdrawMutation } from '@/features/auth/hooks/mutations/useAuthMutations';
+import { LinkGoogleButton } from '@/features/auth/components/LinkGoogleButton';
 import { logScreenView, logEvent, AnalyticsEvents } from '@/services/firebase';
 import { getFontStyle } from '@/shared/theme/typography';
 import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
@@ -34,11 +35,14 @@ export default function SettingsScreen() {
   const isAdFreeMember = shouldHideAds(member?.permission);
   const isGoogleProvider = member?.provider === 'GOOGLE';
   const isAppleProvider = member?.provider === 'APPLE';
+  const isAnonymousProvider = member?.provider === 'ANONYMOUS';
   const providerLabel = isGoogleProvider
     ? t('account.providerGoogle')
     : isAppleProvider
       ? t('account.providerApple')
-      : '';
+      : isAnonymousProvider
+        ? t('account.providerAnonymous')
+        : '';
 
   const formattedCycleStartDate = useMemo(() => {
     if (!member?.cycleStartDate) return '';
@@ -130,7 +134,27 @@ export default function SettingsScreen() {
             <Text variant="caption" muted px="$1">
               {t('account.title')}
             </Text>
-            {member && (
+            {member && isAnonymousProvider && (
+              <YStack
+                py="$3"
+                px="$4"
+                bg="$backgroundSoft"
+                borderRadius={12}
+                gap="$3"
+              >
+                {/* Provider Info */}
+                <XStack alignItems="center" gap="$2">
+                  <Text variant="body">{providerLabel}</Text>
+                </XStack>
+                {/* Warning */}
+                <Text variant="caption" muted>
+                  {t('account.linkGoogleWarning')}
+                </Text>
+                {/* Link Google Button */}
+                <LinkGoogleButton />
+              </YStack>
+            )}
+            {member && !isAnonymousProvider && (
               <YStack
                 py="$3"
                 px="$4"

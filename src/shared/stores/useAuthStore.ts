@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { storage } from '@/services/storage';
 import { queryClient } from '@/services/queryClient';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import { setCrashlyticsUserId } from '@/services/firebase';
+import { setCrashlyticsUserId, signOutFirebase, isFirebaseAnonymousUser } from '@/services/firebase';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -50,6 +50,15 @@ export const useAuthStore = create<AuthState>()((set) => ({
         await GoogleSignin.signOut();
       } catch (error) {
         console.warn('Google sign out failed:', error);
+      }
+
+      // Firebase 로그아웃 (익명 사용자는 세션 유지 — 재로그인 시 같은 계정 복귀)
+      if (!isFirebaseAnonymousUser()) {
+        try {
+          await signOutFirebase();
+        } catch (error) {
+          console.warn('Firebase sign out failed:', error);
+        }
       }
 
       setCrashlyticsUserId(null);

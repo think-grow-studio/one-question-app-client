@@ -7,3 +7,4 @@
 export * from './firebaseApp';
 export * from './analytics';
 export * from './crashlytics';
+export * from './auth';

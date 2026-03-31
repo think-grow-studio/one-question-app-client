@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
-import { StyleSheet, Platform, Image } from 'react-native';
+import { StyleSheet, Platform, Image, View } from 'react-native';
 import { YStack, XStack, useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { Screen } from '@/shared/layout/Screen';
 import { Text } from '@/shared/ui/Text';
 import { useGoogleLogin } from '@/features/auth/hooks/useGoogleLogin';
+import { useAnonymousLogin } from '@/features/auth/hooks/useAnonymousLogin';
 import { Pressable, ActivityIndicator } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { getFontStyle } from '@/shared/theme/typography';
@@ -44,7 +45,9 @@ export default function LoginScreen() {
   const { t } = useTranslation('auth');
   const { mode } = useThemeStore();
   const { mutate: googleLogin, isPending } = useGoogleLogin();
+  const { mutate: anonymousLogin, isPending: isAnonymousPending } = useAnonymousLogin();
   const isDark = mode === 'dark';
+  const isAnyPending = isPending || isAnonymousPending;
 
   // Analytics: 화면 조회
   useEffect(() => {
@@ -57,6 +60,11 @@ export default function LoginScreen() {
       method: 'google',
     });
     googleLogin();
+  };
+
+  const handleGuestLogin = () => {
+    logEvent(AnalyticsEvents.GUEST_LOGIN);
+    anonymousLogin();
   };
 
   const handlePressTerms = async () => {
@@ -87,7 +95,7 @@ export default function LoginScreen() {
           {/* Google Login Button */}
           <Pressable
             onPress={handleGoogleLogin}
-            disabled={isPending}
+            disabled={isAnyPending}
             style={({ pressed }) => [
               styles.loginButton,
               {
@@ -134,6 +142,34 @@ export default function LoginScreen() {
               </XStack>
             </Pressable>
           )}
+
+          {/* Divider */}
+          <XStack ai="center" gap="$3" my="$2">
+            <View style={{ flex: 1, height: 1, backgroundColor: theme.borderColor?.val }} />
+            <Text variant="caption" muted>{t('orDivider')}</Text>
+            <View style={{ flex: 1, height: 1, backgroundColor: theme.borderColor?.val }} />
+          </XStack>
+
+          {/* Guest Login Button */}
+          <Pressable
+            onPress={handleGuestLogin}
+            disabled={isAnyPending}
+            style={({ pressed }) => [
+              styles.guestButton,
+              { opacity: pressed ? 0.7 : 1 },
+              isAnyPending && styles.disabledButton,
+            ]}
+          >
+            <XStack ai="center" jc="center">
+              {isAnonymousPending ? (
+                <ActivityIndicator size="small" color={theme.color?.val} />
+              ) : (
+                <Text variant="body" muted {...getFontStyle('500')}>
+                  {t('guestLogin')}
+                </Text>
+              )}
+            </XStack>
+          </Pressable>
         </YStack>
 
         {/* Terms */}
@@ -177,6 +213,11 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.5,
+  },
+  guestButton: {
+    paddingVertical: sp(14),
+    paddingHorizontal: sp(24),
+    borderRadius: radius(12),
   },
   termsText: {
     fontSize: fs(12),
