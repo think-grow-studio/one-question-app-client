@@ -56,7 +56,10 @@
     "linkGoogleButton": "Google 계정 연동",
     "linkGoogleWarning": "계정을 연동하면 데이터를 안전하게 보관할 수 있습니다",
     "linkGoogleSuccess": "Google 계정이 연동되었습니다",
-    "linkGoogleConflict": "이미 사용 중인 Google 계정입니다",
+    "linkGoogleConflict": "계정 연동 불가",
+    "linkGoogleConflictMessage": "이미 다른 계정에서 사용 중인 Google 계정이에요. 다른 Google 계정으로 시도해 주세요.",
+    "linkGoogleSuccessMessage": "이제 기록이 안전하게 보관됩니다.",
+    "linkGoogleConfirm": "확인",
     "linkGoogleAlreadyLinked": "이미 연동된 계정입니다"
   }
 }

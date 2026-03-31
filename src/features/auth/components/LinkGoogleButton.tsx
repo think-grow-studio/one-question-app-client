@@ -32,7 +32,8 @@ export function LinkGoogleButton() {
           logEvent(AnalyticsEvents.LINK_GOOGLE_FAIL, { reason: 'conflict' });
           alertDialog.show({
             title: t('account.linkGoogleConflict'),
-            buttons: [{ label: 'OK', variant: 'default' }],
+            message: t('account.linkGoogleConflictMessage'),
+            buttons: [{ label: t('account.linkGoogleConfirm'), variant: 'primary' }],
           });
           return;
         }
@@ -48,7 +49,8 @@ export function LinkGoogleButton() {
               logEvent(AnalyticsEvents.LINK_GOOGLE_SUCCESS);
               alertDialog.show({
                 title: t('account.linkGoogleSuccess'),
-                buttons: [{ label: 'OK', variant: 'default' }],
+                message: t('account.linkGoogleSuccessMessage'),
+                buttons: [{ label: t('account.linkGoogleConfirm'), variant: 'primary' }],
               });
             },
             onError: () => {

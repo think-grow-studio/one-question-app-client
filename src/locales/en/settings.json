@@ -57,7 +57,10 @@
     "linkGoogleButton": "Link Google Account",
     "linkGoogleWarning": "Link your account to keep your data safe",
     "linkGoogleSuccess": "Google account linked successfully",
-    "linkGoogleConflict": "This Google account is already in use",
+    "linkGoogleConflict": "Unable to Link",
+    "linkGoogleConflictMessage": "This Google account is already linked to another account. Please try a different Google account.",
+    "linkGoogleSuccessMessage": "Your records are now safely backed up.",
+    "linkGoogleConfirm": "OK",
     "linkGoogleAlreadyLinked": "Account is already linked"
   }
 }
