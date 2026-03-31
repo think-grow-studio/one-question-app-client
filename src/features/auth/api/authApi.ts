@@ -28,8 +28,8 @@ export const authApi = {
   withdraw: () => apiClient.delete<void>('/api/v1/auth/me'),
 
   checkGoogleLink: (data: CheckGoogleLinkRequest) =>
-    apiClient.post<CheckGoogleLinkResponse>('/api/v1/auth/check-google-link', data),
+    apiClient.post<CheckGoogleLinkResponse>('/api/v1/auth/google/link/check', data),
 
   linkToGoogle: (data: LinkToGoogleRequest) =>
-    apiClient.post<AuthResponse>('/api/v1/auth/link-to-google', data),
+    apiClient.post<AuthResponse>('/api/v1/auth/google/link', data),
 };
