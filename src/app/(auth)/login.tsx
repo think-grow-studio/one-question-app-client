@@ -87,7 +87,7 @@ export default function LoginScreen() {
         },
         {
           label: t('guestDialogConfirm'),
-          variant: 'default',
+          variant: 'primary',
           onPress: () => {
             logEvent(AnalyticsEvents.GUEST_LOGIN);
             anonymousLogin();
