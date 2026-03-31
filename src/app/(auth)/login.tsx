@@ -6,6 +6,8 @@ import { Screen } from '@/shared/layout/Screen';
 import { Text } from '@/shared/ui/Text';
 import { useGoogleLogin } from '@/features/auth/hooks/useGoogleLogin';
 import { useAnonymousLogin } from '@/features/auth/hooks/useAnonymousLogin';
+import { AlertDialog } from '@/shared/ui/AlertDialog/AlertDialog';
+import { useAlertDialog } from '@/shared/ui/AlertDialog/useAlertDialog';
 import { Pressable, ActivityIndicator } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { getFontStyle } from '@/shared/theme/typography';
@@ -16,6 +18,17 @@ import { logScreenView, logEvent, AnalyticsEvents } from '@/services/firebase';
 
 const logoLight = require('@/assets/images/one-question-light.png');
 const logoDark = require('@/assets/images/one-question-dark.png');
+
+function GuestIcon({ color }: { color: string }) {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+        fill={color}
+      />
+    </Svg>
+  );
+}
 
 function GoogleIcon() {
   return (
@@ -46,6 +59,7 @@ export default function LoginScreen() {
   const { mode } = useThemeStore();
   const { mutate: googleLogin, isPending } = useGoogleLogin();
   const { mutate: anonymousLogin, isPending: isAnonymousPending } = useAnonymousLogin();
+  const guestDialog = useAlertDialog();
   const isDark = mode === 'dark';
   const isAnyPending = isPending || isAnonymousPending;
 
@@ -63,8 +77,24 @@ export default function LoginScreen() {
   };
 
   const handleGuestLogin = () => {
-    logEvent(AnalyticsEvents.GUEST_LOGIN);
-    anonymousLogin();
+    guestDialog.show({
+      title: t('guestDialogTitle'),
+      message: t('guestDialogMessage'),
+      buttons: [
+        {
+          label: t('guestDialogCancel'),
+          variant: 'default',
+        },
+        {
+          label: t('guestDialogConfirm'),
+          variant: 'default',
+          onPress: () => {
+            logEvent(AnalyticsEvents.GUEST_LOGIN);
+            anonymousLogin();
+          },
+        },
+      ],
+    });
   };
 
   const handlePressTerms = async () => {
@@ -143,30 +173,26 @@ export default function LoginScreen() {
             </Pressable>
           )}
 
-          {/* Divider */}
-          <XStack ai="center" gap="$3" my="$2">
-            <View style={{ flex: 1, height: 1, backgroundColor: theme.borderColor?.val }} />
-            <Text variant="caption" muted>{t('orDivider')}</Text>
-            <View style={{ flex: 1, height: 1, backgroundColor: theme.borderColor?.val }} />
-          </XStack>
-
           {/* Guest Login Button */}
           <Pressable
             onPress={handleGuestLogin}
             disabled={isAnyPending}
             style={({ pressed }) => [
               styles.guestButton,
-              { opacity: pressed ? 0.7 : 1 },
+              { opacity: pressed ? 0.6 : 1 },
               isAnyPending && styles.disabledButton,
             ]}
           >
-            <XStack ai="center" jc="center">
+            <XStack ai="center" jc="center" gap="$1.5">
               {isAnonymousPending ? (
                 <ActivityIndicator size="small" color={theme.color?.val} />
               ) : (
-                <Text variant="body" muted {...getFontStyle('500')}>
-                  {t('guestLogin')}
-                </Text>
+                <>
+                  <GuestIcon color={theme.color?.val || '#999'} />
+                  <Text variant="body" muted {...getFontStyle('500')}>
+                    {t('guestLogin')}
+                  </Text>
+                </>
               )}
             </XStack>
           </Pressable>
@@ -195,6 +221,15 @@ export default function LoginScreen() {
           </XStack>
         </YStack>
       </YStack>
+
+      {/* Guest Login Confirmation Dialog */}
+      <AlertDialog
+        visible={guestDialog.visible}
+        title={guestDialog.config.title}
+        message={guestDialog.config.message}
+        buttons={guestDialog.config.buttons}
+        onClose={guestDialog.hide}
+      />
     </Screen>
   );
 }
@@ -215,9 +250,8 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   guestButton: {
-    paddingVertical: sp(14),
+    paddingVertical: sp(10),
     paddingHorizontal: sp(24),
-    borderRadius: radius(12),
   },
   termsText: {
     fontSize: fs(12),
