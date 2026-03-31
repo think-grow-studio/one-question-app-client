@@ -29,8 +29,7 @@ import { useServeDailyQuestion, useReloadQuestion } from '../hooks/mutations/use
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 import { MemberPermission, ApiErrorResponse } from '@/shared/types/api';
 import { shouldHideAds } from '@/features/member/constants/permissions';
-import { useRewardedAdGate } from '@/features/admob/hooks/useRewardedAdGate';
-import { useInterstitialAdGate } from '@/features/admob/hooks/useInterstitialAdGate';
+import { useInterstitialAd } from '@/features/admob/hooks/useInterstitialAd';
 import { useQueryClient } from '@tanstack/react-query';
 import { DatePickerSheet } from './DatePickerSheet';
 import { ReloadOptionSheet } from '@/features/answer/components/ReloadOptionSheet';
@@ -112,7 +111,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
 
   // 회원 정보 조회 (cycleStartDate 제한용)
   const { data: member } = useMemberMe();
-  const { requestReward } = useRewardedAdGate();
+  const { showAdAndWait: requestReward } = useInterstitialAd('interstitialPastQuestion');
 
   // 현재 질문/답변 데이터 (히스토리 기반)
   const currentItem = currentHistory?.question
@@ -149,7 +148,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
   const shouldGateReloadQuestion = memberPermission === MemberPermission.FREE;
   const isAdFreeMember = shouldHideAds(memberPermission);
 
-  const { showAd } = useInterstitialAdGate();
+  const { showAd } = useInterstitialAd('interstitialSwipe');
 
   const swipeCountRef = useRef(0);
   const isAdFreeMemberRef = useRef(isAdFreeMember);

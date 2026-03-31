@@ -17,26 +17,33 @@ const platformEnv =
     ? {
         banner: process.env.EXPO_PUBLIC_ADMOB_IOS_BANNER_ID,
         rewarded: process.env.EXPO_PUBLIC_ADMOB_IOS_REWARDED_ID,
-        interstitial: process.env.EXPO_PUBLIC_ADMOB_IOS_INTERSTITIAL_ID,
+        interstitialSwipe: process.env.EXPO_PUBLIC_ADMOB_IOS_INTERSTITIAL_SWIPE_ID,
+        interstitialPastQuestion: process.env.EXPO_PUBLIC_ADMOB_IOS_INTERSTITIAL_PAST_QUESTION_ID,
+        interstitialReload: process.env.EXPO_PUBLIC_ADMOB_IOS_INTERSTITIAL_RELOAD_ID,
       }
     : {
         banner: process.env.EXPO_PUBLIC_ADMOB_ANDROID_BANNER_ID,
         rewarded: process.env.EXPO_PUBLIC_ADMOB_ANDROID_REWARDED_ID,
-        interstitial: process.env.EXPO_PUBLIC_ADMOB_ANDROID_INTERSTITIAL_ID,
+        interstitialSwipe: process.env.EXPO_PUBLIC_ADMOB_ANDROID_INTERSTITIAL_SWIPE_ID,
+        interstitialPastQuestion: process.env.EXPO_PUBLIC_ADMOB_ANDROID_INTERSTITIAL_PAST_QUESTION_ID,
+        interstitialReload: process.env.EXPO_PUBLIC_ADMOB_ANDROID_INTERSTITIAL_RELOAD_ID,
       };
 
 const envIds = {
   banner: process.env.EXPO_PUBLIC_ADMOB_BANNER_ID || platformEnv.banner,
   rewarded: process.env.EXPO_PUBLIC_ADMOB_REWARDED_ID || platformEnv.rewarded,
-  interstitial:
-    process.env.EXPO_PUBLIC_ADMOB_INTERSTITIAL_ID || platformEnv.interstitial,
+  interstitialSwipe: platformEnv.interstitialSwipe,
+  interstitialPastQuestion: platformEnv.interstitialPastQuestion,
+  interstitialReload: platformEnv.interstitialReload,
 };
 
 // production에서만 실제 Ad Unit ID 사용, 그 외(preview/development)에서는 테스트 ID 사용
 export const admobUnitIds = {
   banner: isProduction ? (envIds.banner || TEST_IDS.banner) : TEST_IDS.banner,
   rewarded: isProduction ? (envIds.rewarded || TEST_IDS.rewarded) : TEST_IDS.rewarded,
-  interstitial: isProduction ? (envIds.interstitial || TEST_IDS.interstitial) : TEST_IDS.interstitial,
+  interstitialSwipe: isProduction ? (envIds.interstitialSwipe || TEST_IDS.interstitial) : TEST_IDS.interstitial,
+  interstitialPastQuestion: isProduction ? (envIds.interstitialPastQuestion || TEST_IDS.interstitial) : TEST_IDS.interstitial,
+  interstitialReload: isProduction ? (envIds.interstitialReload || TEST_IDS.interstitial) : TEST_IDS.interstitial,
 };
 
 export const admobRequestOptions = {
