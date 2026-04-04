@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import { useTheme } from 'tamagui';
 import { useQueryClient } from '@tanstack/react-query';
@@ -25,25 +25,26 @@ export function QuestionLikeButton({ questionId, initialLiked, date }: QuestionL
   const toggleMutation = useToggleQuestionLike();
 
   const [liked, setLiked] = useState(initialLiked);
+  const currentQuestionIdRef = useRef(questionId);
 
   useEffect(() => {
+    currentQuestionIdRef.current = questionId;
     setLiked(initialLiked);
   }, [questionId, initialLiked]);
 
   const handleToggle = () => {
     const prevLiked = liked;
+    const mutatedId = questionId;
     setLiked(!prevLiked);
 
     toggleMutation.mutate(questionId, {
       onSuccess: (data) => {
-        setLiked(data.liked);
         queryClient.setQueryData<DailyQuestionDomain | null>(
           questionQueryKeys.daily(date),
           (prev) => {
-            if (!prev || !prev.question || prev.question.questionId !== questionId) {
+            if (!prev || !prev.question || prev.question.questionId !== mutatedId) {
               return prev;
             }
-
             return {
               ...prev,
               question: {
@@ -53,9 +54,14 @@ export function QuestionLikeButton({ questionId, initialLiked, date }: QuestionL
             };
           }
         );
+        if (currentQuestionIdRef.current === mutatedId) {
+          setLiked(data.liked);
+        }
       },
       onError: () => {
-        setLiked(prevLiked);
+        if (currentQuestionIdRef.current === mutatedId) {
+          setLiked(prevLiked);
+        }
       },
     });
   };
