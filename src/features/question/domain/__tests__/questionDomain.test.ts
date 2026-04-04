@@ -6,10 +6,12 @@ describe('withAnswer', () => {
     status: 'UNANSWERED',
     question: {
       dailyQuestionId: 1,
+      questionId: 1,
       content: '질문',
       description: null,
       questionCycle: 1,
       changeCount: 0,
+      liked: false,
     },
     answer: null,
   };

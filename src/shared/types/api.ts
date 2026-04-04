@@ -94,10 +94,12 @@ export interface UpdateMemberRequest {
 
 export interface ServeDailyQuestionResponse {
   dailyQuestionId: number;
+  questionId: number;
   content: string;
   description: string | null;
   questionCycle: number;
   changeCount: number;
+  liked: boolean;
 }
 
 export interface CreateAnswerRequest {
@@ -129,10 +131,12 @@ export type HistoryDirection = 'PREVIOUS' | 'NEXT' | 'BOTH';
 
 export interface QuestionInfoDto {
   dailyQuestionId: number;
+  questionId: number;
   content: string;
   description: string | null;
   questionCycle: number;
   changeCount: number;
+  liked: boolean;
 }
 
 export interface AnswerInfoDto {

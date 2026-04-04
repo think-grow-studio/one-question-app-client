@@ -40,6 +40,7 @@ import { canReloadQuestion, getReloadCountDisplay } from '../constants/limits';
 import { logEvent, AnalyticsEvents } from '@/services/firebase';
 import { PublicStatusBadge } from '@/features/feed/components/PublicStatusBadge';
 import { ENABLE_PUBLIC_FEED } from '@/shared/constants/features';
+import { QuestionLikeButton } from './QuestionLikeButton';
 
 const SWIPE_THRESHOLD = SCREEN.width * 0.2; // 20% - 더 쉽게 넘어가도록 조정 (이전: 0.3)
 
@@ -525,7 +526,14 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
           <View style={[cardStyles.card, cardStyles.cardFull]}>
             <View style={styles.questionSection}>
               <XStack ai="center" jc="space-between" mb="$3" style={styles.questionHeader}>
-                <Text style={cardStyles.labelText}>{t('labels.question')}</Text>
+                <XStack ai="center" gap="$2">
+                  <Text style={cardStyles.labelText}>{t('labels.question')}</Text>
+                  <QuestionLikeButton
+                    questionId={currentHistory!.question!.questionId}
+                    date={currentHistory!.date}
+                    initialLiked={currentHistory!.question!.liked}
+                  />
+                </XStack>
                 {/* 답변이 없을 때만 reload 버튼 표시 */}
                 {!currentItem.answer && (
                   <XStack ai="center" gap="$2">
@@ -757,6 +765,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     paddingBottom: 40,
+  },
+  likeButtonContainer: {
+    marginTop: 16,
+    alignItems: 'center' as const,
   },
   emptyState: {
     alignItems: 'center',

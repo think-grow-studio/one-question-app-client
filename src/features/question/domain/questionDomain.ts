@@ -43,10 +43,12 @@ export function fromServeDailyQuestion(
     status: 'UNANSWERED',
     question: {
       dailyQuestionId: response.dailyQuestionId,
+      questionId: response.questionId,
       content: response.content,
       description: response.description,
       questionCycle: response.questionCycle,
       changeCount: response.changeCount,
+      liked: response.liked,
     },
     answer: null,
   };
