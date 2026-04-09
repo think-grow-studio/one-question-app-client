@@ -138,6 +138,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
   const currentError = (historyError ?? serveDailyQuestionMutation.error) as ApiErrorResponse | null;
   const isNetworkError = !currentError || (currentError as ApiErrorResponse).status === 0;
   const reloadCount = currentItem?.reloadCount ?? 0;
+  const candidates = currentHistory?.question?.candidates ?? [];
 
   // Permission 정보 가져오기
   const memberPermission = member?.permission ?? MemberPermission.FREE;
@@ -546,7 +547,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
                       onPress={handleReloadPress}
                       style={cardStyles.reloadButton}
                       hitSlop={8}
-                      disabled={!canReload || reloadMutation.isPending}
+                      disabled={(candidates.length <= 1 && !canReload) || reloadMutation.isPending}
                     >
                       <ReloadIcon
                         size={18}
@@ -699,6 +700,8 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
         onRandomQuestion={handleRandomQuestion}
         onPastQuestion={handlePastQuestion}
         randomRequiresAd={shouldGateReloadQuestion}
+        candidates={candidates}
+        date={currentDate}
       />
 
       <AlertDialog

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useMemo } from 'react';
-import { Pressable, StyleSheet, View, Text, Modal, PanResponder, BackHandler } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, View, Text, Modal, PanResponder, BackHandler } from 'react-native';
 import { YStack, useTheme } from 'tamagui';
 import Animated, {
   useSharedValue,
@@ -16,6 +16,8 @@ import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 import { shouldHideAds } from '@/features/member/constants/permissions';
 import { fs, sp, radius, cs, SHEET_HEIGHTS, SHEET_MAX_WIDTH } from '@/shared/utils/responsive';
+import { useSelectCandidate } from '@/features/question/hooks/mutations/useQuestionMutations';
+import type { CandidateDto } from '@/shared/types/api';
 
 const DISMISS_THRESHOLD = 100;
 
@@ -25,6 +27,8 @@ type ReloadOptionSheetProps = {
   onRandomQuestion: () => void;
   onPastQuestion: () => void;
   randomRequiresAd?: boolean;
+  candidates: CandidateDto[];
+  date: string;
 };
 
 export function ReloadOptionSheet({
@@ -33,15 +37,18 @@ export function ReloadOptionSheet({
   onRandomQuestion,
   onPastQuestion,
   randomRequiresAd = false,
+  candidates,
+  date,
 }: ReloadOptionSheetProps) {
   const theme = useTheme();
   const accent = useAccentColors();
   const { t } = useTranslation(['answer', 'common']);
   const { data: member } = useMemberMe();
   const isAdFreeMember = shouldHideAds(member?.permission);
+  const { mutate: selectCandidate, isPending: isSelectPending } = useSelectCandidate();
 
-  // Use standard sheet height constant
-  const SHEET_HEIGHT = SHEET_HEIGHTS.medium;
+  const hasCandidates = candidates.length > 1;
+  const SHEET_HEIGHT = hasCandidates ? SHEET_HEIGHTS.large : SHEET_HEIGHTS.medium;
 
   const translateY = useSharedValue(SHEET_HEIGHT);
   const backdropOpacity = useSharedValue(0);
@@ -126,6 +133,19 @@ export function ReloadOptionSheet({
     closeSheet();
   };
 
+  const handleSelectCandidate = (candidateId: number) => {
+    if (isSelectPending) return;
+    closeSheet();
+    selectCandidate(
+      { date, candidateId },
+      {
+        onError: () => {
+          Alert.alert(t('common:error.title'), t('answer:reload.selectError'));
+        },
+      }
+    );
+  };
+
   const responsiveStyles = useMemo(() => ({
     sheetContainer: {
       height: SHEET_HEIGHT,
@@ -141,6 +161,24 @@ export function ReloadOptionSheet({
     },
     contentContainer: {
       paddingHorizontal: sp(16),
+    },
+    candidatesLabel: {
+      fontSize: fs(13),
+      marginBottom: sp(8),
+    },
+    candidateItem: {
+      paddingVertical: sp(14),
+      paddingHorizontal: sp(16),
+      borderRadius: radius(16),
+      marginBottom: sp(8),
+    },
+    candidateText: {
+      fontSize: fs(15),
+      flex: 1,
+      lineHeight: fs(15) * 1.5,
+    },
+    divider: {
+      marginVertical: sp(16),
     },
     title: {
       fontSize: fs(18),
@@ -212,6 +250,60 @@ export function ReloadOptionSheet({
 
         {/* Content */}
         <View style={[styles.contentContainer, responsiveStyles.contentContainer]}>
+
+          {/* 후보 질문 섹션 (2개 이상일 때만 표시) */}
+          {hasCandidates && (
+            <View style={styles.candidatesSection}>
+              <Text style={[styles.candidatesLabel, responsiveStyles.candidatesLabel, { color: theme.colorMuted?.val }]}>
+                {t('answer:reload.candidatesLabel')}
+              </Text>
+              <ScrollView
+                scrollEnabled={candidates.length > 3}
+                showsVerticalScrollIndicator={candidates.length > 3}
+                style={candidates.length > 3 ? styles.candidatesScroll : undefined}
+                nestedScrollEnabled
+              >
+                {candidates.map((candidate) => (
+                  <Pressable
+                    key={candidate.candidateId}
+                    onPress={() => handleSelectCandidate(candidate.candidateId)}
+                    disabled={isSelectPending}
+                    style={({ pressed }) => [
+                      styles.candidateItem,
+                      responsiveStyles.candidateItem,
+                      {
+                        backgroundColor: candidate.isSelected
+                          ? `${accent.primary}18`
+                          : theme.backgroundSoft?.val ?? '#262627',
+                      },
+                      pressed && !candidate.isSelected && { opacity: 0.7 },
+                      isSelectPending && !candidate.isSelected && { opacity: 0.45 },
+                    ]}
+                  >
+                    {candidate.isSelected && (
+                      <View style={[styles.candidateAccentBar, { backgroundColor: accent.primary }]} />
+                    )}
+                    <Text
+                      style={[styles.candidateText, responsiveStyles.candidateText, { color: theme.color?.val }]}
+                      numberOfLines={2}
+                    >
+                      {candidate.content}
+                    </Text>
+                    <View
+                      style={[
+                        styles.candidateRadio,
+                        candidate.isSelected
+                          ? { backgroundColor: accent.primary }
+                          : { borderWidth: 2, borderColor: theme.borderColor?.val },
+                      ]}
+                    />
+                  </Pressable>
+                ))}
+              </ScrollView>
+              <View style={[styles.divider, { backgroundColor: theme.borderColor?.val }]} />
+            </View>
+          )}
+
           {/* Title */}
           <Text style={[styles.title, responsiveStyles.title, { color: theme.color?.val }]}>
             {t('answer:reload.title')}
@@ -327,6 +419,42 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
+  },
+  candidatesSection: {
+    marginBottom: sp(4),
+  },
+  candidatesScroll: {
+    maxHeight: sp(70) * 3, // 3개 항목 높이까지만 표시, 초과 시 스크롤
+  },
+  candidatesLabel: {
+    ...getFontStyle('600'),
+  },
+  candidateItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  candidateAccentBar: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 3,
+  },
+  candidateText: {
+    flex: 1,
+    ...getFontStyle('500'),
+  },
+  candidateRadio: {
+    width: cs(18),
+    height: cs(18),
+    borderRadius: cs(9),
+    marginLeft: sp(10),
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    marginTop: sp(8),
+    opacity: 0.3,
   },
   title: {
     ...getFontStyle('700'),

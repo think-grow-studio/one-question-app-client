@@ -92,6 +92,23 @@ export interface UpdateMemberRequest {
 // Question Types
 // ============================================
 
+export interface CandidateDto {
+  candidateId: number;
+  questionId: number;
+  content: string;
+  description: string | null;
+  order: number;
+  isSelected: boolean;
+}
+
+export interface SelectCandidateResponse {
+  dailyQuestionId: number;
+  selectedCandidateId: number;
+  questionId: number;
+  content: string;
+  description: string | null;
+}
+
 export interface ServeDailyQuestionResponse {
   dailyQuestionId: number;
   questionId: number;
@@ -100,6 +117,7 @@ export interface ServeDailyQuestionResponse {
   questionCycle: number;
   changeCount: number;
   liked: boolean;
+  candidates: CandidateDto[];
 }
 
 export interface CreateAnswerRequest {
@@ -137,6 +155,7 @@ export interface QuestionInfoDto {
   questionCycle: number;
   changeCount: number;
   liked: boolean;
+  candidates: CandidateDto[];
 }
 
 export interface AnswerInfoDto {

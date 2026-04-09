@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { questionApi } from '../../api/questionApi';
 import { questionQueryKeys, getCalendarBaseDate } from '../queries/useQuestionQueries';
 import type { ServeDailyQuestionResponse } from '@/shared/types/api';
-import { fromServeDailyQuestion } from '../../domain/questionDomain';
+import { fromServeDailyQuestion, type DailyQuestionDomain } from '../../domain/questionDomain';
 
 export function useServeDailyQuestion(options?: {
   onSuccess?: (data: ServeDailyQuestionResponse, variables: string) => void
@@ -39,6 +39,66 @@ export function useReloadQuestion() {
       // 달력 데이터 갱신 (해당 날짜가 포함된 월의 캐시만)
       const calendarBaseDate = getCalendarBaseDate(date);
       queryClient.invalidateQueries({ queryKey: questionQueryKeys.calendar(calendarBaseDate) });
+    },
+  });
+}
+
+export function useSelectCandidate() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ date, candidateId }: { date: string; candidateId: number }) =>
+      questionApi.selectCandidate(date, candidateId).then((res) => res.data),
+
+    onMutate: async ({ date, candidateId }) => {
+      await queryClient.cancelQueries({ queryKey: questionQueryKeys.daily(date) });
+      const previousData = queryClient.getQueryData<DailyQuestionDomain>(questionQueryKeys.daily(date));
+
+      queryClient.setQueryData<DailyQuestionDomain>(questionQueryKeys.daily(date), (prev) => {
+        if (!prev?.question) return prev;
+        const selected = prev.question.candidates.find((c) => c.candidateId === candidateId);
+        if (!selected) return prev;
+        return {
+          ...prev,
+          question: {
+            ...prev.question,
+            questionId: selected.questionId,
+            content: selected.content,
+            description: selected.description,
+            candidates: prev.question.candidates.map((c) => ({
+              ...c,
+              isSelected: c.candidateId === candidateId,
+            })),
+          },
+        };
+      });
+
+      return { previousData };
+    },
+
+    onError: (_err, { date }, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(questionQueryKeys.daily(date), context.previousData);
+      }
+    },
+
+    onSuccess: (data, { date }) => {
+      queryClient.setQueryData<DailyQuestionDomain>(questionQueryKeys.daily(date), (prev) => {
+        if (!prev?.question) return prev;
+        return {
+          ...prev,
+          question: {
+            ...prev.question,
+            questionId: data.questionId,
+            content: data.content,
+            description: data.description,
+            candidates: prev.question.candidates.map((c) => ({
+              ...c,
+              isSelected: c.candidateId === data.selectedCandidateId,
+            })),
+          },
+        };
+      });
     },
   });
 }

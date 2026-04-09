@@ -49,6 +49,7 @@ export function fromServeDailyQuestion(
       questionCycle: response.questionCycle,
       changeCount: response.changeCount,
       liked: response.liked,
+      candidates: response.candidates ?? [],
     },
     answer: null,
   };
