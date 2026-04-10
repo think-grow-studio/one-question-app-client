@@ -22,7 +22,12 @@
     "pastQuestion": "Past Question",
     "pastQuestionDesc": "Get a question you've received before",
     "pastQuestionNotReady": "Past questions are not ready yet",
-    "countRemaining": "{{count}} remaining"
+    "countRemaining": "{{count}} remaining",
+    "candidatesLabel": "Today's Questions",
+    "selectError": "Failed to select question. Please try again.",
+    "cycleCheckError": "Failed to check whether this question was already assigned. Please try again.",
+    "cycleDuplicateTitle": "You've already received this question",
+    "cycleDuplicateMessage": "This question already appeared on {{dates}}. Select it?"
   },
   "reviewPrompt": {
     "title": "Do you like the app?",

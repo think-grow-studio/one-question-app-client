@@ -2,8 +2,12 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { questionApi } from '../../api/questionApi';
-import type { HistoryDirection } from '@/shared/types/api';
-import { fromHistoryItem, type DailyQuestionDomain } from '../../domain/questionDomain';
+import type { HistoryDirection } from '../../types/api';
+import {
+  fromHistoryItem,
+  fromServeDailyQuestion,
+  type DailyQuestionDomain,
+} from '../../domain/questionDomain';
 
 /**
  * 날짜를 달력 캐시 키의 baseDate로 변환
@@ -25,10 +29,7 @@ export const questionQueryKeys = {
 export function useDailyQuestion(date: string, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: questionQueryKeys.daily(date),
-    queryFn: () => {
-      console.log('[useDailyQuestion] API 호출 날짜:', date);
-      return questionApi.serveDailyQuestion(date).then((res) => res.data);
-    },
+    queryFn: () => questionApi.serveDailyQuestion(date).then((res) => fromServeDailyQuestion(date, res.data)),
     staleTime: 1000 * 60 * 5, // 5분
     enabled: options?.enabled ?? true,
   });
@@ -56,18 +57,10 @@ export function useDailyHistory(
   return useQuery({
     queryKey: questionQueryKeys.daily(date),
     queryFn: async () => {
-      console.log('[useDailyHistory] Fetching history for date:', date, 'direction:', direction);
-
       const res = await questionApi.getHistories({
         baseDate: date,
         historyDirection: direction,
         size: HISTORY_FETCH_SIZE,
-      });
-
-      console.log('[useDailyHistory] API Response:', {
-        date,
-        direction,
-        data: res.data,
       });
 
       // 받은 모든 날짜를 도메인 모델로 변환하여 캐시에 저장
@@ -119,20 +112,10 @@ export function useCalendarHistory(
     queryKey: questionQueryKeys.calendar(cacheBaseDate),
 
     queryFn: async () => {
-      console.log('[useCalendarHistory] Fetching calendar data for month:', {
-        cacheBaseDate,
-        fetchBaseDate,
-      });
-
       const res = await questionApi.getHistories({
         baseDate: fetchBaseDate,
         historyDirection: 'BOTH',
         size: 35,
-      });
-
-      console.log('[useCalendarHistory] API Response:', {
-        baseDate: fetchBaseDate,
-        count: res.data.histories.length,
       });
 
       // 각 날짜를 daily 캐시에 저장 (부작용)

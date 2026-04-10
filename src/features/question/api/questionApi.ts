@@ -1,35 +1,38 @@
 import { apiClient } from '@/services/apiClient';
 import type {
-  ServeDailyQuestionResponse,
+  CheckCandidateCycleRequest,
+  CheckCandidateCycleResponse,
   CreateAnswerRequest,
   CreateAnswerResponse,
-  UpdateAnswerRequest,
-  UpdateAnswerResponse,
   GetQuestionHistoryResponse,
   HistoryDirection,
-} from '@/shared/types/api';
+  SelectQuestionRequest,
+  ServeDailyQuestionResponse,
+  UpdateAnswerRequest,
+  UpdateAnswerResponse,
+} from '../types/api';
 
-// Question API
 export const questionApi = {
   serveDailyQuestion: (date: string) =>
     apiClient.get<ServeDailyQuestionResponse>(`/api/v1/questions/daily/${date}`),
 
   reloadDailyQuestion: (date: string) =>
-    apiClient.post<ServeDailyQuestionResponse>(
-      `/api/v1/questions/daily/${date}/reload`
+    apiClient.post<ServeDailyQuestionResponse>(`/api/v1/questions/daily/${date}/reload`),
+
+  selectQuestion: (date: string, data: SelectQuestionRequest) =>
+    apiClient.patch<ServeDailyQuestionResponse>(`/api/v1/questions/daily/${date}`, data),
+
+  checkCandidateCycle: (date: string, data: CheckCandidateCycleRequest) =>
+    apiClient.post<CheckCandidateCycleResponse>(
+      `/api/v1/questions/daily/${date}/candidates/cycle-check`,
+      data
     ),
 
   createAnswer: (date: string, data: CreateAnswerRequest) =>
-    apiClient.post<CreateAnswerResponse>(
-      `/api/v1/questions/daily/${date}/answer`,
-      data
-    ),
+    apiClient.post<CreateAnswerResponse>(`/api/v1/questions/daily/${date}/answer`, data),
 
   updateAnswer: (date: string, data: UpdateAnswerRequest) =>
-    apiClient.patch<UpdateAnswerResponse>(
-      `/api/v1/questions/daily/${date}/answer`,
-      data
-    ),
+    apiClient.patch<UpdateAnswerResponse>(`/api/v1/questions/daily/${date}/answer`, data),
 
   getHistories: (params: {
     baseDate: string;

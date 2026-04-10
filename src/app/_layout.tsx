@@ -171,8 +171,6 @@ function RootLayoutNav() {
         }
 
         console.log('[Version Check] -> no update needed');
-        // Save check date even when no update needed
-        await saveCheckDate();
 
       } catch (error) {
         console.warn('[Version Check] Failed:', error);

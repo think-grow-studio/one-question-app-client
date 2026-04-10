@@ -89,75 +89,6 @@ export interface UpdateMemberRequest {
 }
 
 // ============================================
-// Question Types
-// ============================================
-
-export interface ServeDailyQuestionResponse {
-  dailyQuestionId: number;
-  content: string;
-  description: string | null;
-  questionCycle: number;
-  changeCount: number;
-}
-
-export interface CreateAnswerRequest {
-  answer: string;
-  publish?: boolean;
-}
-
-export interface CreateAnswerResponse {
-  dailyAnswerId: number;
-  content: string;
-  answeredAt: string;
-  published?: boolean;
-}
-
-export interface UpdateAnswerRequest {
-  answer: string;
-  publish?: boolean;
-}
-
-export interface UpdateAnswerResponse {
-  dailyAnswerId: number;
-  content: string;
-  answeredAt: string;
-  published?: boolean;
-}
-
-export type HistoryStatus = 'ANSWERED' | 'UNANSWERED' | 'NO_QUESTION';
-export type HistoryDirection = 'PREVIOUS' | 'NEXT' | 'BOTH';
-
-export interface QuestionInfoDto {
-  dailyQuestionId: number;
-  content: string;
-  description: string | null;
-  questionCycle: number;
-  changeCount: number;
-}
-
-export interface AnswerInfoDto {
-  dailyAnswerId: number;
-  content: string;
-  answeredAt: string;
-  published?: boolean;
-}
-
-export interface QuestionHistoryItemDto {
-  date: string;
-  status: HistoryStatus;
-  question: QuestionInfoDto | null;
-  answer: AnswerInfoDto | null;
-}
-
-export interface GetQuestionHistoryResponse {
-  histories: QuestionHistoryItemDto[];
-  hasPrevious: boolean;
-  hasNext: boolean;
-  startDate: string;
-  endDate: string;
-}
-
-// ============================================
 // App Version Types
 // ============================================
 
@@ -194,4 +125,3 @@ export interface AnswerPostFeedResponse {
 export interface ToggleLikeResponse {
   liked: boolean;
 }
-
