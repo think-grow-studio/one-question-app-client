@@ -547,7 +547,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
                       onPress={handleReloadPress}
                       style={cardStyles.reloadButton}
                       hitSlop={8}
-                      disabled={(candidates.length <= 1 && !canReload) || reloadMutation.isPending}
+                      disabled={(candidates.length === 0 && !canReload) || reloadMutation.isPending}
                     >
                       <ReloadIcon
                         size={18}

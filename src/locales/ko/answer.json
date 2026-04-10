@@ -24,7 +24,10 @@
     "pastQuestionNotReady": "과거 질문은 아직 준비 중이에요",
     "countRemaining": "{{count}}회 남음",
     "candidatesLabel": "오늘 만난 질문들",
-    "selectError": "질문 선택에 실패했어요. 다시 시도해 주세요."
+    "selectError": "질문 선택에 실패했어요. 다시 시도해 주세요.",
+    "cycleCheckError": "질문 중복 여부를 확인하지 못했어요. 다시 시도해 주세요.",
+    "cycleDuplicateTitle": "이미 받은 질문이에요",
+    "cycleDuplicateMessage": "{{dates}}에 중복된 질문입니다. 선택할까요?"
   },
   "reviewPrompt": {
     "title": "앱이 마음에 드시나요?",

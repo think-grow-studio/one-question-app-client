@@ -2,16 +2,15 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
-    "baseUrl": ".",
     "types": ["tamagui", "jest"],
     "paths": {
-      "@/*": ["src/*"],
-      "@/app/*": ["src/app/*"],
-      "@/features/*": ["src/features/*"],
-      "@/services/*": ["src/services/*"],
-      "@/shared/*": ["src/shared/*"],
-      "@/constants/*": ["src/constants/*"],
-      "@/assets/*": ["src/assets/*"]
+      "@/*": ["./src/*"],
+      "@/app/*": ["./src/app/*"],
+      "@/features/*": ["./src/features/*"],
+      "@/services/*": ["./src/services/*"],
+      "@/shared/*": ["./src/shared/*"],
+      "@/constants/*": ["./src/constants/*"],
+      "@/assets/*": ["./src/assets/*"]
     }
   },
   "include": ["src/**/*", "index.ts", "tamagui.config.ts"]

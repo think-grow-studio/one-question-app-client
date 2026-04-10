@@ -1,26 +1,29 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import type { ApiErrorResponse } from '@/shared/types/api';
 import { questionApi } from '../../api/questionApi';
 import { questionQueryKeys, getCalendarBaseDate } from '../queries/useQuestionQueries';
-import type { ServeDailyQuestionResponse } from '@/shared/types/api';
-import { fromServeDailyQuestion, type DailyQuestionDomain } from '../../domain/questionDomain';
+import {
+  fromServeDailyQuestion,
+  type DailyQuestionDomain,
+} from '../../domain/questionDomain';
+import type {
+  CheckCandidateCycleResponse,
+  ServeDailyQuestionResponse,
+} from '../../types/api';
 
 export function useServeDailyQuestion(options?: {
-  onSuccess?: (data: ServeDailyQuestionResponse, variables: string) => void
+  onSuccess?: (data: ServeDailyQuestionResponse, variables: string) => void;
 }) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (date: string) => questionApi.serveDailyQuestion(date).then((res) => res.data),
     onSuccess: (data, date) => {
-      // API 응답을 도메인 모델로 변환하여 캐시 업데이트
-      const domainData = fromServeDailyQuestion(date, data);
-      queryClient.setQueryData(questionQueryKeys.daily(date), domainData);
+      queryClient.setQueryData(questionQueryKeys.daily(date), fromServeDailyQuestion(date, data));
 
-      // 달력 데이터 갱신 (해당 날짜가 포함된 월의 캐시만)
       const calendarBaseDate = getCalendarBaseDate(date);
       queryClient.invalidateQueries({ queryKey: questionQueryKeys.calendar(calendarBaseDate) });
 
-      // 외부 콜백 호출 (추가 작업이 필요한 경우)
       options?.onSuccess?.(data, date);
     },
   });
@@ -32,42 +35,48 @@ export function useReloadQuestion() {
   return useMutation({
     mutationFn: (date: string) => questionApi.reloadDailyQuestion(date).then((res) => res.data),
     onSuccess: (data, date) => {
-      // API 응답을 도메인 모델로 변환하여 캐시 업데이트
-      const domainData = fromServeDailyQuestion(date, data);
-      queryClient.setQueryData(questionQueryKeys.daily(date), domainData);
+      queryClient.setQueryData(questionQueryKeys.daily(date), fromServeDailyQuestion(date, data));
 
-      // 달력 데이터 갱신 (해당 날짜가 포함된 월의 캐시만)
       const calendarBaseDate = getCalendarBaseDate(date);
       queryClient.invalidateQueries({ queryKey: questionQueryKeys.calendar(calendarBaseDate) });
     },
   });
 }
 
-export function useSelectCandidate() {
+export function useSelectQuestion() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ date, candidateId }: { date: string; candidateId: number }) =>
-      questionApi.selectCandidate(date, candidateId).then((res) => res.data),
+    mutationFn: ({ date, questionId }: { date: string; questionId: number }) =>
+      questionApi.selectQuestion(date, { questionId }).then((res) => res.data),
 
-    onMutate: async ({ date, candidateId }) => {
+    onMutate: async ({ date, questionId }) => {
       await queryClient.cancelQueries({ queryKey: questionQueryKeys.daily(date) });
       const previousData = queryClient.getQueryData<DailyQuestionDomain>(questionQueryKeys.daily(date));
 
       queryClient.setQueryData<DailyQuestionDomain>(questionQueryKeys.daily(date), (prev) => {
-        if (!prev?.question) return prev;
-        const selected = prev.question.candidates.find((c) => c.candidateId === candidateId);
-        if (!selected) return prev;
+        if (!prev?.question) {
+          return prev;
+        }
+
+        const selectedCandidate = prev.question.candidates.find(
+          (candidate) => candidate.questionId === questionId
+        );
+
+        if (!selectedCandidate) {
+          return prev;
+        }
+
         return {
           ...prev,
           question: {
             ...prev.question,
-            questionId: selected.questionId,
-            content: selected.content,
-            description: selected.description,
-            candidates: prev.question.candidates.map((c) => ({
-              ...c,
-              isSelected: c.candidateId === candidateId,
+            questionId: selectedCandidate.questionId,
+            content: selectedCandidate.content,
+            description: selectedCandidate.description,
+            candidates: prev.question.candidates.map((candidate) => ({
+              ...candidate,
+              selected: candidate.questionId === questionId,
             })),
           },
         };
@@ -76,30 +85,29 @@ export function useSelectCandidate() {
       return { previousData };
     },
 
-    onError: (_err, { date }, context) => {
+    onError: (_error, { date }, context) => {
       if (context?.previousData) {
         queryClient.setQueryData(questionQueryKeys.daily(date), context.previousData);
       }
     },
 
     onSuccess: (data, { date }) => {
-      queryClient.setQueryData<DailyQuestionDomain>(questionQueryKeys.daily(date), (prev) => {
-        if (!prev?.question) return prev;
-        return {
-          ...prev,
-          question: {
-            ...prev.question,
-            questionId: data.questionId,
-            content: data.content,
-            description: data.description,
-            candidates: prev.question.candidates.map((c) => ({
-              ...c,
-              isSelected: c.candidateId === data.selectedCandidateId,
-            })),
-          },
-        };
-      });
+      queryClient.setQueryData(questionQueryKeys.daily(date), fromServeDailyQuestion(date, data));
+
+      const calendarBaseDate = getCalendarBaseDate(date);
+      queryClient.invalidateQueries({ queryKey: questionQueryKeys.calendar(calendarBaseDate) });
     },
+  });
+}
+
+export function useCheckCandidateCycle() {
+  return useMutation<
+    CheckCandidateCycleResponse,
+    ApiErrorResponse,
+    { date: string; questionId: number }
+  >({
+    mutationFn: ({ date, questionId }) =>
+      questionApi.checkCandidateCycle(date, { questionId }).then((res) => res.data),
   });
 }
 
@@ -111,7 +119,7 @@ export function useCreateAnswer() {
       questionApi.createAnswer(date, { answer, publish }).then((res) => res.data),
     onSuccess: (_, { date }) => {
       queryClient.invalidateQueries({ queryKey: questionQueryKeys.daily(date) });
-      // 달력 데이터 갱신 (답변 상태 반영)
+
       const calendarBaseDate = getCalendarBaseDate(date);
       queryClient.invalidateQueries({ queryKey: questionQueryKeys.calendar(calendarBaseDate) });
     },
@@ -126,7 +134,7 @@ export function useUpdateAnswer() {
       questionApi.updateAnswer(date, { answer, publish }).then((res) => res.data),
     onSuccess: (_, { date }) => {
       queryClient.invalidateQueries({ queryKey: questionQueryKeys.daily(date) });
-      // 달력 데이터 갱신 (답변 수정 반영)
+
       const calendarBaseDate = getCalendarBaseDate(date);
       queryClient.invalidateQueries({ queryKey: questionQueryKeys.calendar(calendarBaseDate) });
     },
