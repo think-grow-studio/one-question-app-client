@@ -320,8 +320,8 @@ export function ReloadOptionSheet({
                 {t('answer:reload.candidatesLabel')}
               </Text>
               <ScrollView
-                scrollEnabled={candidates.length >= 3}
-                showsVerticalScrollIndicator={candidates.length >= 3}
+                scrollEnabled={candidates.length >= 2}
+                showsVerticalScrollIndicator={candidates.length >= 2}
                 style={styles.candidatesScroll}
                 nestedScrollEnabled
               >
