@@ -17,6 +17,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { TamaguiProvider, Theme } from 'tamagui';
 import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import tamaguiConfig from '../../tamagui.config';
 import { queryClient } from '@/services/queryClient';
 import { useThemeStore } from '@/shared/stores/useThemeStore';
@@ -33,7 +34,30 @@ import { config } from '@/constants/config';
 import { APP_STORE_URLS } from '@/constants/appStoreUrls';
 import '@/features/admob/config/adInit'; // AdMob SDK 초기화
 import { initializeFirebase, enableCrashlytics } from '@/services/firebase'; // Firebase 초기화
+import { storage } from '@/services/storage';
+import { useFCMLifecycle } from '@/features/settings/hooks/useFCMLifecycle';
 import * as Updates from 'expo-updates';
+
+async function migrateTokensToSecureStore() {
+  const migrated = await AsyncStorage.getItem('secure_token_migrated');
+  if (migrated) return;
+  const access = await AsyncStorage.getItem('access_token');
+  const refresh = await AsyncStorage.getItem('refresh_token');
+  if (access) await SecureStore.setItemAsync('access_token', access);
+  if (refresh) await SecureStore.setItemAsync('refresh_token', refresh);
+  await AsyncStorage.multiRemove(['access_token', 'refresh_token']);
+  await AsyncStorage.setItem('secure_token_migrated', '1');
+  console.log('[Migration] AsyncStorage 토큰 → SecureStore 마이그레이션 완료');
+}
+
+async function runFCMMigration() {
+  const migrated = await storage.get<boolean>('v2_fcm_migrated');
+  if (!migrated) {
+    await Notifications.cancelAllScheduledNotificationsAsync();
+    await storage.set('v2_fcm_migrated', true);
+    console.log('[Migration] 로컬 알림 → FCM 마이그레이션 완료');
+  }
+}
 
 async function checkAndApplyUpdate() {
   if (!Updates.isEnabled) return;
@@ -102,11 +126,13 @@ function RootLayoutNav() {
     }
   };
 
-  // 앱 시작 시 토큰 확인
+  // 앱 시작 시 토큰 확인 + 마이그레이션
   useEffect(() => {
-    initialize();
+    // SecureStore 마이그레이션 완료 후 auth 초기화 (순서 보장)
+    migrateTokensToSecureStore().then(() => initialize());
     initializeFirebase();
     enableCrashlytics();
+    runFCMMigration();
     checkAndApplyUpdate().finally(() => setUpdateChecked(true)); // 스플래시 화면 중 OTA 업데이트 체크 및 즉시 적용
   }, []);
 
@@ -192,6 +218,8 @@ function RootLayoutNav() {
 
     return () => subscription.remove();
   }, [router, isAuthenticated]);
+
+  useFCMLifecycle();
 
   // 인증 상태에 따라 리다이렉트
   useEffect(() => {

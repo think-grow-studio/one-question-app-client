@@ -1,44 +1,44 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 
-const STORAGE_KEYS = {
+const KEYS = {
   ACCESS_TOKEN: 'access_token',
   REFRESH_TOKEN: 'refresh_token',
-  USER_ID: 'user_id',
 } as const;
 
 export const storage = {
-  // Token 관리
+  // Token 관리 (SecureStore — 암호화 저장)
   async getAccessToken(): Promise<string | null> {
-    return AsyncStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+    return SecureStore.getItemAsync(KEYS.ACCESS_TOKEN);
   },
 
   async setAccessToken(token: string): Promise<void> {
-    await AsyncStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
+    await SecureStore.setItemAsync(KEYS.ACCESS_TOKEN, token);
   },
 
   async getRefreshToken(): Promise<string | null> {
-    return AsyncStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+    return SecureStore.getItemAsync(KEYS.REFRESH_TOKEN);
   },
 
   async setRefreshToken(token: string): Promise<void> {
-    await AsyncStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, token);
+    await SecureStore.setItemAsync(KEYS.REFRESH_TOKEN, token);
   },
 
   async setTokens(accessToken: string, refreshToken: string): Promise<void> {
-    await AsyncStorage.multiSet([
-      [STORAGE_KEYS.ACCESS_TOKEN, accessToken],
-      [STORAGE_KEYS.REFRESH_TOKEN, refreshToken],
+    await Promise.all([
+      SecureStore.setItemAsync(KEYS.ACCESS_TOKEN, accessToken),
+      SecureStore.setItemAsync(KEYS.REFRESH_TOKEN, refreshToken),
     ]);
   },
 
   async clearTokens(): Promise<void> {
-    await AsyncStorage.multiRemove([
-      STORAGE_KEYS.ACCESS_TOKEN,
-      STORAGE_KEYS.REFRESH_TOKEN,
+    await Promise.all([
+      SecureStore.deleteItemAsync(KEYS.ACCESS_TOKEN),
+      SecureStore.deleteItemAsync(KEYS.REFRESH_TOKEN),
     ]);
   },
 
-  // 일반 데이터
+  // 일반 데이터 (AsyncStorage)
   async get<T>(key: string): Promise<T | null> {
     const value = await AsyncStorage.getItem(key);
     return value ? JSON.parse(value) : null;

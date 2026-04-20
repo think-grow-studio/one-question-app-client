@@ -3,6 +3,8 @@ import { storage } from '@/services/storage';
 import { queryClient } from '@/services/queryClient';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { setCrashlyticsUserId, signOutFirebase, isFirebaseAnonymousUser } from '@/services/firebase';
+import { notificationApi } from '@/features/settings/api/notificationApi';
+import { useNotificationStore } from '@/features/settings/stores/useNotificationStore';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -42,6 +44,13 @@ export const useAuthStore = create<AuthState>()((set) => ({
 
     isLoggingOut = true;
     try {
+      // FCM 토큰 삭제 (best effort, 액세스 토큰 만료 전에 호출)
+      const { fcmToken } = useNotificationStore.getState();
+      if (fcmToken) {
+        try { await notificationApi.deleteFcmToken(fcmToken); } catch {}
+        useNotificationStore.getState().setFcmToken(null);
+      }
+
       await storage.clearTokens();
       queryClient.clear(); // 모든 캐시 데이터 삭제
 

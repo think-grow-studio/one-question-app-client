@@ -71,8 +71,15 @@ export enum MemberPermission {
 }
 export type MemberStatus = 'ACTIVE' | 'BLOCKED' | 'WITHDRAWAL_REQUESTED';
 
+export interface NotificationSetting {
+  alarmTime: string;  // "HH:mm"
+  timezone: string;   // e.g. "Asia/Seoul"
+  enabled: boolean;
+}
+
 export interface GetMemberResponse {
   id: number;
+  publicId: string;
   email: string;
   fullName: string;
   provider: AuthProvider;
@@ -81,6 +88,7 @@ export interface GetMemberResponse {
   status: MemberStatus;
   joinedDate: string;
   cycleStartDate: string;
+  notificationSetting: NotificationSetting | null;
 }
 
 export interface UpdateMemberRequest {

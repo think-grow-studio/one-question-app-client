@@ -1,0 +1,24 @@
+import { apiClient } from '@/services/apiClient';
+import { NotificationSetting } from '@/shared/types/api';
+
+interface UpsertSettingRequest {
+  alarmTime: string;
+  timezone: string;
+  enabled: boolean;
+}
+
+export const notificationApi = {
+  registerFcmToken: (tokenValue: string) =>
+    apiClient.post<void>('/api/v1/members/me/notifications/fcm-token', { tokenValue }),
+
+  deleteFcmToken: (tokenValue: string) =>
+    apiClient.delete<void>('/api/v1/members/me/notifications/fcm-token', {
+      data: { tokenValue },
+    }),
+
+  upsertSetting: (data: UpsertSettingRequest) =>
+    apiClient.put<NotificationSetting>('/api/v1/members/me/notifications/settings', data),
+
+  getSetting: () =>
+    apiClient.get<NotificationSetting>('/api/v1/members/me/notifications/settings'),
+};

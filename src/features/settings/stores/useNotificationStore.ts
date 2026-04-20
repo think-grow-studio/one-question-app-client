@@ -3,25 +3,26 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface NotificationState {
-  isEnabled: boolean;
-  hour: number;
-  minute: number;
-  setEnabled: (enabled: boolean) => void;
-  setTime: (hour: number, minute: number) => void;
+  fcmToken: string | null;
+  setFcmToken: (token: string | null) => void;
 }
 
 export const useNotificationStore = create<NotificationState>()(
   persist(
     (set) => ({
-      isEnabled: false,
-      hour: 21, // 기본 오후 9시
-      minute: 0,
-      setEnabled: (enabled) => set({ isEnabled: enabled }),
-      setTime: (hour, minute) => set({ hour, minute }),
+      fcmToken: null,
+      setFcmToken: (token) => set({ fcmToken: token }),
     }),
     {
       name: 'notification-storage',
       storage: createJSONStorage(() => AsyncStorage),
+      version: 2,
+      migrate: (_persistedState: unknown, version: number) => {
+        if (version < 2) {
+          return { fcmToken: null };
+        }
+        return _persistedState as NotificationState;
+      },
     }
   )
 );

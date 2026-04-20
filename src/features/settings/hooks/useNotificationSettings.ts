@@ -1,88 +1,82 @@
-import { useCallback, useEffect } from 'react';
-import { Alert, Linking, Platform } from 'react-native';
-import { useTranslation } from 'react-i18next';
+import { useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useNotificationStore } from '@/features/settings/stores/useNotificationStore';
 import {
   requestNotificationPermission,
-  getNotificationPermissionStatus,
-  scheduleDailyNotification,
-  cancelDailyNotification,
 } from '@/features/settings/services/notifications';
+import { notificationApi } from '@/features/settings/api/notificationApi';
+import { getFCMToken } from '@/services/firebase';
+import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
+
+const DEFAULT_ALARM_TIME = '21:00';
+
+function toAlarmTime(hour: number, minute: number): string {
+  return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+}
+
+function parseAlarmTime(alarmTime: string): [number, number] {
+  const [h, m] = alarmTime.split(':').map(Number);
+  return [h, m];
+}
 
 export function useNotificationSettings() {
-  const { isEnabled, hour, minute, setEnabled, setTime } = useNotificationStore();
-  const { t } = useTranslation('settings');
+  const { fcmToken, setFcmToken } = useNotificationStore();
+  const { data: memberData } = useMemberMe();
+  const queryClient = useQueryClient();
 
-  const showExactAlarmPermissionAlert = useCallback(() => {
-    Alert.alert(
-      t('notification.exactAlarmTitle'),
-      t('notification.exactAlarmMessage'),
-      [
-        { text: t('notification.exactAlarmLater') },
-        { text: t('notification.exactAlarmGoToSettings'), onPress: () => Linking.openSettings() },
-      ]
-    );
-  }, [t]);
+  const setting = memberData?.notificationSetting;
+  const isEnabled = setting?.enabled ?? false;
+  const alarmTime = setting?.alarmTime ?? DEFAULT_ALARM_TIME;
+  const timezone = setting?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const [hour, minute] = parseAlarmTime(alarmTime);
 
-  // 알림 활성화/비활성화 토글
   const toggleNotification = useCallback(async () => {
     if (!isEnabled) {
-      // 활성화하려는 경우 권한 요청
       const hasPermission = await requestNotificationPermission();
-      if (hasPermission) {
-        const id = await scheduleDailyNotification(hour, minute);
-        if (!id && Platform.OS === 'android') {
-          showExactAlarmPermissionAlert();
-          return; // 스케줄 실패 시 토글 OFF 유지
-        }
-        setEnabled(true);
+      if (!hasPermission) return;
+
+      const token = await getFCMToken();
+      if (!token) {
+        console.error('[Notifications] FCM 토큰 발급 실패');
+        return;
+      }
+
+      try {
+        await notificationApi.registerFcmToken(token);
+        await notificationApi.upsertSetting({ alarmTime, timezone, enabled: true });
+        setFcmToken(token);
+        await queryClient.invalidateQueries({ queryKey: ['member', 'me'] });
+      } catch {
+        // 전역 에러 핸들러가 처리
       }
     } else {
-      // 비활성화
-      await cancelDailyNotification();
-      setEnabled(false);
+      try {
+        await notificationApi.upsertSetting({ alarmTime, timezone, enabled: false });
+        await queryClient.invalidateQueries({ queryKey: ['member', 'me'] });
+      } catch {
+        // 전역 에러 핸들러가 처리
+      }
     }
-  }, [isEnabled, hour, minute, setEnabled, showExactAlarmPermissionAlert]);
+  }, [isEnabled, alarmTime, timezone, setFcmToken, queryClient]);
 
-  // 알림 시간 변경
   const updateNotificationTime = useCallback(
     async (newHour: number, newMinute: number) => {
-      setTime(newHour, newMinute);
-
-      // 이미 활성화된 경우 새 시간으로 다시 스케줄
-      if (isEnabled) {
-        const id = await scheduleDailyNotification(newHour, newMinute);
-        if (!id && Platform.OS === 'android') {
-          showExactAlarmPermissionAlert();
-          setEnabled(false); // 스케줄 실패 시 토글 OFF
-        }
+      const newAlarmTime = toAlarmTime(newHour, newMinute);
+      try {
+        await notificationApi.upsertSetting({ alarmTime: newAlarmTime, timezone, enabled: isEnabled });
+        await queryClient.invalidateQueries({ queryKey: ['member', 'me'] });
+      } catch {
+        // 전역 에러 핸들러가 처리
       }
     },
-    [isEnabled, setTime, showExactAlarmPermissionAlert]
+    [isEnabled, timezone, queryClient]
   );
-
-  // 앱 시작 시 알림 상태 동기화
-  useEffect(() => {
-    const syncNotificationState = async () => {
-      if (isEnabled) {
-        const hasPermission = await getNotificationPermissionStatus();
-        if (hasPermission) {
-          // 알림 재스케줄 (앱 재시작 시)
-          await scheduleDailyNotification(hour, minute);
-        } else {
-          // 권한이 없으면 비활성화
-          setEnabled(false);
-        }
-      }
-    };
-
-    syncNotificationState();
-  }, []);
 
   return {
     isEnabled,
     hour,
     minute,
+    fcmToken,
     toggleNotification,
     updateNotificationTime,
   };
