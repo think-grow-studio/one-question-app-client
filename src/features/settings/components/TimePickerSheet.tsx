@@ -126,7 +126,7 @@ export function TimePickerSheet({
                   fontSize: fs(22),
                   lineHeight: fs(28),
                   ...getFontStyle('600'),
-                  color: isSelected ? '#FFFFFF' : theme.colorMuted?.val,
+                  color: isSelected ? accent.textOnPrimary : theme.colorMuted?.val,
                 }}
               >
                 {formatFn(item)}
@@ -229,7 +229,7 @@ export function TimePickerSheet({
                 <Text
                   variant="body"
                   {...getFontStyle('600')}
-                  style={{ color: !isPM ? '#FFFFFF' : theme.colorMuted?.val }}
+                  style={{ color: !isPM ? accent.textOnPrimary : theme.colorMuted?.val }}
                 >
                   {t('notification.am')}
                 </Text>
@@ -244,7 +244,7 @@ export function TimePickerSheet({
                 <Text
                   variant="body"
                   {...getFontStyle('600')}
-                  style={{ color: isPM ? '#FFFFFF' : theme.colorMuted?.val }}
+                  style={{ color: isPM ? accent.textOnPrimary : theme.colorMuted?.val }}
                 >
                   {t('notification.pm')}
                 </Text>
