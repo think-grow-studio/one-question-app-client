@@ -7,6 +7,7 @@ import {
 import { notificationApi } from '@/features/settings/api/notificationApi';
 import { getFCMToken } from '@/services/firebase';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
+import { useUpdateNotificationTimeMutation } from './mutations/useNotificationMutations';
 
 const DEFAULT_ALARM_TIME = '21:00';
 
@@ -23,6 +24,7 @@ export function useNotificationSettings() {
   const { fcmToken, setFcmToken } = useNotificationStore();
   const { data: memberData } = useMemberMe();
   const queryClient = useQueryClient();
+  const updateTimeMutation = useUpdateNotificationTimeMutation();
 
   const setting = memberData?.notificationSetting;
   const isEnabled = setting?.enabled ?? false;
@@ -60,16 +62,15 @@ export function useNotificationSettings() {
   }, [isEnabled, alarmTime, timezone, setFcmToken, queryClient]);
 
   const updateNotificationTime = useCallback(
-    async (newHour: number, newMinute: number) => {
+    (newHour: number, newMinute: number) => {
       const newAlarmTime = toAlarmTime(newHour, newMinute);
-      try {
-        await notificationApi.upsertSetting({ alarmTime: newAlarmTime, timezone, enabled: isEnabled });
-        await queryClient.invalidateQueries({ queryKey: ['member', 'me'] });
-      } catch {
-        // 전역 에러 핸들러가 처리
-      }
+      updateTimeMutation.mutate({
+        alarmTime: newAlarmTime,
+        timezone,
+        enabled: isEnabled,
+      });
     },
-    [isEnabled, timezone, queryClient]
+    [isEnabled, timezone, updateTimeMutation]
   );
 
   return {
@@ -79,5 +80,6 @@ export function useNotificationSettings() {
     fcmToken,
     toggleNotification,
     updateNotificationTime,
+    isUpdatingTime: updateTimeMutation.isPending,
   };
 }
