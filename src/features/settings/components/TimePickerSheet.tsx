@@ -82,6 +82,15 @@ export function TimePickerSheet({
     }
   }, [ITEM_HEIGHT]);
 
+  const handleHourScrollEndDrag = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const velocityY = Math.abs(event.nativeEvent.velocity?.y ?? 0);
+
+    // 플링 중에는 관성 스크롤을 살리고, 멈춘 뒤에만 스냅한다.
+    if (velocityY > 0.05) return;
+
+    handleHourScroll(event);
+  }, [handleHourScroll]);
+
   const handleMinuteScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const y = event.nativeEvent.contentOffset.y;
     const index = Math.round(y / ITEM_HEIGHT);
@@ -91,9 +100,18 @@ export function TimePickerSheet({
     // 정확한 위치로 즉시 스냅
     const targetY = clampedIndex * ITEM_HEIGHT;
     if (Math.abs(y - targetY) > 1) {
-      minuteScrollRef.current?.scrollTo({ y: targetY, animated: false });
+      minuteScrollRef.current?.scrollTo({ y: targetY, animated: true });
     }
   }, [ITEM_HEIGHT]);
+
+  const handleMinuteScrollEndDrag = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const velocityY = Math.abs(event.nativeEvent.velocity?.y ?? 0);
+
+    // 플링 중에는 관성 스크롤을 살리고, 멈춘 뒤에만 스냅한다.
+    if (velocityY > 0.05) return;
+
+    handleMinuteScroll(event);
+  }, [handleMinuteScroll]);
 
   const handleConfirm = () => {
     let hour24 = selectedHour;
@@ -263,8 +281,8 @@ export function TimePickerSheet({
                 ref={hourScrollRef}
                 showsVerticalScrollIndicator={false}
                 snapToInterval={ITEM_HEIGHT}
-                decelerationRate="fast"
-                onScrollEndDrag={handleHourScroll}
+                decelerationRate="normal"
+                onScrollEndDrag={handleHourScrollEndDrag}
                 onMomentumScrollEnd={handleHourScroll}
                 contentContainerStyle={styles.pickerContent}
               >
@@ -294,8 +312,8 @@ export function TimePickerSheet({
                 ref={minuteScrollRef}
                 showsVerticalScrollIndicator={false}
                 snapToInterval={ITEM_HEIGHT}
-                decelerationRate="fast"
-                onScrollEndDrag={handleMinuteScroll}
+                decelerationRate="normal"
+                onScrollEndDrag={handleMinuteScrollEndDrag}
                 onMomentumScrollEnd={handleMinuteScroll}
                 contentContainerStyle={styles.pickerContent}
               >
