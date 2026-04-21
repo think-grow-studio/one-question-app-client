@@ -1,13 +1,15 @@
 import { useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { useNotificationStore } from '@/features/settings/stores/useNotificationStore';
 import {
   requestNotificationPermission,
 } from '@/features/settings/services/notifications';
-import { notificationApi } from '@/features/settings/api/notificationApi';
 import { getFCMToken } from '@/services/firebase';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
-import { useUpdateNotificationTimeMutation } from './mutations/useNotificationMutations';
+import {
+  useUpdateNotificationTimeMutation,
+  useEnableNotificationMutation,
+  useDisableNotificationMutation,
+} from './mutations/useNotificationMutations';
 
 const DEFAULT_ALARM_TIME = '21:00';
 
@@ -21,10 +23,11 @@ function parseAlarmTime(alarmTime: string): [number, number] {
 }
 
 export function useNotificationSettings() {
-  const { fcmToken, setFcmToken } = useNotificationStore();
+  const fcmToken = useNotificationStore((s) => s.fcmToken);
   const { data: memberData } = useMemberMe();
-  const queryClient = useQueryClient();
   const updateTimeMutation = useUpdateNotificationTimeMutation();
+  const enableMutation = useEnableNotificationMutation();
+  const disableMutation = useDisableNotificationMutation();
 
   const setting = memberData?.notificationSetting;
   const isEnabled = setting?.enabled ?? false;
@@ -43,23 +46,11 @@ export function useNotificationSettings() {
         return;
       }
 
-      try {
-        await notificationApi.registerFcmToken(token);
-        await notificationApi.upsertSetting({ alarmTime, timezone, enabled: true });
-        setFcmToken(token);
-        await queryClient.invalidateQueries({ queryKey: ['member', 'me'] });
-      } catch {
-        // 전역 에러 핸들러가 처리
-      }
+      enableMutation.mutate({ token, alarmTime, timezone });
     } else {
-      try {
-        await notificationApi.upsertSetting({ alarmTime, timezone, enabled: false });
-        await queryClient.invalidateQueries({ queryKey: ['member', 'me'] });
-      } catch {
-        // 전역 에러 핸들러가 처리
-      }
+      disableMutation.mutate({ alarmTime, timezone });
     }
-  }, [isEnabled, alarmTime, timezone, setFcmToken, queryClient]);
+  }, [isEnabled, alarmTime, timezone, enableMutation, disableMutation]);
 
   const updateNotificationTime = useCallback(
     (newHour: number, newMinute: number) => {
@@ -81,5 +72,6 @@ export function useNotificationSettings() {
     toggleNotification,
     updateNotificationTime,
     isUpdatingTime: updateTimeMutation.isPending,
+    isTogglingNotification: enableMutation.isPending || disableMutation.isPending,
   };
 }
