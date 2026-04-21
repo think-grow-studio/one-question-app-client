@@ -5,6 +5,7 @@ import { useNotificationStore } from '@/features/settings/stores/useNotification
 import { GetMemberResponse, NotificationSetting } from '@/shared/types/api';
 
 interface UpdateTimeInput {
+  token: string;
   alarmTime: string;
   timezone: string;
   enabled: boolean;
@@ -40,7 +41,14 @@ export function useUpdateNotificationTimeMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: UpdateTimeInput) => notificationApi.upsertSetting(input),
+    mutationFn: async (input: UpdateTimeInput) => {
+      await notificationApi.registerFcmToken(input.token);
+      await notificationApi.upsertSetting({
+        alarmTime: input.alarmTime,
+        timezone: input.timezone,
+        enabled: input.enabled,
+      });
+    },
 
     onMutate: async (input) => {
       await queryClient.cancelQueries({ queryKey: memberQueryKeys.me() });
@@ -57,6 +65,10 @@ export function useUpdateNotificationTimeMutation() {
       });
 
       return { previous };
+    },
+
+    onSuccess: (_data, input) => {
+      useNotificationStore.getState().setFcmToken(input.token);
     },
 
     onError: (_err, _input, context) => {

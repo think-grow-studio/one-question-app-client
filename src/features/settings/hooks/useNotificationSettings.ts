@@ -53,9 +53,15 @@ export function useNotificationSettings() {
   }, [isEnabled, alarmTime, timezone, enableMutation, disableMutation]);
 
   const updateNotificationTime = useCallback(
-    (newHour: number, newMinute: number) => {
+    async (newHour: number, newMinute: number) => {
       const newAlarmTime = toAlarmTime(newHour, newMinute);
+      const token = useNotificationStore.getState().fcmToken ?? (await getFCMToken());
+      if (!token) {
+        console.error('[Notifications] FCM 토큰 없음 - 시간 변경 중단');
+        return;
+      }
       updateTimeMutation.mutate({
+        token,
         alarmTime: newAlarmTime,
         timezone,
         enabled: isEnabled,
