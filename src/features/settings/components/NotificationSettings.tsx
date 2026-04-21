@@ -11,7 +11,14 @@ export function NotificationSettings() {
   const theme = useTheme();
   const accent = useAccentColors();
   const { t } = useTranslation('settings');
-  const { isEnabled, hour, minute, toggleNotification, updateNotificationTime } =
+  const {
+    isEnabled,
+    hour,
+    minute,
+    toggleNotification,
+    updateNotificationTime,
+    isToggleInteractionDisabled,
+  } =
     useNotificationSettings();
 
   const [showTimePicker, setShowTimePicker] = useState(false);
@@ -51,6 +58,7 @@ export function NotificationSettings() {
           <Switch
             value={isEnabled}
             onValueChange={toggleNotification}
+            disabled={isToggleInteractionDisabled}
             trackColor={{
               false: theme.borderColor?.val,
               true: accent.primary,

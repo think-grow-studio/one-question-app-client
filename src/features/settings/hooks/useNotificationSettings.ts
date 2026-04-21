@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNotificationStore } from '@/features/settings/stores/useNotificationStore';
 import {
   requestNotificationPermission,
@@ -12,6 +12,7 @@ import {
 } from './mutations/useNotificationMutations';
 
 const DEFAULT_ALARM_TIME = '21:00';
+const TOGGLE_INTERACTION_LOCK_MS = 500;
 
 function toAlarmTime(hour: number, minute: number): string {
   return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
@@ -28,14 +29,37 @@ export function useNotificationSettings() {
   const updateTimeMutation = useUpdateNotificationTimeMutation();
   const enableMutation = useEnableNotificationMutation();
   const disableMutation = useDisableNotificationMutation();
+  const isToggleLockedRef = useRef(false);
+  const toggleLockTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isToggleLocked, setIsToggleLocked] = useState(false);
 
   const setting = memberData?.notificationSetting;
   const isEnabled = setting?.enabled ?? false;
   const alarmTime = setting?.alarmTime ?? DEFAULT_ALARM_TIME;
   const timezone = setting?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
   const [hour, minute] = parseAlarmTime(alarmTime);
+  const isTogglingNotification = enableMutation.isPending || disableMutation.isPending;
+
+  useEffect(() => {
+    return () => {
+      if (toggleLockTimeoutRef.current) {
+        clearTimeout(toggleLockTimeoutRef.current);
+      }
+      isToggleLockedRef.current = false;
+    };
+  }, []);
 
   const toggleNotification = useCallback(async () => {
+    if (isToggleLockedRef.current) return;
+
+    isToggleLockedRef.current = true;
+    setIsToggleLocked(true);
+    toggleLockTimeoutRef.current = setTimeout(() => {
+      isToggleLockedRef.current = false;
+      setIsToggleLocked(false);
+      toggleLockTimeoutRef.current = null;
+    }, TOGGLE_INTERACTION_LOCK_MS);
+
     if (!isEnabled) {
       const hasPermission = await requestNotificationPermission();
       if (!hasPermission) return;
@@ -78,6 +102,7 @@ export function useNotificationSettings() {
     toggleNotification,
     updateNotificationTime,
     isUpdatingTime: updateTimeMutation.isPending,
-    isTogglingNotification: enableMutation.isPending || disableMutation.isPending,
+    isTogglingNotification,
+    isToggleInteractionDisabled: isToggleLocked || isTogglingNotification,
   };
 }
