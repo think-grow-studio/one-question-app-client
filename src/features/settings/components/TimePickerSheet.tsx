@@ -3,6 +3,7 @@ import { Modal, Pressable, StyleSheet, View, ScrollView, NativeSyntheticEvent, N
 import { YStack, XStack, useTheme } from 'tamagui';
 import Animated, { FadeIn, SlideInDown, SlideOutDown } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '@/shared/ui/Text';
 import { Button } from '@/shared/ui/Button';
 import { useAccentColors, getFontStyle } from '@/shared/theme';
@@ -28,6 +29,7 @@ export function TimePickerSheet({
   const theme = useTheme();
   const accent = useAccentColors();
   const { t } = useTranslation('settings');
+  const insets = useSafeAreaInsets();
 
   // Responsive values
   const ITEM_HEIGHT = cs(44);
@@ -143,6 +145,7 @@ export function TimePickerSheet({
 
   const hours = Array.from({ length: 12 }, (_, i) => i + 1); // 1-12
   const minutes = Array.from({ length: 60 }, (_, i) => i); // 0-59
+  const sheetBottomPadding = sp(16) + Math.max(insets.bottom, sp(16));
 
   const responsiveStyles = useMemo(() => ({
     sheetWrapper: {
@@ -153,7 +156,7 @@ export function TimePickerSheet({
     container: {
       borderTopLeftRadius: radius(24),
       borderTopRightRadius: radius(24),
-      paddingBottom: sp(32),
+      paddingBottom: sheetBottomPadding,
     },
     periodButton: {
       paddingHorizontal: sp(24),
@@ -172,7 +175,7 @@ export function TimePickerSheet({
     separator: {
       fontSize: fs(28),
     },
-  }), [PICKER_HEIGHT, ITEM_HEIGHT]);
+  }), [PICKER_HEIGHT, ITEM_HEIGHT, sheetBottomPadding]);
 
   if (!visible) return null;
 
