@@ -180,7 +180,7 @@ export function TimePickerSheet({
   if (!visible) return null;
 
   return (
-    <Modal transparent visible={visible} animationType="none">
+    <Modal transparent visible={visible} animationType="none" statusBarTranslucent onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Animated.View entering={FadeIn} style={styles.backdropOverlay} />
       </Pressable>

@@ -62,7 +62,7 @@ export function LanguagePicker() {
 
       {/* Bottom Sheet */}
       {visible && (
-        <Modal transparent visible={visible} animationType="none">
+        <Modal transparent visible={visible} animationType="none" statusBarTranslucent onRequestClose={() => setVisible(false)}>
           <Pressable style={styles.backdrop} onPress={() => setVisible(false)}>
             <Animated.View entering={FadeIn} style={styles.backdropOverlay} />
           </Pressable>
