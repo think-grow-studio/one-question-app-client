@@ -62,7 +62,7 @@
     },
     "optionalUpdate": {
       "title": "업데이트 가능",
-      "message": "버전 {{version}}이 출시되었습니다. 새로운 기능을 경험해보세요!"
+      "message": "알람 기능이 개선 되었어요! 앱을 업데이트 하세요!"
     },
     "serverDown": {
       "title": "서버 점검 중",
