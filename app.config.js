@@ -92,7 +92,7 @@ export default {
       '@react-native-firebase/crashlytics',
       '@react-native-firebase/auth',
       '@react-native-firebase/messaging',
-      './plugins/with-modular-headers',
+      './plugins/with-rnfirebase-static-framework',
       './plugins/with-localized-app-name',
       '@react-native-google-signin/google-signin',
       [
@@ -113,6 +113,15 @@ export default {
         {
           ios: {
             newArchEnabled: true,
+            useFrameworks: 'static',
+            buildReactNativeFromSource: true,
+            forceStaticLinking: [
+              'RNFBApp',
+              'RNFBAnalytics',
+              'RNFBAuth',
+              'RNFBCrashlytics',
+              'RNFBMessaging',
+            ],
           },
           android: {
             newArchEnabled: true,
