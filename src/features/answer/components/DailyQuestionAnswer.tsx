@@ -171,7 +171,7 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
           onPress: () => {
             if (pendingReview.current) {
               pendingReview.current = false;
-              showReviewPrompt();
+              setTimeout(() => showReviewPrompt(), 80);
             } else {
               router.back();
             }
