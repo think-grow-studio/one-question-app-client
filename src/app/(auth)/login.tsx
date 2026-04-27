@@ -5,7 +5,9 @@ import { useTranslation } from 'react-i18next';
 import { Screen } from '@/shared/layout/Screen';
 import { Text } from '@/shared/ui/Text';
 import { useGoogleLogin } from '@/features/auth/hooks/useGoogleLogin';
+import { useAppleLogin } from '@/features/auth/hooks/useAppleLogin';
 import { useAnonymousLogin } from '@/features/auth/hooks/useAnonymousLogin';
+import { AppleIcon } from '@/shared/icons/AppleIcon';
 import { AlertDialog } from '@/shared/ui/AlertDialog/AlertDialog';
 import { useAlertDialog } from '@/shared/ui/AlertDialog/useAlertDialog';
 import { Pressable, ActivityIndicator } from 'react-native';
@@ -58,10 +60,11 @@ export default function LoginScreen() {
   const { t } = useTranslation('auth');
   const { mode } = useThemeStore();
   const { mutate: googleLogin, isPending } = useGoogleLogin();
+  const { mutate: appleLogin, isPending: isApplePending } = useAppleLogin();
   const { mutate: anonymousLogin, isPending: isAnonymousPending } = useAnonymousLogin();
   const guestDialog = useAlertDialog();
   const isDark = mode === 'dark';
-  const isAnyPending = isPending || isAnonymousPending;
+  const isAnyPending = isPending || isApplePending || isAnonymousPending;
 
   // Analytics: 화면 조회
   useEffect(() => {
@@ -74,6 +77,13 @@ export default function LoginScreen() {
       method: 'google',
     });
     googleLogin();
+  };
+
+  const handleAppleLogin = () => {
+    logEvent(AnalyticsEvents.LOGIN, {
+      method: 'apple',
+    });
+    appleLogin();
   };
 
   const handleGuestLogin = () => {
@@ -149,26 +159,31 @@ export default function LoginScreen() {
             </XStack>
           </Pressable>
 
-          {/* Apple Login Button - iOS only, for future */}
+          {/* Apple Login Button - iOS only */}
           {Platform.OS === 'ios' && (
             <Pressable
-              disabled
-              style={[
+              onPress={handleAppleLogin}
+              disabled={isAnyPending}
+              style={({ pressed }) => [
                 styles.loginButton,
-                styles.disabledButton,
                 {
                   backgroundColor: theme.backgroundSoft?.val,
                   borderColor: theme.borderColor?.val,
+                  opacity: pressed ? 0.8 : 1,
                 },
               ]}
             >
               <XStack ai="center" jc="center" gap="$3">
-                <Text variant="body" muted>
-                  {t('loginWithApple')}
-                </Text>
-                <Text variant="caption" muted>
-                  ({t('comingSoon')})
-                </Text>
+                {isApplePending ? (
+                  <ActivityIndicator size="small" color={theme.color?.val} />
+                ) : (
+                  <>
+                    <AppleIcon size={20} color={theme.color?.val || '#000000'} />
+                    <Text variant="body" {...getFontStyle('600')}>
+                      {t('loginWithApple')}
+                    </Text>
+                  </>
+                )}
               </XStack>
             </Pressable>
           )}

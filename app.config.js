@@ -16,7 +16,7 @@ const ENV = {
     androidPackage: 'com.onequestion.app.preview',
     iosBundleId: 'org.onequestion.app.preview',
     googleServicesFile: './google-services-preview.json',
-    iosGoogleServicesFile: './GoogleService-Info.plist',
+    iosGoogleServicesFile: './GoogleService-Info-Preview.plist',
   },
   production: {
     name: LOCALIZED_NAMES.ko,
@@ -61,6 +61,12 @@ export default {
       bundleIdentifier: ENV.iosBundleId,
       buildNumber: APP_VERSIONS.iosVersion,
       googleServicesFile: ENV.iosGoogleServicesFile,
+      usesAppleSignIn: true,
+      infoPlist: {
+        NSUserTrackingUsageDescription:
+          '맞춤형 광고를 제공하기 위해 사용됩니다. 이 정보는 광고 측정에만 사용됩니다.',
+        ITSAppUsesNonExemptEncryption: false,
+      },
     },
     android: {
       adaptiveIcon: {
@@ -95,6 +101,8 @@ export default {
       './plugins/with-rnfirebase-static-framework',
       './plugins/with-localized-app-name',
       '@react-native-google-signin/google-signin',
+      'expo-apple-authentication',
+      'expo-tracking-transparency',
       [
         'expo-splash-screen',
         {
