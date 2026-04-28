@@ -28,6 +28,41 @@
 -> 하단 피드 탭, 답변 공개 토글, 히스토리 공개 뱃지 모두 숨김
 -> 오픈 시 ENABLE_PUBLIC_FEED = true 로 변경하면 복원
 
+NetInfo 도입
+-> `@react-native-community/netinfo`
+-> 오프라인 상태를 미리 감지해서 질문 조회 / 답변 저장 / 피드 / 알림 설정 저장 시 즉시 안내
+-> 네트워크 에러가 난 뒤 팝업을 띄우는 방식보다, 버튼 비활성화 / 배너 / 재시도 UX 쪽으로 개선
+-> 우선 적용 후보:
+   1. 답변 작성/수정 저장
+   2. 피드 조회 및 좋아요
+   3. 알림 on/off 및 시간 저장
+
+익명 → Apple 계정 연결 (iOS)
+-> 현재: 익명 사용자는 settings에서 Google 연결만 가능 (`LinkGoogleButton`)
+-> iOS 게스트 사용자가 Apple 계정으로도 영구 전환할 수 있도록 추가 필요
+-> 선행 조건: 백엔드 API 존재 여부 확인
+   - `/api/v1/auth/apple/link/check` (중복 확인)
+   - `/api/v1/auth/apple/link` (연결)
+   - 없으면 백엔드 작업 선행 (Apple identityToken 검증 + 기존 익명 계정에 Apple sub 연결)
+-> 클라이언트 작업 (백엔드 준비 후 1~2시간):
+   1. `shared/types/api.ts`에 `CheckAppleLinkRequest`, `CheckAppleLinkResponse`, `LinkToAppleRequest` 추가
+   2. `authApi`에 `checkAppleLink`, `linkToApple` 메서드 추가
+   3. `useLinkAppleMutations.ts` 신규 (`useLinkGoogleMutations` 패턴 그대로 + `expo-apple-authentication` 사용)
+   4. `LinkAppleButton.tsx` 신규 (`LinkGoogleButton` 패턴 그대로)
+   5. `settings.tsx`에서 `Platform.OS === 'ios'`일 때 Apple 버튼도 함께 노출
+-> 우선순위: 중간 (App Store 심사 리젝 사유 아님, 출시 후 사용자 데이터 보고 결정 가능)
+
+Android Apple 로그인 추가
+-> 현재: Apple 로그인은 iOS에서만 노출 (login.tsx의 `Platform.OS === 'ios'` 분기)
+-> Android는 `expo-apple-authentication` 미지원 → 웹 OAuth2 플로우로 별도 구현 필요
+-> 작업 범위 (대략 3~4일):
+   1. Apple Developer: Service ID + Private Key (.p8) 발급, return URL 등록
+   2. 백엔드: client_secret JWT(ES256) 동적 생성, OAuth callback 엔드포인트
+   3. 클라이언트: `expo-auth-session` + `expo-web-browser` + deep link 콜백 처리
+   4. form_post 응답 형식 처리 (백엔드 콜백 경유 필수)
+-> 우선순위: 낮음 (Apple Sign-In 사용자 비율 5~15%, 그중 iOS→Android 이주자만 영향)
+-> 트리거: DB에서 `provider = APPLE` 비율이 20% 이상이고 "Android에서 로그인 안돼요" 클레임 발생 시
+
 ## DONE
 
 (완료된 작업들)
