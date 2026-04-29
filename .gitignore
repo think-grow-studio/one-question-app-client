@@ -20,6 +20,9 @@ android/**
 ios/**
 Pods/
 app.json
+*.aab
+*.apk
+*.ipa
 
 # Expo / React Native generated files
 expo-env.d.ts
