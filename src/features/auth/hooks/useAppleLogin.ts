@@ -4,6 +4,7 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 import { authApi } from '@/features/auth/api/authApi';
 import { useAuthStore } from '@/shared/stores/useAuthStore';
 import { AppleAuthRequest } from '@/shared/types/api';
+import { createAppleNonce } from '@/features/auth/utils/appleNonce';
 
 export function useAppleLogin() {
   const { login } = useAuthStore();
@@ -31,11 +32,14 @@ export function useAppleLogin() {
         return;
       }
 
+      const { rawNonce, hashedNonce } = await createAppleNonce();
+
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
           AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
           AppleAuthentication.AppleAuthenticationScope.EMAIL,
         ],
+        nonce: hashedNonce,
       });
 
       if (!credential.identityToken) {
@@ -53,6 +57,8 @@ export function useAppleLogin() {
       mutation.mutate({
         identityToken: credential.identityToken,
         name,
+        authorizationCode: credential.authorizationCode ?? undefined,
+        rawNonce,
       });
     } catch (error: unknown) {
       const code = (error as { code?: string })?.code;

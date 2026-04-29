@@ -8,6 +8,9 @@ import type {
   CheckGoogleLinkRequest,
   CheckGoogleLinkResponse,
   LinkToGoogleRequest,
+  CheckAppleLinkRequest,
+  CheckAppleLinkResponse,
+  LinkToAppleRequest,
 } from '@/shared/types/api';
 
 export const authApi = {
@@ -32,4 +35,10 @@ export const authApi = {
 
   linkToGoogle: (data: LinkToGoogleRequest) =>
     apiClient.post<AuthResponse>('/api/v1/auth/google/link', data),
+
+  checkAppleLink: (data: CheckAppleLinkRequest) =>
+    apiClient.post<CheckAppleLinkResponse>('/api/v1/auth/apple/link/check', data),
+
+  linkToApple: (data: LinkToAppleRequest) =>
+    apiClient.post<AuthResponse>('/api/v1/auth/apple/link', data),
 };

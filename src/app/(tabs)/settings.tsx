@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { View, Pressable, StyleSheet, ScrollView, Linking } from 'react-native';
+import { View, Pressable, StyleSheet, ScrollView, Linking, Platform } from 'react-native';
 import { YStack, XStack, useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { Screen } from '@/shared/layout/Screen';
@@ -17,6 +17,7 @@ import { config } from '@/constants/config';
 import { useAlertDialog } from '@/shared/ui/AlertDialog/useAlertDialog';
 import { useWithdrawMutation } from '@/features/auth/hooks/mutations/useAuthMutations';
 import { LinkGoogleButton } from '@/features/auth/components/LinkGoogleButton';
+import { LinkAppleButton } from '@/features/auth/components/LinkAppleButton';
 import { logScreenView, logEvent, AnalyticsEvents } from '@/services/firebase';
 import { getFontStyle } from '@/shared/theme/typography';
 import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
@@ -150,8 +151,11 @@ export default function SettingsScreen() {
                 <Text variant="caption" muted>
                   {t('account.linkGoogleWarning')}
                 </Text>
-                {/* Link Google Button */}
-                <LinkGoogleButton />
+                {/* Link Buttons */}
+                <YStack gap="$2">
+                  <LinkGoogleButton />
+                  {Platform.OS === 'ios' && <LinkAppleButton />}
+                </YStack>
               </YStack>
             )}
             {member && !isAnonymousProvider && (

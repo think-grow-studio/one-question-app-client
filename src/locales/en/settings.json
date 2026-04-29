@@ -61,6 +61,12 @@
     "linkGoogleConflictMessage": "This Google account is already linked to another account. Please try a different Google account.",
     "linkGoogleSuccessMessage": "Your records are now safely backed up.",
     "linkGoogleConfirm": "OK",
-    "linkGoogleAlreadyLinked": "Account is already linked"
+    "linkGoogleAlreadyLinked": "Account is already linked",
+    "linkAppleButton": "Link Apple Account",
+    "linkAppleSuccess": "Apple account linked successfully",
+    "linkAppleSuccessMessage": "Your records are now safely backed up.",
+    "linkAppleConflict": "Unable to Link",
+    "linkAppleConflictMessage": "This Apple account is already linked to another account. Please try a different Apple account.",
+    "linkAppleConfirm": "OK"
   }
 }

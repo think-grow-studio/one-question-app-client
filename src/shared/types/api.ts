@@ -29,6 +29,8 @@ export interface GoogleAuthRequest {
 export interface AppleAuthRequest {
   identityToken: string;
   name?: string;
+  authorizationCode?: string;
+  rawNonce?: string;
 }
 
 export interface AuthResponse {
@@ -57,6 +59,22 @@ export interface LinkToGoogleRequest {
   idToken: string;
   email?: string;
   name?: string;
+}
+
+export interface CheckAppleLinkRequest {
+  identityToken: string;
+  rawNonce?: string;
+}
+
+export interface CheckAppleLinkResponse {
+  exists: boolean;
+}
+
+export interface LinkToAppleRequest {
+  identityToken: string;
+  name?: string;
+  authorizationCode?: string;
+  rawNonce?: string;
 }
 
 // ============================================

@@ -14,9 +14,10 @@ const ENV = {
   preview: {
     name: LOCALIZED_NAMES.ko,
     androidPackage: 'com.onequestion.app.preview',
-    iosBundleId: 'org.onequestion.app.preview',
+    // iOS preview는 prod와 동일하게 운용 (별도 Bundle ID/Apple Sign-In/APNs 키 관리 회피)
+    iosBundleId: 'org.onequestion.app',
     googleServicesFile: './google-services-preview.json',
-    iosGoogleServicesFile: './GoogleService-Info-Preview.plist',
+    iosGoogleServicesFile: './GoogleService-Info.plist',
   },
   production: {
     name: LOCALIZED_NAMES.ko,

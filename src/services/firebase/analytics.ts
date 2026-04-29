@@ -39,6 +39,9 @@ export const AnalyticsEvents = {
   LINK_GOOGLE_START: 'link_google_start',
   LINK_GOOGLE_SUCCESS: 'link_google_success',
   LINK_GOOGLE_FAIL: 'link_google_fail',
+  LINK_APPLE_START: 'link_apple_start',
+  LINK_APPLE_SUCCESS: 'link_apple_success',
+  LINK_APPLE_FAIL: 'link_apple_fail',
 
   // 화면 조회 (Navigation)
   SCREEN_VIEW: 'screen_view',
