@@ -8,6 +8,9 @@
       "developmentClient": true,
       "distribution": "internal",
       "channel": "development",
+      "ios": {
+        "image": "latest"
+      },
       "env": {
         "API_URL": "https://dev.one-question.org"
       }
@@ -15,6 +18,9 @@
     "preview": {
       "distribution": "internal",
       "channel": "preview",
+      "ios": {
+        "image": "latest"
+      },
       "env": {
         "API_URL": "https://dev.one-question.org",
         "APP_ENV": "preview"
@@ -23,6 +29,9 @@
     "production": {
       "autoIncrement": true,
       "channel": "production",
+      "ios": {
+        "image": "latest"
+      },
       "env": {
         "API_URL": "https://one-question.org",
         "APP_ENV": "production"
