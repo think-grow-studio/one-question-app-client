@@ -33,6 +33,8 @@ const ENV = {
 const APP_VERSIONS = {
     version: '1.0.3',
     androidVersion: 16,
+    // iOS buildNumber는 EAS 서버가 관리 (eas.json의 appVersionSource: "remote" + autoIncrement: true).
+    // 매 빌드마다 자동으로 +1 되므로 이 값은 무시됨. 수동 수정 불필요.
     iosVersion: '1',
 };
 
