@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Modal, Pressable, StyleSheet, View, ScrollView, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { YStack, XStack, useTheme } from 'tamagui';
-import Animated, { FadeIn, SlideInDown, SlideOutDown } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown, runOnJS } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '@/shared/ui/Text';
@@ -32,7 +32,7 @@ export function TimePickerSheet({
   const insets = useSafeAreaInsets();
 
   // Responsive values
-  const ITEM_HEIGHT = cs(44);
+  const ITEM_HEIGHT = Math.round(cs(44));
   const PICKER_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS;
 
   // 내부 상태
@@ -42,6 +42,25 @@ export function TimePickerSheet({
     return h;
   }); // 1-12
   const [selectedMinute, setSelectedMinute] = useState(minute);
+
+  // exit 애니메이션이 끝난 뒤 Modal을 닫기 위한 별도 상태.
+  // visible=false → isRendered=false(자식 언마운트, Reanimated가 exit 애니 재생)
+  //               → 애니 완료 후 handleSheetExited() → modalVisible=false
+  const [isRendered, setIsRendered] = useState(visible);
+  const [modalVisible, setModalVisible] = useState(visible);
+
+  const handleSheetExited = useCallback(() => {
+    setModalVisible(false);
+  }, []);
+
+  useEffect(() => {
+    if (visible) {
+      setModalVisible(true);
+      setIsRendered(true);
+    } else {
+      setIsRendered(false);
+    }
+  }, [visible]);
 
   const hourScrollRef = useRef<ScrollView>(null);
   const minuteScrollRef = useRef<ScrollView>(null);
@@ -78,7 +97,7 @@ export function TimePickerSheet({
     // 정확한 위치로 스냅
     const targetY = clampedIndex * ITEM_HEIGHT;
     if (Math.abs(y - targetY) > 1) {
-      hourScrollRef.current?.scrollTo({ y: targetY, animated: true });
+      hourScrollRef.current?.scrollTo({ y: targetY, animated: false });
     }
   }, [ITEM_HEIGHT]);
 
@@ -100,7 +119,7 @@ export function TimePickerSheet({
     // 정확한 위치로 즉시 스냅
     const targetY = clampedIndex * ITEM_HEIGHT;
     if (Math.abs(y - targetY) > 1) {
-      minuteScrollRef.current?.scrollTo({ y: targetY, animated: true });
+      minuteScrollRef.current?.scrollTo({ y: targetY, animated: false });
     }
   }, [ITEM_HEIGHT]);
 
@@ -195,21 +214,19 @@ export function TimePickerSheet({
     },
   }), [PICKER_HEIGHT, ITEM_HEIGHT, sheetBottomPadding]);
 
-  // 주의: visible=false일 때 return null 하지 않음.
-  // Modal이 언마운트되면 iOS native dismiss 사이클이 끊겨 터치가 먹통이 됨
-  // (ReloadOptionSheet에서 동일 버그 발생 → 같은 fix 적용).
-
   return (
-    <Modal transparent visible={visible} animationType="none" statusBarTranslucent onRequestClose={onClose}>
-      {/* visible일 때만 자식 mount — Modal 자체는 항상 JSX에 두어 native dismiss 정상 처리 */}
-      {visible && (<>
+    <Modal transparent visible={modalVisible} animationType="none" statusBarTranslucent onRequestClose={onClose}>
+      {isRendered && (<>
       <Pressable style={styles.backdrop} onPress={onClose}>
-        <Animated.View entering={FadeIn} style={styles.backdropOverlay} />
+        <Animated.View entering={FadeIn} exiting={FadeOut} style={styles.backdropOverlay} />
       </Pressable>
 
       <Animated.View
         entering={SlideInDown.duration(250)}
-        exiting={SlideOutDown.duration(200)}
+        exiting={SlideOutDown.duration(200).withCallback((finished) => {
+          'worklet';
+          if (finished) runOnJS(handleSheetExited)();
+        })}
         style={[styles.sheetContainer, responsiveStyles.sheetWrapper]}
       >
         <YStack
@@ -285,7 +302,8 @@ export function TimePickerSheet({
                 ref={hourScrollRef}
                 showsVerticalScrollIndicator={false}
                 snapToInterval={ITEM_HEIGHT}
-                decelerationRate="normal"
+                decelerationRate="fast"
+                overScrollMode="never"
                 onScrollEndDrag={handleHourScrollEndDrag}
                 onMomentumScrollEnd={handleHourScroll}
                 contentContainerStyle={styles.pickerContent}
@@ -316,7 +334,8 @@ export function TimePickerSheet({
                 ref={minuteScrollRef}
                 showsVerticalScrollIndicator={false}
                 snapToInterval={ITEM_HEIGHT}
-                decelerationRate="normal"
+                decelerationRate="fast"
+                overScrollMode="never"
                 onScrollEndDrag={handleMinuteScrollEndDrag}
                 onMomentumScrollEnd={handleMinuteScroll}
                 contentContainerStyle={styles.pickerContent}
