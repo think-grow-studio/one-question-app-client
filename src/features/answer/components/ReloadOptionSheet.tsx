@@ -323,6 +323,10 @@ export function ReloadOptionSheet({
   return (
     <>
     <Modal transparent visible={visible} animationType="none" statusBarTranslucent onDismiss={runAfterClose} onRequestClose={() => { if (!isCycleCheckPending) closeSheet(); }}>
+      {/* visible일 때만 자식 mount — Modal 자체는 항상 JSX에 두어 onDismiss 발화 보장.
+          시트 안의 BannerAdSlot이 항상 mount되면 메인 화면 배너와 같은 unit ID로
+          동시 로드되어 광고가 표시 안 되는 문제를 방지함. */}
+      {visible && (<>
       {/* Backdrop */}
       <Pressable style={styles.backdropContainer} onPress={handleBackdropPress}>
         <Animated.View style={[styles.backdrop, backdropStyle]} />
@@ -492,6 +496,7 @@ export function ReloadOptionSheet({
           </View>
         )}
       </Animated.View>
+      </>)}
     </Modal>
 
     <AlertDialog

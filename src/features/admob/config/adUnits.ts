@@ -5,12 +5,22 @@ import { config } from '@/constants/config';
 const isMobile = Platform.OS === 'ios' || Platform.OS === 'android';
 const isProduction = config.environment === 'production';
 
-// v16에서 TestIds가 빈 문자열로 변경되어 Google 공식 테스트 Ad Unit ID를 직접 사용
-const TEST_IDS = {
-  banner: 'ca-app-pub-3940256099942544/2093032645',
-  rewarded: 'ca-app-pub-3940256099942544/5354931055',
-  interstitial: 'ca-app-pub-3940256099942544/1033173712',
-} as const;
+// v16에서 TestIds가 빈 문자열로 변경되어 Google 공식 테스트 Ad Unit ID를 직접 사용.
+// 플랫폼별로 다른 ID를 사용해야 함 (잘못된 platform의 ID 사용 시 publisher 불일치로
+// "Publisher data not found / no-fill" 에러 발생).
+// 출처: https://developers.google.com/admob/ios/test-ads
+//       https://developers.google.com/admob/android/test-ads
+const TEST_IDS = Platform.OS === 'ios'
+  ? {
+      banner: 'ca-app-pub-3940256099942544/2934735716',
+      rewarded: 'ca-app-pub-3940256099942544/1712485313',
+      interstitial: 'ca-app-pub-3940256099942544/4411468910',
+    }
+  : {
+      banner: 'ca-app-pub-3940256099942544/6300978111',
+      rewarded: 'ca-app-pub-3940256099942544/5224354917',
+      interstitial: 'ca-app-pub-3940256099942544/1033173712',
+    };
 
 const platformEnv =
   Platform.OS === 'ios'
