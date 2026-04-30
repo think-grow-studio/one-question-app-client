@@ -515,10 +515,12 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
     });
   }, [t]);
 
-  if (!isDatePickerVisible) return null;
+  // visible=false 시 return null 하지 않음 (Modal 언마운트로 인한 iOS dismiss race 방지).
+  // 다른 sheet/dialog 컴포넌트와 동일 패턴.
 
   return (
     <Modal transparent visible={isDatePickerVisible} animationType="none" statusBarTranslucent onRequestClose={closeSheet}>
+      {isDatePickerVisible && (<>
       <Pressable style={styles.backdrop} onPress={handleClose}>
         <Animated.View style={[styles.backdropOverlay, backdropStyle]} />
       </Pressable>
@@ -689,6 +691,7 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
         buttons={[{ label: t('common:buttons.confirm'), variant: 'primary' }]}
         onClose={() => setJoinDateError(false)}
       />
+      </>)}
     </Modal>
   );
 });
