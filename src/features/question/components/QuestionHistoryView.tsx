@@ -447,6 +447,9 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
       requires_ad: shouldGateReloadQuestion,
     });
 
+    // ReloadOptionSheet의 closeSheet(afterClose) → Modal.onDismiss(iOS)/visible
+    // 변화 다음 frame(Android)에서 이 콜백이 실행되므로 모달 native dismiss가
+    // 완료된 뒤에 광고 ViewController가 present됨. (transition 충돌 방지)
     runRewardedAction('reload')
       .then((allowed) => {
         if (!allowed) {

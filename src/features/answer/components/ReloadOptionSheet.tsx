@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useMemo } from 'react';
-import { Pressable, ScrollView, StyleSheet, View, Text, Modal, PanResponder, BackHandler } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View, Text, Modal, PanResponder, BackHandler, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { YStack, useTheme } from 'tamagui';
 import Animated, {
@@ -68,17 +68,46 @@ export function ReloadOptionSheet({
   const backdropOpacity = useSharedValue(0);
   const startY = useRef(0);
 
+  // afterClose 콜백은 네이티브 Modal dismiss 완료 후 실행해야 함
+  // (모달 dismiss 전에 광고 ViewController를 present하면 iOS에서 transition
+  // 충돌로 광고가 즉시 닫히고 터치 입력이 먹통이 됨).
+  // - iOS: <Modal onDismiss>가 native dismiss 완료 시점을 알려줌
+  // - Android: onDismiss prop 없음 → visible: true→false 변화 후 다음 frame
+  //   (Android Dialog dismiss는 즉시이므로 1 frame이면 안전)
+  // 매직 넘버 setTimeout 대신 native 콜백을 사용해 정확한 시점에 호출됨.
+  const afterCloseRef = useRef<(() => void) | null>(null);
+
+  const runAfterClose = useCallback(() => {
+    const cb = afterCloseRef.current;
+    afterCloseRef.current = null;
+    cb?.();
+  }, []);
+
   const closeSheet = useCallback((afterClose?: () => void) => {
+    if (afterClose) {
+      afterCloseRef.current = afterClose;
+    }
     translateY.value = withTiming(SHEET_HEIGHT, { duration: 200 }, (finished) => {
       if (finished) {
         runOnJS(onClose)();
-        if (afterClose) {
-          runOnJS(afterClose)();
-        }
       }
     });
     backdropOpacity.value = withTiming(0, { duration: 200 });
   }, [onClose, translateY, backdropOpacity, SHEET_HEIGHT]);
+
+  // Android fallback: Modal.onDismiss가 없으므로 visible 변화로 dismiss 완료 추정
+  const prevVisibleRef = useRef(visible);
+  useEffect(() => {
+    if (Platform.OS === 'ios') {
+      // iOS는 <Modal onDismiss>로 처리
+      prevVisibleRef.current = visible;
+      return;
+    }
+    if (prevVisibleRef.current && !visible) {
+      requestAnimationFrame(runAfterClose);
+    }
+    prevVisibleRef.current = visible;
+  }, [visible, runAfterClose]);
 
   const openSheet = useCallback(() => {
     translateY.value = withTiming(0, { duration: 280 });
@@ -286,11 +315,14 @@ export function ReloadOptionSheet({
     },
   }), [SHEET_HEIGHT]);
 
-  if (!visible) return null;
+  // 주의: 여기서 visible=false일 때 return null 하지 않음.
+  // 컴포넌트가 언마운트되면 <Modal>의 native dismiss 사이클이 끊겨
+  // onDismiss 콜백이 발화하지 않음 (= afterClose가 실행 안됨).
+  // <Modal visible={false}>로 두면 native가 정상적으로 dismiss + onDismiss 호출.
 
   return (
     <>
-    <Modal transparent visible={visible} animationType="none" statusBarTranslucent onRequestClose={() => { if (!isCycleCheckPending) closeSheet(); }}>
+    <Modal transparent visible={visible} animationType="none" statusBarTranslucent onDismiss={runAfterClose} onRequestClose={() => { if (!isCycleCheckPending) closeSheet(); }}>
       {/* Backdrop */}
       <Pressable style={styles.backdropContainer} onPress={handleBackdropPress}>
         <Animated.View style={[styles.backdrop, backdropStyle]} />
