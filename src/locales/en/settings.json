@@ -24,7 +24,23 @@
     "exactAlarmTitle": "Notification Permission Required",
     "exactAlarmMessage": "To receive notifications at the exact time, please allow \"Exact Alarm\" permission in Settings.",
     "exactAlarmLater": "Later",
-    "exactAlarmGoToSettings": "Go to Settings"
+    "exactAlarmGoToSettings": "Go to Settings",
+    "permission": {
+      "title": "Notification Permission Needed",
+      "message": "To receive notifications, please allow permission in the Settings app.",
+      "cancel": "Cancel",
+      "openSettings": "Open Settings"
+    },
+    "error": {
+      "tokenFailed": {
+        "title": "Failed to Enable Notifications",
+        "message": "Please try again in a moment. If the issue continues, restart the app."
+      },
+      "networkFailed": {
+        "title": "Network Error",
+        "message": "Please check your internet connection and try again."
+      }
+    }
   },
   "language": {
     "title": "Language",

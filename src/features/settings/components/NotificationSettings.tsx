@@ -1,16 +1,20 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Switch, View, Pressable } from 'react-native';
 import { XStack, YStack, useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
-import { useNotificationSettings } from '../hooks/useNotificationSettings';
+import { AlertDialog, useAlertDialog } from '@/shared/ui/AlertDialog';
+import {
+  useNotificationSettings,
+  type NotificationActionFailureReason,
+} from '../hooks/useNotificationSettings';
 import { TimePickerSheet } from './TimePickerSheet';
 import { useAccentColors, getFontStyle } from '@/shared/theme';
 
 export function NotificationSettings() {
   const theme = useTheme();
   const accent = useAccentColors();
-  const { t } = useTranslation('settings');
+  const { t } = useTranslation(['settings', 'common']);
   const {
     isEnabled,
     hour,
@@ -22,16 +26,48 @@ export function NotificationSettings() {
     useNotificationSettings();
 
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const alertDialog = useAlertDialog();
+
+  // 실패 reason → dialog 매핑.
+  // 'permission'은 services/notifications의 Alert이 이미 안내하므로 component에서 추가 표시 안 함.
+  const showFailureDialog = useCallback(
+    (reason: NotificationActionFailureReason) => {
+      if (reason === 'permission') return;
+      const titleKey =
+        reason === 'network'
+          ? 'notification.error.networkFailed.title'
+          : 'notification.error.tokenFailed.title';
+      const messageKey =
+        reason === 'network'
+          ? 'notification.error.networkFailed.message'
+          : 'notification.error.tokenFailed.message';
+      alertDialog.show({
+        title: t(`settings:${titleKey}`),
+        message: t(`settings:${messageKey}`),
+        buttons: [{ label: t('common:buttons.confirm'), variant: 'primary' }],
+      });
+    },
+    [alertDialog, t]
+  );
 
   const formatTime = (h: number, m: number) => {
-    const period = h >= 12 ? t('notification.pm') : t('notification.am');
+    const period = h >= 12 ? t('settings:notification.pm') : t('settings:notification.am');
     const displayHour = h > 12 ? h - 12 : h === 0 ? 12 : h;
     return `${period} ${displayHour}:${m.toString().padStart(2, '0')}`;
   };
 
-  const handleTimeConfirm = (newHour: number, newMinute: number) => {
-    updateNotificationTime(newHour, newMinute);
-  };
+  const handleToggle = useCallback(async () => {
+    const result = await toggleNotification();
+    if (!result.success) showFailureDialog(result.reason);
+  }, [toggleNotification, showFailureDialog]);
+
+  const handleTimeConfirm = useCallback(
+    async (newHour: number, newMinute: number) => {
+      const result = await updateNotificationTime(newHour, newMinute);
+      if (!result.success) showFailureDialog(result.reason);
+    },
+    [updateNotificationTime, showFailureDialog]
+  );
 
   return (
     <>
@@ -57,7 +93,7 @@ export function NotificationSettings() {
           </View>
           <Switch
             value={isEnabled}
-            onValueChange={toggleNotification}
+            onValueChange={handleToggle}
             disabled={isToggleInteractionDisabled}
             trackColor={{
               false: theme.borderColor?.val,
@@ -125,6 +161,15 @@ export function NotificationSettings() {
         minute={minute}
         onClose={() => setShowTimePicker(false)}
         onConfirm={handleTimeConfirm}
+      />
+
+      {/* 토큰/네트워크 실패 안내 dialog */}
+      <AlertDialog
+        visible={alertDialog.visible}
+        title={alertDialog.config.title}
+        message={alertDialog.config.message}
+        buttons={alertDialog.config.buttons}
+        onClose={alertDialog.hide}
       />
     </>
   );

@@ -26,6 +26,11 @@ export function useFCMLifecycle() {
   }, []);
 
   useEffect(() => {
+    // TODO: 백엔드 FCM payload 형식(notification vs data-only) 확정 후 검토 필요.
+    // 현재는 foreground 메시지를 항상 scheduleNotificationAsync로 표시.
+    // 만약 백엔드가 notification + data 둘 다 보내고, iOS background에서 메시지를
+    // 받은 뒤 사용자가 foreground로 진입하는 시나리오에서 중복 표시될 가능성 있음.
+    // (data-only 권장 + foreground에서만 표시하는 패턴이 안전)
     return onFCMMessage(async (remoteMessage) => {
       await Notifications.scheduleNotificationAsync({
         content: {

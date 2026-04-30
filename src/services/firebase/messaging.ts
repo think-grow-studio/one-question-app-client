@@ -1,18 +1,52 @@
 import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
+import { Platform } from 'react-native';
+
+const FCM_TOKEN_RETRY_COUNT = 3;
+const FCM_TOKEN_RETRY_DELAY_MS = 1000;
 
 /**
- * FCM 토큰 발급
- * 시뮬레이터에서는 null 반환 (FCM은 실기기에서만 작동)
+ * iOS APNS 토큰을 명시적으로 등록.
+ * 자동 등록이 기본이지만, 첫 실행 직후엔 race condition으로 APNS 토큰이
+ * 준비되기 전에 getToken()이 호출될 수 있어 안전망으로 명시 호출한다.
+ * (Android는 APNS 개념이 없으므로 호출 안 함)
+ */
+async function ensureIOSAPNSRegistration(): Promise<void> {
+  if (Platform.OS !== 'ios') return;
+  try {
+    if (!messaging().isDeviceRegisteredForRemoteMessages) {
+      await messaging().registerDeviceForRemoteMessages();
+    }
+  } catch (error) {
+    if (__DEV__) {
+      console.warn('[FCM] APNS 등록 실패 (계속 진행):', error);
+    }
+  }
+}
+
+/**
+ * FCM 토큰 발급.
+ * - iOS: APNS 토큰 등록 보장 후 최대 3회 재시도 (race 흡수)
+ * - Android: 단순 호출 (보통 첫 시도에 성공)
+ * - 시뮬레이터/실기기 미등록 등으로 실패 시 null 반환
  */
 export async function getFCMToken(): Promise<string | null> {
-  try {
-    const token = await messaging().getToken();
-    console.log('[FCM] Token:', token);
-    return token;
-  } catch (error) {
-    console.error('[FCM] 토큰 발급 실패:', error);
-    return null;
+  await ensureIOSAPNSRegistration();
+
+  for (let attempt = 0; attempt < FCM_TOKEN_RETRY_COUNT; attempt++) {
+    try {
+      const token = await messaging().getToken();
+      if (token) return token;
+    } catch (error) {
+      if (__DEV__) {
+        console.warn(`[FCM] getToken 시도 ${attempt + 1} 실패:`, error);
+      }
+    }
+    if (attempt < FCM_TOKEN_RETRY_COUNT - 1) {
+      await new Promise((resolve) => setTimeout(resolve, FCM_TOKEN_RETRY_DELAY_MS));
+    }
   }
+
+  return null;
 }
 
 /**

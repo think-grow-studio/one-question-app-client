@@ -14,6 +14,12 @@ import {
 const DEFAULT_ALARM_TIME = '21:00';
 const TOGGLE_INTERACTION_LOCK_MS = 500;
 
+export type NotificationActionFailureReason = 'permission' | 'token' | 'network';
+
+export type NotificationActionResult =
+  | { success: true }
+  | { success: false; reason: NotificationActionFailureReason };
+
 function toAlarmTime(hour: number, minute: number): string {
   return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
 }
@@ -49,8 +55,8 @@ export function useNotificationSettings() {
     };
   }, []);
 
-  const toggleNotification = useCallback(async () => {
-    if (isToggleLockedRef.current) return;
+  const toggleNotification = useCallback(async (): Promise<NotificationActionResult> => {
+    if (isToggleLockedRef.current) return { success: true };
 
     isToggleLockedRef.current = true;
     setIsToggleLocked(true);
@@ -62,34 +68,32 @@ export function useNotificationSettings() {
 
     if (!isEnabled) {
       const hasPermission = await requestNotificationPermission();
-      if (!hasPermission) return;
+      // 권한 거부는 requestNotificationPermission 내부 Alert으로 안내됨
+      // → component 레벨에서 추가 dialog 띄우지 않도록 'permission' reason 반환
+      if (!hasPermission) return { success: false, reason: 'permission' };
 
       const token = await getFCMToken();
-      if (!token) {
-        console.error('[Notifications] FCM 토큰 발급 실패');
-        return;
-      }
+      if (!token) return { success: false, reason: 'token' };
 
       enableMutation.mutate({ token, alarmTime, timezone });
     } else {
       disableMutation.mutate({ alarmTime, timezone });
     }
+    return { success: true };
   }, [isEnabled, alarmTime, timezone, enableMutation, disableMutation]);
 
   const updateNotificationTime = useCallback(
-    async (newHour: number, newMinute: number) => {
+    async (newHour: number, newMinute: number): Promise<NotificationActionResult> => {
       const newAlarmTime = toAlarmTime(newHour, newMinute);
       const token = useNotificationStore.getState().fcmToken ?? (await getFCMToken());
-      if (!token) {
-        console.error('[Notifications] FCM 토큰 없음 - 시간 변경 중단');
-        return;
-      }
+      if (!token) return { success: false, reason: 'token' };
       updateTimeMutation.mutate({
         token,
         alarmTime: newAlarmTime,
         timezone,
         enabled: isEnabled,
       });
+      return { success: true };
     },
     [isEnabled, timezone, updateTimeMutation]
   );

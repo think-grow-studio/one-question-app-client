@@ -195,10 +195,14 @@ export function TimePickerSheet({
     },
   }), [PICKER_HEIGHT, ITEM_HEIGHT, sheetBottomPadding]);
 
-  if (!visible) return null;
+  // 주의: visible=false일 때 return null 하지 않음.
+  // Modal이 언마운트되면 iOS native dismiss 사이클이 끊겨 터치가 먹통이 됨
+  // (ReloadOptionSheet에서 동일 버그 발생 → 같은 fix 적용).
 
   return (
     <Modal transparent visible={visible} animationType="none" statusBarTranslucent onRequestClose={onClose}>
+      {/* visible일 때만 자식 mount — Modal 자체는 항상 JSX에 두어 native dismiss 정상 처리 */}
+      {visible && (<>
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Animated.View entering={FadeIn} style={styles.backdropOverlay} />
       </Pressable>
@@ -336,6 +340,7 @@ export function TimePickerSheet({
           </YStack>
         </YStack>
       </Animated.View>
+      </>)}
     </Modal>
   );
 }

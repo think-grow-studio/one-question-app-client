@@ -1,5 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import { Alert, Linking, Platform } from 'react-native';
+import i18n from '@/locales';
 
 // 알림 표시 설정 (포그라운드에서도 표시)
 Notifications.setNotificationHandler({
@@ -46,12 +47,13 @@ export async function requestNotificationPermission(): Promise<boolean> {
   }
 
   // OS가 더 이상 프롬프트를 띄우지 않는 상태 → 설정 앱으로 유도
+  // 모듈 레벨이라 hook 사용 불가, i18n singleton의 t()를 직접 사용
   Alert.alert(
-    '알림 권한이 필요해요',
-    '알림을 받으려면 설정 앱에서 권한을 허용해 주세요.',
+    i18n.t('notification.permission.title', { ns: 'settings' }),
+    i18n.t('notification.permission.message', { ns: 'settings' }),
     [
-      { text: '취소', style: 'cancel' },
-      { text: '설정 열기', onPress: () => Linking.openSettings() },
+      { text: i18n.t('notification.permission.cancel', { ns: 'settings' }), style: 'cancel' },
+      { text: i18n.t('notification.permission.openSettings', { ns: 'settings' }), onPress: () => Linking.openSettings() },
     ],
   );
   return false;
