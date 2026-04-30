@@ -1,4 +1,4 @@
-import messaging from '@react-native-firebase/messaging';
+import messaging, { type RemoteMessage } from '@react-native-firebase/messaging';
 import { Platform } from 'react-native';
 
 const FCM_TOKEN_RETRY_COUNT = 3;
@@ -56,4 +56,12 @@ export async function getFCMToken(): Promise<string | null> {
  */
 export function onFCMTokenRefresh(callback: (token: string) => void): () => void {
   return messaging().onTokenRefresh(callback);
+}
+
+/**
+ * Foreground FCM listener.
+ * Android needs this to bridge foreground remote messages into a local notification.
+ */
+export function onFCMMessage(callback: (message: RemoteMessage) => void): () => void {
+  return messaging().onMessage(callback);
 }
