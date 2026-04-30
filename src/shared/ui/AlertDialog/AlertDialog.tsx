@@ -66,7 +66,8 @@ export function AlertDialog({
     onClose();
   };
 
-  if (!visible) return null;
+  // visible=false 시 return null 하지 않음 (Modal 언마운트로 인한 iOS dismiss race 방지).
+  // ReloadOptionSheet/TimePickerSheet에 적용한 동일 fix.
 
   const responsiveStyles = {
     centeredContainer: {
@@ -102,6 +103,7 @@ export function AlertDialog({
 
   return (
     <Modal transparent visible={visible} animationType="none" statusBarTranslucent>
+      {visible && (<>
       <TouchableWithoutFeedback onPress={dismissible ? onClose : undefined}>
         <View style={styles.backdrop}>
           <Animated.View entering={FadeIn.duration(150)} exiting={FadeOut.duration(100)} style={styles.backdropOverlay} />
@@ -147,6 +149,7 @@ export function AlertDialog({
           </View>
         </Animated.View>
       </View>
+      </>)}
     </Modal>
   );
 }

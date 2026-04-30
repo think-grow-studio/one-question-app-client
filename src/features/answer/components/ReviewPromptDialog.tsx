@@ -26,7 +26,7 @@ export function ReviewPromptDialog({
   const theme = useTheme();
   const accent = useAccentColors();
 
-  if (!visible) return null;
+  // visible=false 시 return null 하지 않음 (AlertDialog와 동일 — iOS Modal dismiss race 방지)
 
   const responsiveStyles = {
     centeredContainer: {
@@ -62,6 +62,7 @@ export function ReviewPromptDialog({
 
   return (
     <Modal transparent visible={visible} animationType="none" statusBarTranslucent onRequestClose={() => {}}>
+      {visible && (<>
       {/* Backdrop - 클릭 불가 */}
       <TouchableWithoutFeedback>
         <View style={styles.backdrop}>
@@ -124,6 +125,7 @@ export function ReviewPromptDialog({
           </View>
         </Animated.View>
       </View>
+      </>)}
     </Modal>
   );
 }
