@@ -2,7 +2,9 @@ import * as Notifications from 'expo-notifications';
 import { Alert, Linking, Platform } from 'react-native';
 import i18n from '@/locales';
 
-// 알림 표시 설정 (포그라운드에서도 표시)
+// Expo local notifications foreground presentation.
+// Remote FCM foreground presentation on iOS is configured in firebase.json
+// because @react-native-firebase/messaging owns the native FCM delegate path.
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -13,7 +15,7 @@ Notifications.setNotificationHandler({
   }),
 });
 
-async function ensureAndroidChannel(): Promise<void> {
+export async function ensureAndroidNotificationChannel(): Promise<void> {
   if (Platform.OS !== 'android') return;
   await Notifications.setNotificationChannelAsync('daily-reminder', {
     name: '일일 알림',
@@ -33,14 +35,14 @@ export async function requestNotificationPermission(): Promise<boolean> {
   const existing = await Notifications.getPermissionsAsync();
 
   if (existing.status === 'granted') {
-    await ensureAndroidChannel();
+    await ensureAndroidNotificationChannel();
     return true;
   }
 
   if (existing.canAskAgain) {
     const { status } = await Notifications.requestPermissionsAsync();
     if (status === 'granted') {
-      await ensureAndroidChannel();
+      await ensureAndroidNotificationChannel();
       return true;
     }
     return false;

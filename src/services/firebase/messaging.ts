@@ -1,4 +1,4 @@
-import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
+import messaging from '@react-native-firebase/messaging';
 import { Platform } from 'react-native';
 
 const FCM_TOKEN_RETRY_COUNT = 3;
@@ -56,15 +56,4 @@ export async function getFCMToken(): Promise<string | null> {
  */
 export function onFCMTokenRefresh(callback: (token: string) => void): () => void {
   return messaging().onTokenRefresh(callback);
-}
-
-/**
- * 포그라운드 FCM 메시지 리스너
- * 백그라운드/종료 상태에서는 시스템이 자동으로 알림 표시
- * @returns unsubscribe 함수
- */
-export function onFCMMessage(
-  callback: (message: FirebaseMessagingTypes.RemoteMessage) => void
-): () => void {
-  return messaging().onMessage(callback);
 }
