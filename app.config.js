@@ -3,6 +3,15 @@ const envFile = process.env.APP_ENV === 'production' ? '.env.production' : '.env
 require('dotenv').config({ path: path.resolve(__dirname, envFile) });
 
 const isPreview = process.env.APP_ENV === 'preview';
+const isProduction = process.env.APP_ENV === 'production';
+
+// Google 공식 테스트 App ID (production 외 환경에서 사용)
+// adUnits.ts의 TEST_IDS(테스트 Ad Unit ID)와 동일 publisher(Google)이어야
+// "Publisher data not found / no-fill" 에러를 방지할 수 있음.
+const TEST_ADMOB_APP_IDS = {
+  android: 'ca-app-pub-3940256099942544~3347511713',
+  ios: 'ca-app-pub-3940256099942544~1458002511',
+};
 
 const LOCALIZED_NAMES = {
   ko: isPreview ? '질문 하나Preview' : '질문 하나',
@@ -145,12 +154,14 @@ export default {
       [
         './plugins/with-google-mobile-ads',
         {
-          androidAppId:
-            process.env.EXPO_PUBLIC_ADMOB_ANDROID_APP_ID ||
-            'ca-app-pub-3940256099942544~3347511713',
-          iosAppId:
-            process.env.EXPO_PUBLIC_ADMOB_IOS_APP_ID ||
-            'ca-app-pub-3940256099942544~1458002511',
+          // production만 실제 App ID 사용 — 그 외 환경은 테스트 App ID로 강제하여
+          // adUnits.ts의 TEST_IDS와 publisher를 일치시킴 (no-fill 에러 방지).
+          androidAppId: isProduction
+            ? (process.env.EXPO_PUBLIC_ADMOB_ANDROID_APP_ID || TEST_ADMOB_APP_IDS.android)
+            : TEST_ADMOB_APP_IDS.android,
+          iosAppId: isProduction
+            ? (process.env.EXPO_PUBLIC_ADMOB_IOS_APP_ID || TEST_ADMOB_APP_IDS.ios)
+            : TEST_ADMOB_APP_IDS.ios,
         },
       ],
     ],
