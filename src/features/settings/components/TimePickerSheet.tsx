@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { Modal, Pressable, StyleSheet, View, ScrollView, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import { Modal, Platform, Pressable, StyleSheet, View, ScrollView, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { YStack, XStack, useTheme } from 'tamagui';
-import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown, runOnJS } from 'react-native-reanimated';
+import Animated, { FadeIn, SlideInDown } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '@/shared/ui/Text';
@@ -42,25 +42,6 @@ export function TimePickerSheet({
     return h;
   }); // 1-12
   const [selectedMinute, setSelectedMinute] = useState(minute);
-
-  // exit 애니메이션이 끝난 뒤 Modal을 닫기 위한 별도 상태.
-  // visible=false → isRendered=false(자식 언마운트, Reanimated가 exit 애니 재생)
-  //               → 애니 완료 후 handleSheetExited() → modalVisible=false
-  const [isRendered, setIsRendered] = useState(visible);
-  const [modalVisible, setModalVisible] = useState(visible);
-
-  const handleSheetExited = useCallback(() => {
-    setModalVisible(false);
-  }, []);
-
-  useEffect(() => {
-    if (visible) {
-      setModalVisible(true);
-      setIsRendered(true);
-    } else {
-      setIsRendered(false);
-    }
-  }, [visible]);
 
   const hourScrollRef = useRef<ScrollView>(null);
   const minuteScrollRef = useRef<ScrollView>(null);
@@ -183,6 +164,7 @@ export function TimePickerSheet({
   const hours = Array.from({ length: 12 }, (_, i) => i + 1); // 1-12
   const minutes = Array.from({ length: 60 }, (_, i) => i); // 0-59
   const sheetBottomPadding = sp(16) + Math.max(insets.bottom, sp(16));
+  const isAndroid = Platform.OS === 'android';
 
   const responsiveStyles = useMemo(() => ({
     sheetWrapper: {
@@ -214,173 +196,186 @@ export function TimePickerSheet({
     },
   }), [PICKER_HEIGHT, ITEM_HEIGHT, sheetBottomPadding]);
 
-  return (
-    <Modal transparent visible={modalVisible} animationType="none" statusBarTranslucent onRequestClose={onClose}>
-      {isRendered && (<>
-      <Pressable style={styles.backdrop} onPress={onClose}>
-        <Animated.View entering={FadeIn} exiting={FadeOut} style={styles.backdropOverlay} />
-      </Pressable>
-
-      <Animated.View
-        entering={SlideInDown.duration(250)}
-        exiting={SlideOutDown.duration(200).withCallback((finished) => {
-          'worklet';
-          if (finished) runOnJS(handleSheetExited)();
-        })}
-        style={[styles.sheetContainer, responsiveStyles.sheetWrapper]}
-      >
+  const sheetContent = (
+    <YStack
+      style={[
+        responsiveStyles.container,
+        { backgroundColor: theme.surface?.val },
+      ]}
+    >
+      <YStack ai="center" py="$4">
         <YStack
-          style={[
-            responsiveStyles.container,
-            { backgroundColor: theme.surface?.val },
-          ]}
+          width={40}
+          height={4}
+          borderRadius={2}
+          style={{ backgroundColor: theme.borderColor?.val }}
+        />
+      </YStack>
+
+      <YStack ai="center" pb="$4">
+        <Text variant="subheading" {...getFontStyle('700')}>
+          {t('notification.time')}
+        </Text>
+      </YStack>
+
+      <XStack jc="center" pb="$5">
+        <XStack
+          style={{
+            backgroundColor: theme.backgroundSoft?.val,
+            borderRadius: radius(12),
+            padding: 4,
+          }}
         >
-          {/* Handle */}
-          <YStack ai="center" py="$4">
-            <YStack
-              width={40}
-              height={4}
-              borderRadius={2}
-              style={{ backgroundColor: theme.borderColor?.val }}
-            />
-          </YStack>
-
-          {/* Title */}
-          <YStack ai="center" pb="$4">
-            <Text variant="subheading" {...getFontStyle('700')}>
-              {t('notification.time')}
-            </Text>
-          </YStack>
-
-          {/* AM/PM Toggle */}
-          <XStack jc="center" pb="$5">
-            <XStack
-              style={{
-                backgroundColor: theme.backgroundSoft?.val,
-                borderRadius: radius(12),
-                padding: 4,
-              }}
-            >
-              <Pressable
-                onPress={() => setIsPM(false)}
-                style={[
-                  responsiveStyles.periodButton,
-                  !isPM && { backgroundColor: accent.primary },
-                ]}
-              >
-                <Text
-                  variant="body"
-                  {...getFontStyle('600')}
-                  style={{ color: !isPM ? accent.textOnPrimary : theme.colorMuted?.val }}
-                >
-                  {t('notification.am')}
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={() => setIsPM(true)}
-                style={[
-                  responsiveStyles.periodButton,
-                  isPM && { backgroundColor: accent.primary },
-                ]}
-              >
-                <Text
-                  variant="body"
-                  {...getFontStyle('600')}
-                  style={{ color: isPM ? accent.textOnPrimary : theme.colorMuted?.val }}
-                >
-                  {t('notification.pm')}
-                </Text>
-              </Pressable>
-            </XStack>
-          </XStack>
-
-          {/* Time Picker Wheels */}
-          <XStack jc="center" ai="center" gap="$2" px="$6">
-            {/* Hour Picker */}
-            <View style={[styles.pickerContainer, responsiveStyles.pickerContainer]}>
-              <ScrollView
-                ref={hourScrollRef}
-                showsVerticalScrollIndicator={false}
-                snapToInterval={ITEM_HEIGHT}
-                decelerationRate="fast"
-                overScrollMode="never"
-                onScrollEndDrag={handleHourScrollEndDrag}
-                onMomentumScrollEnd={handleHourScroll}
-                contentContainerStyle={styles.pickerContent}
-              >
-                {renderPickerItems(hours, (n) => n.toString(), selectedHour)}
-              </ScrollView>
-              <View
-                style={[
-                  styles.selectionIndicator,
-                  responsiveStyles.selectionIndicator,
-                  { backgroundColor: accent.primary },
-                ]}
-                pointerEvents="none"
-              />
-            </View>
-
-            {/* Separator */}
+          <Pressable
+            onPress={() => setIsPM(false)}
+            style={[
+              responsiveStyles.periodButton,
+              !isPM && { backgroundColor: accent.primary },
+            ]}
+          >
             <Text
-              variant="heading"
-              style={[responsiveStyles.separator, { ...getFontStyle('700'), color: theme.color?.val }]}
+              variant="body"
+              {...getFontStyle('600')}
+              style={{ color: !isPM ? accent.textOnPrimary : theme.colorMuted?.val }}
             >
-              :
+              {t('notification.am')}
             </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setIsPM(true)}
+            style={[
+              responsiveStyles.periodButton,
+              isPM && { backgroundColor: accent.primary },
+            ]}
+          >
+            <Text
+              variant="body"
+              {...getFontStyle('600')}
+              style={{ color: isPM ? accent.textOnPrimary : theme.colorMuted?.val }}
+            >
+              {t('notification.pm')}
+            </Text>
+          </Pressable>
+        </XStack>
+      </XStack>
 
-            {/* Minute Picker */}
-            <View style={[styles.pickerContainer, responsiveStyles.pickerContainer]}>
-              <ScrollView
-                ref={minuteScrollRef}
-                showsVerticalScrollIndicator={false}
-                snapToInterval={ITEM_HEIGHT}
-                decelerationRate="fast"
-                overScrollMode="never"
-                onScrollEndDrag={handleMinuteScrollEndDrag}
-                onMomentumScrollEnd={handleMinuteScroll}
-                contentContainerStyle={styles.pickerContent}
-              >
-                {renderPickerItems(minutes, (n) => n.toString().padStart(2, '0'), selectedMinute)}
-              </ScrollView>
-              <View
-                style={[
-                  styles.selectionIndicator,
-                  responsiveStyles.selectionIndicator,
-                  { backgroundColor: accent.primary },
-                ]}
-                pointerEvents="none"
-              />
+      <XStack jc="center" ai="center" gap="$2" px="$6">
+        <View style={[styles.pickerContainer, responsiveStyles.pickerContainer]}>
+          <View
+            style={[
+              styles.selectionIndicator,
+              responsiveStyles.selectionIndicator,
+              { backgroundColor: accent.primary },
+            ]}
+            pointerEvents="none"
+          />
+          <ScrollView
+            ref={hourScrollRef}
+            style={styles.pickerScroll}
+            showsVerticalScrollIndicator={false}
+            snapToInterval={ITEM_HEIGHT}
+            decelerationRate="fast"
+            overScrollMode="never"
+            onScrollEndDrag={handleHourScrollEndDrag}
+            onMomentumScrollEnd={handleHourScroll}
+            contentContainerStyle={styles.pickerContent}
+          >
+            {renderPickerItems(hours, (n) => n.toString(), selectedHour)}
+          </ScrollView>
+        </View>
+
+        <Text
+          variant="heading"
+          style={[responsiveStyles.separator, { ...getFontStyle('700'), color: theme.color?.val }]}
+        >
+          :
+        </Text>
+
+        <View style={[styles.pickerContainer, responsiveStyles.pickerContainer]}>
+          <View
+            style={[
+              styles.selectionIndicator,
+              responsiveStyles.selectionIndicator,
+              { backgroundColor: accent.primary },
+            ]}
+            pointerEvents="none"
+          />
+          <ScrollView
+            ref={minuteScrollRef}
+            style={styles.pickerScroll}
+            showsVerticalScrollIndicator={false}
+            snapToInterval={ITEM_HEIGHT}
+            decelerationRate="fast"
+            overScrollMode="never"
+            onScrollEndDrag={handleMinuteScrollEndDrag}
+            onMomentumScrollEnd={handleMinuteScroll}
+            contentContainerStyle={styles.pickerContent}
+          >
+            {renderPickerItems(minutes, (n) => n.toString().padStart(2, '0'), selectedMinute)}
+          </ScrollView>
+        </View>
+      </XStack>
+
+      <YStack px="$5" pt="$6">
+        <Button label={t('notification.done')} onPress={handleConfirm} />
+      </YStack>
+    </YStack>
+  );
+
+  return (
+    <Modal
+      transparent
+      visible={visible}
+      animationType="none"
+      statusBarTranslucent
+      navigationBarTranslucent
+      presentationStyle="overFullScreen"
+      onRequestClose={onClose}
+    >
+      {visible && (
+        <View style={styles.modalRoot}>
+          <Animated.View entering={FadeIn.duration(150)} style={styles.backdropOverlay} pointerEvents="none" />
+          <Pressable style={styles.dismissArea} onPress={onClose} />
+
+          {isAndroid ? (
+            <View style={[styles.sheetContainer, responsiveStyles.sheetWrapper]}>
+              {sheetContent}
             </View>
-          </XStack>
-
-          {/* Confirm Button */}
-          <YStack px="$5" pt="$6">
-            <Button label={t('notification.done')} onPress={handleConfirm} />
-          </YStack>
-        </YStack>
-      </Animated.View>
-      </>)}
+          ) : (
+            <Animated.View
+              entering={SlideInDown.duration(250)}
+              style={[styles.sheetContainer, responsiveStyles.sheetWrapper]}
+            >
+              {sheetContent}
+            </Animated.View>
+          )}
+        </View>
+      )}
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
+  modalRoot: {
     flex: 1,
     justifyContent: 'flex-end',
+  },
+  dismissArea: {
+    flex: 1,
   },
   backdropOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   sheetContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    zIndex: 1,
+    elevation: 1,
   },
   pickerContainer: {
     overflow: 'hidden',
+  },
+  pickerScroll: {
+    zIndex: 1,
   },
   pickerContent: {
     alignItems: 'center',
@@ -389,6 +384,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    zIndex: -1,
+    zIndex: 0,
   },
 });
