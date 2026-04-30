@@ -151,7 +151,7 @@ Rules:
 ### 1.6 Performance & Interaction
 
 - Lists: `@shopify/flash-list` v2.2+ (New Architecture required)
-- Bottom Sheet: `@gorhom/bottom-sheet` v5.2+
+- Bottom Sheet: `@gorhom/bottom-sheet` v5.2+ — **현재 미사용** (자세한 이유는 [`docs/decisions/0001-bottom-sheet-pattern.md`](./docs/decisions/0001-bottom-sheet-pattern.md) 참고). 모든 sheet/dialog는 RN `<Modal>` + visible-gate 패턴으로 통일됨.
 - Secure Storage: `expo-secure-store`
 - Gestures: `react-native-gesture-handler` v2.20+
 - Animations: `react-native-reanimated` v4.1+ (New Architecture required)
