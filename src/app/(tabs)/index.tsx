@@ -11,7 +11,7 @@ export default function HomeScreen() {
   useEffect(() => {
     logScreenView('Today');
   }, []);
-
+  
   return (
     <Screen edges={['top']} bgColor={accent.background}>
       <QuestionHistoryView />

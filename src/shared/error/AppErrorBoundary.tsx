@@ -1,9 +1,10 @@
 import React, { Component, ReactNode } from 'react';
-import { View, Text, StyleSheet, Pressable, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Alert, Platform, Appearance } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { queryClient } from '@/services/queryClient';
 import { useApiErrorStore } from '@/shared/stores/useApiErrorStore';
 import { useAuthStore } from '@/shared/stores/useAuthStore';
+import { useThemeStore } from '@/shared/stores/useThemeStore';
 import { recordError } from '@/services/firebase';
 import { getFontStyle } from '@/shared/theme/typography';
 import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
@@ -98,20 +99,26 @@ export class AppErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
+      // ErrorBoundary는 TamaguiProvider 외부에 있어 useTheme() 사용 불가.
+      // zustand store 직접 접근 + Appearance fallback (store hydration 전 에러 대비).
+      const storeMode = useThemeStore.getState().mode;
+      const mode = storeMode ?? (Appearance.getColorScheme() === 'dark' ? 'dark' : 'light');
+      const c = mode === 'dark' ? darkColors : lightColors;
+
       return (
         <SafeAreaProvider>
-          <View style={styles.container}>
+          <View style={[styles.container, { backgroundColor: c.background }]}>
             <View style={styles.content}>
-              <Text style={styles.title}>문제가 발생했습니다</Text>
-              <Text style={styles.message}>
+              <Text style={[styles.title, { color: c.title }]}>문제가 발생했습니다</Text>
+              <Text style={[styles.message, { color: c.message }]}>
                 앱을 재시작하면 문제가 해결될 수 있습니다.
               </Text>
               {__DEV__ && this.state.error && (
-                <Text style={styles.errorDetail}>
+                <Text style={[styles.errorDetail, { color: c.detail }]}>
                   {this.state.error.toString()}
                 </Text>
               )}
-              <Pressable style={styles.button} onPress={this.handleRestart}>
+              <Pressable style={[styles.button, { backgroundColor: c.button }]} onPress={this.handleRestart}>
                 <Text style={styles.buttonText}>앱 재시작</Text>
               </Pressable>
             </View>
@@ -125,10 +132,25 @@ export class AppErrorBoundary extends Component<Props, State> {
   }
 }
 
+const lightColors = {
+  background: '#FFFFFF',
+  title: '#000000',
+  message: '#666666',
+  detail: '#999999',
+  button: '#007AFF',
+};
+
+const darkColors = {
+  background: '#1C1C1E',
+  title: '#FFFFFF',
+  message: '#A0A0A0',
+  detail: '#777777',
+  button: '#0A84FF',
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
   },
   content: {
     flex: 1,
@@ -144,17 +166,14 @@ const styles = StyleSheet.create({
   message: {
     fontSize: 16,
     textAlign: 'center',
-    color: '#666',
     marginBottom: 24,
   },
   errorDetail: {
     fontSize: 12,
-    color: '#999',
     marginBottom: 24,
     textAlign: 'center',
   },
   button: {
-    backgroundColor: '#007AFF',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,

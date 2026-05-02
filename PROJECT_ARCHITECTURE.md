@@ -179,7 +179,6 @@ Supported languages:
 
 - English (en) – Primary development language
 - Korean (ko)
-- Japanese (ja)
 
 Usage:
 
@@ -1563,8 +1562,6 @@ src/
 │  │  ├─ question.json
 │  │  ├─ collection.json
 │  │  └─ auth.json
-│  ├─ ja/
-│  │  └─ (same structure)
 │  ├─ index.ts          # i18n configuration
 │  └─ resources.ts      # Type-safe translation keys
 ├─ constants/
@@ -1598,8 +1595,6 @@ import enCommon from './en/common.json'
 import enQuestion from './en/question.json'
 import koCommon from './ko/common.json'
 import koQuestion from './ko/question.json'
-import jaCommon from './ja/common.json'
-import jaQuestion from './ja/question.json'
 
 const resources = {
   en: {
@@ -1609,10 +1604,6 @@ const resources = {
   ko: {
     common: koCommon,
     question: koQuestion,
-  },
-  ja: {
-    common: jaCommon,
-    question: jaQuestion,
   },
 }
 
@@ -1768,7 +1759,7 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import i18n from '@/locales'
 
-type Language = 'en' | 'ko' | 'ja'
+type Language = 'en' | 'ko'
 
 interface LanguageState {
   language: Language
@@ -1802,7 +1793,6 @@ import { useTranslation } from 'react-i18next'
 const LANGUAGES = [
   { code: 'en', name: 'English' },
   { code: 'ko', name: '한국어' },
-  { code: 'ja', name: '日本語' },
 ] as const
 
 export function LanguagePicker() {
@@ -1996,9 +1986,8 @@ describe('QuestionCard', () => {
 
 **Phase 2: Expand (Post-MVP)**
 1. Add Korean translations
-2. Add Japanese translations
-3. Migrate all screens
-4. Add language picker in settings
+2. Migrate all screens
+3. Add language picker in settings
 
 **Phase 3: Polish**
 1. Add type safety

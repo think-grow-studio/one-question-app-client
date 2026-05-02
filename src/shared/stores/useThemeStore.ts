@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Appearance } from 'react-native';
 
 export type ThemeMode = 'light' | 'dark';
 export type AccentColor = 'blue' | 'lavender' | 'green' | 'white';
@@ -82,10 +83,14 @@ export function getAccentColors(mode: ThemeMode, accentColor: AccentColor) {
   };
 }
 
+// 첫 실행(persist 없음) 시 시스템 다크모드 설정을 따라감.
+// 이미 사용자가 명시적으로 토글한 적이 있으면 persist 값이 우선됨.
+const initialMode: ThemeMode = Appearance.getColorScheme() === 'dark' ? 'dark' : 'light';
+
 export const useThemeStore = create<ThemeState>()(
   persist(
     (set, get) => ({
-      mode: 'light',
+      mode: initialMode,
       accentColor: 'blue',
       setMode: (mode) => set({ mode }),
       toggleMode: () =>

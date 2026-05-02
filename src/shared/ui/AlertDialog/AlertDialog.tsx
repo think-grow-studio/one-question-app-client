@@ -2,6 +2,7 @@ import { Modal, Pressable, StyleSheet, View, Text, TouchableWithoutFeedback } fr
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useTheme } from 'tamagui';
 import { useAccentColors, getFontStyle } from '@/shared/theme';
+import { useThemeStore } from '@/shared/stores/useThemeStore';
 import { fs, sp, radius, deviceValue } from '@/shared/utils/responsive';
 
 export type AlertDialogButton = {
@@ -29,6 +30,8 @@ export function AlertDialog({
 }: AlertDialogProps) {
   const theme = useTheme();
   const accent = useAccentColors();
+  const mode = useThemeStore((s) => s.mode);
+  const backdropColor = mode === 'dark' ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.5)';
 
   const getButtonStyle = (variant: AlertDialogButton['variant'] = 'default') => {
     switch (variant) {
@@ -106,7 +109,7 @@ export function AlertDialog({
       {visible && (<>
       <TouchableWithoutFeedback onPress={dismissible ? onClose : undefined}>
         <View style={styles.backdrop}>
-          <Animated.View entering={FadeIn.duration(150)} exiting={FadeOut.duration(100)} style={styles.backdropOverlay} />
+          <Animated.View entering={FadeIn.duration(150)} exiting={FadeOut.duration(100)} style={[styles.backdropOverlay, { backgroundColor: backdropColor }]} />
         </View>
       </TouchableWithoutFeedback>
 
@@ -160,7 +163,6 @@ const styles = StyleSheet.create({
   },
   backdropOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   centeredContainer: {
     flex: 1,
