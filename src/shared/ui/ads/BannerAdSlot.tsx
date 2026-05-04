@@ -1,5 +1,5 @@
 import { memo, useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 import {
@@ -15,11 +15,13 @@ type BannerAdSlotProps = {
   disableSafeAreaPadding?: boolean;
 };
 
-// ANCHORED_ADAPTIVE_BANNER 일반 폰 portrait 기본 높이.
-// SDK 초기화 / 광고 로드 비동기 동안 placeholder 로 같은 높이를 점유시켜
-// 부모 레이아웃의 위/아래 jitter 방지. (태블릿은 ~90까지 갈 수 있어
-// 그 케이스에서 미세한 shift는 잔존 — 필요 시 Platform.isPad 분기 추가)
-const RESERVED_BANNER_HEIGHT = 50;
+// ANCHORED_ADAPTIVE_BANNER placeholder 높이.
+// 실제 배너 높이는 deviceHeight에 비례해 50~90dp 범위에서 변동 — 단말마다 다름.
+// SDK 초기화 / 광고 로드 비동기 동안 placeholder 로 같은 높이를 점유시켜 jitter 방지.
+// iOS는 14/15/Pro Max 등에서 60-65dp 가까이 나와 50으로는 부족 → 65로 상향.
+// Android는 검증 단말에서 50dp로 jitter 없음 확인.
+// 태블릿(~90dp)은 여전히 미세 shift 잔존 — 필요 시 Device.deviceType 분기 추가.
+const RESERVED_BANNER_HEIGHT = Platform.OS === 'ios' ? 65 : 50;
 
 export const BannerAdSlot = memo(function BannerAdSlot({ hidden, disableSafeAreaPadding }: BannerAdSlotProps) {
   const insets = useSafeAreaInsets();
