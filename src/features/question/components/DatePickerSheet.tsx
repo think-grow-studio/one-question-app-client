@@ -12,8 +12,7 @@ import Animated, {
 import { useDatePickerStore } from '../stores/useDatePickerStore';
 import { useSlideDirectionStore } from '../stores/useSlideDirectionStore';
 import { useCalendarHistory } from '../hooks/queries/useQuestionQueries';
-import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
-import { shouldHideAds } from '@/features/member/constants/permissions';
+import { useMemberMe, useIsAdFreeMember } from '@/features/member/hooks/queries/useMemberQueries';
 import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
 import { Button } from '@/shared/ui/Button';
 import { AlertDialog } from '@/shared/ui/AlertDialog';
@@ -63,7 +62,7 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
 
   // 회원 정보 조회 (cycleStartDate 제한용)
   const { data: member } = useMemberMe();
-  const isAdFreeMember = shouldHideAds(member?.permission);
+  const isAdFreeMember = useIsAdFreeMember();
 
   const calendarFetchBaseDate = useMemo(() => {
     if (!member?.cycleStartDate) {

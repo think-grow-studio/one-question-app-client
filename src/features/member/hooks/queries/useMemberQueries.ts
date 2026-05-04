@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { memberApi } from '@/features/member/api/memberApi';
+import { shouldHideAds } from '@/features/member/constants/permissions';
 
 export const memberQueryKeys = {
   all: ['member'] as const,
@@ -21,4 +22,13 @@ export function useMemberMe() {
     },
     staleTime: 1000 * 60 * 30, // 30분 캐시
   });
+}
+
+/**
+ * 광고 무료 회원 여부.
+ * 광고 노출 정책의 단일 진입점 — 정책 변경 시 이 훅만 수정.
+ */
+export function useIsAdFreeMember(): boolean {
+  const { data: member } = useMemberMe();
+  return shouldHideAds(member?.permission);
 }

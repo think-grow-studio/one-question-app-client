@@ -26,9 +26,8 @@ import { useDatePickerStore } from '../stores/useDatePickerStore';
 import { useSlideDirectionStore } from '../stores/useSlideDirectionStore';
 import { useDailyHistory, questionQueryKeys } from '../hooks/queries/useQuestionQueries';
 import { useServeDailyQuestion, useReloadQuestion } from '../hooks/mutations/useQuestionMutations';
-import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
+import { useMemberMe, useIsAdFreeMember } from '@/features/member/hooks/queries/useMemberQueries';
 import { MemberPermission, ApiErrorResponse } from '@/shared/types/api';
-import { shouldHideAds } from '@/features/member/constants/permissions';
 import { useInterstitialAd } from '@/features/admob/hooks/useInterstitialAd';
 import { useQueryClient } from '@tanstack/react-query';
 import { DatePickerSheet } from './DatePickerSheet';
@@ -148,7 +147,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
   const isViewingPastDate = currentDate < todayStr;
   const shouldGateRandomQuestion = memberPermission === MemberPermission.FREE && isViewingPastDate;
   const shouldGateReloadQuestion = memberPermission === MemberPermission.FREE;
-  const isAdFreeMember = shouldHideAds(memberPermission);
+  const isAdFreeMember = useIsAdFreeMember();
 
   const { showAd } = useInterstitialAd('interstitialSwipe');
 

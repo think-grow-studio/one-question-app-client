@@ -8,7 +8,7 @@ import { ThemeToggle } from '@/features/settings/components/ThemeToggle';
 import { AccentColorPicker } from '@/features/settings/components/AccentColorPicker';
 import { NotificationSettings } from '@/features/settings/components/NotificationSettings';
 import { useAuthStore } from '@/shared/stores/useAuthStore';
-import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
+import { useMemberMe, useIsAdFreeMember } from '@/features/member/hooks/queries/useMemberQueries';
 import { GoogleIcon } from '@/shared/icons/GoogleIcon';
 import { AppleIcon } from '@/shared/icons/AppleIcon';
 import { InfoIcon } from '@/shared/icons/InfoIcon';
@@ -21,7 +21,6 @@ import { LinkAppleButton } from '@/features/auth/components/LinkAppleButton';
 import { logScreenView, logEvent, AnalyticsEvents } from '@/services/firebase';
 import { getFontStyle } from '@/shared/theme/typography';
 import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
-import { shouldHideAds } from '@/features/member/constants/permissions';
 
 export default function SettingsScreen() {
   const theme = useTheme();
@@ -33,7 +32,7 @@ export default function SettingsScreen() {
 
   const [tooltipVisible, setTooltipVisible] = useState(false);
 
-  const isAdFreeMember = shouldHideAds(member?.permission);
+  const isAdFreeMember = useIsAdFreeMember();
   const isGoogleProvider = member?.provider === 'GOOGLE';
   const isAppleProvider = member?.provider === 'APPLE';
   const isAnonymousProvider = member?.provider === 'ANONYMOUS';

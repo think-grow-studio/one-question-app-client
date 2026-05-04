@@ -14,8 +14,7 @@ import { MailIcon } from '@/shared/icons/MailIcon';
 import { PastQuestionIcon } from '@/shared/icons/PastQuestionIcon';
 import { AdBadge } from '@/shared/ui/ads/AdBadge';
 import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
-import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
-import { shouldHideAds } from '@/features/member/constants/permissions';
+import { useIsAdFreeMember } from '@/features/member/hooks/queries/useMemberQueries';
 import { fs, sp, radius, cs, SHEET_HEIGHTS, SHEET_MAX_WIDTH } from '@/shared/utils/responsive';
 import {
   useCheckCandidateCycle,
@@ -49,8 +48,7 @@ export function ReloadOptionSheet({
   const theme = useTheme();
   const accent = useAccentColors();
   const { t } = useTranslation(['answer', 'common']);
-  const { data: member } = useMemberMe();
-  const isAdFreeMember = shouldHideAds(member?.permission);
+  const isAdFreeMember = useIsAdFreeMember();
   const { mutate: selectQuestion, isPending: isSelectPending } = useSelectQuestion();
   const { mutateAsync: checkCandidateCycle, isPending: isCycleCheckPending } = useCheckCandidateCycle();
 

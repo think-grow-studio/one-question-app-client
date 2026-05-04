@@ -27,8 +27,7 @@ import { useCreateAnswer, useUpdateAnswer } from '@/features/question/hooks/muta
 import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
 import { PublicToggle } from '@/features/feed/components/PublicToggle';
 import { ENABLE_PUBLIC_FEED } from '@/shared/constants/features';
-import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
-import { shouldHideAds } from '@/features/member/constants/permissions';
+import { useIsAdFreeMember } from '@/features/member/hooks/queries/useMemberQueries';
 import { sp } from '@/shared/utils/responsive';
 import { logScreenView, logEvent, AnalyticsEvents } from '@/services/firebase';
 
@@ -60,8 +59,7 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
     handleAccept,
   } = useAppReviewPrompt();
   const pendingReview = useRef(false);
-  const { data: member } = useMemberMe();
-  const isAdFreeMember = shouldHideAds(member?.permission);
+  const isAdFreeMember = useIsAdFreeMember();
 
   const inputMinHeight = (cardStyles.input?.minHeight as number) || 0;
   const resolvedInputHeight = inputMinHeight > 0 ? inputMinHeight : 320;
