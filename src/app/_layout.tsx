@@ -276,6 +276,9 @@ function RootLayoutNav() {
           options={{
             presentation: 'modal',
             animation: 'slide_from_bottom',
+            // iOS swipe-down dismiss 차단 — 작성 중 실수로 시트 닫혀 답변 날아가는 사고 방지.
+            // 닫기는 명시적 X 버튼으로만 (Android와 동작 일치).
+            gestureEnabled: false,
           }}
         />
         <Stack.Screen
