@@ -84,8 +84,9 @@ export function useUpdateNotificationTimeMutation() {
 }
 
 /**
- * 알림 ON — registerFcmToken + upsertSetting(enabled:true) 두 호출을 묶고,
- * 권한·토큰 획득이 끝난 뒤 optimistic flip 담당.
+ * 알림 ON — registerFcmToken + upsertSetting(enabled:true) 두 네트워크 호출을 묶고
+ * onMutate에서 optimistic flip. 권한·토큰 획득은 선결 조건이라 호출자(useNotificationSettings)
+ * 책임으로 분리.
  */
 export function useEnableNotificationMutation() {
   const queryClient = useQueryClient();

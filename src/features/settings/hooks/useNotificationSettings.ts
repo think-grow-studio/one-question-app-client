@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNotificationStore } from '@/features/settings/stores/useNotificationStore';
-import {
-  requestNotificationPermission,
-} from '@/features/settings/services/notifications';
+import { requestNotificationPermission } from '@/features/settings/services/notifications';
 import { getFCMToken } from '@/services/firebase';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 import {
@@ -38,13 +36,17 @@ export function useNotificationSettings() {
   const isToggleLockedRef = useRef(false);
   const toggleLockTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isToggleLocked, setIsToggleLocked] = useState(false);
+  // 권한 다이얼로그 → 토큰 획득 구간을 mutation.isPending 과 이어붙이기 위한 로컬 pending.
+  // 서버가 원거리라 네트워크 구간이 길어 사용자 체감 끊김을 막는 용도.
+  const [isPreparingEnable, setIsPreparingEnable] = useState(false);
 
   const setting = memberData?.notificationSetting;
   const isEnabled = setting?.enabled ?? false;
   const alarmTime = setting?.alarmTime ?? DEFAULT_ALARM_TIME;
   const timezone = setting?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
   const [hour, minute] = parseAlarmTime(alarmTime);
-  const isTogglingNotification = enableMutation.isPending || disableMutation.isPending;
+  const isTogglingNotification =
+    isPreparingEnable || enableMutation.isPending || disableMutation.isPending;
 
   useEffect(() => {
     return () => {
@@ -67,19 +69,29 @@ export function useNotificationSettings() {
     }, TOGGLE_INTERACTION_LOCK_MS);
 
     if (!isEnabled) {
-      const hasPermission = await requestNotificationPermission();
-      // 권한 거부는 requestNotificationPermission 내부 Alert으로 안내됨
-      // → component 레벨에서 추가 dialog 띄우지 않도록 'permission' reason 반환
-      if (!hasPermission) return { success: false, reason: 'permission' };
+      // 권한·토큰은 선결 조건 — 사용자 결정/네이티브 단계라 optimistic 대상이 아님.
+      // mutation은 네트워크 단계만 맡고, onMutate에서 그때 UI flip.
+      // 권한 거부 시 requestNotificationPermission 내부에서 Alert을 띄우므로
+      // component가 reason='permission'에 추가 dialog를 띄우지 않는 약속.
+      // isPreparingEnable: 탭 직후 → mutate() 직전까지 spinner 끊김 방지 (mutate 호출 시
+      // onMutate가 동기 발동하며 isPending=true 로 자연스럽게 인계됨).
+      setIsPreparingEnable(true);
+      try {
+        const hasPermission = await requestNotificationPermission();
+        if (!hasPermission) return { success: false, reason: 'permission' };
 
-      const token = await getFCMToken();
-      if (!token) return { success: false, reason: 'token' };
+        const token = await getFCMToken();
+        if (!token) return { success: false, reason: 'token' };
 
-      enableMutation.mutate({ token, alarmTime, timezone });
+        enableMutation.mutate({ token, alarmTime, timezone });
+        return { success: true };
+      } finally {
+        setIsPreparingEnable(false);
+      }
     } else {
       disableMutation.mutate({ alarmTime, timezone });
+      return { success: true };
     }
-    return { success: true };
   }, [isEnabled, alarmTime, timezone, enableMutation, disableMutation]);
 
   const updateNotificationTime = useCallback(
