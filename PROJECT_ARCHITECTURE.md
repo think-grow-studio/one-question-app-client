@@ -11,7 +11,7 @@ This document is written to guide **AI-assisted frontend implementation**.
 ## ⚡ Quick Start - Choose Your Scale
 
 **🟢 Small Project (< 10 features, 1-2 devs) → Recommended for "오늘의 질문"**
-- **Tech Stack**: Expo SDK 54 + React Native 0.81 + New Architecture
+- **Tech Stack**: Expo SDK 55 + React Native 0.83 + New Architecture
 - **Feature structure**: api/, hooks/, components/, types/ (Section 5.1)
 - **간단한 feature**: api.ts, hooks.ts만 (Section 5.2)
 - Skip: Barrel exports, Slices, request/response 분리, Extensive testing
@@ -65,7 +65,7 @@ features/question/
 ### 1.1 Platform
 
 - React Native + Expo
-- Expo SDK 54 (React Native 0.81)
+- Expo SDK 55 (React Native 0.83)
 - Managed Workflow
 - **New Architecture Enabled** (required for modern libraries)
 - Mobile-first (iOS / Android)
@@ -99,7 +99,7 @@ Rules:
 
 #### Server State
 
-- TanStack Query v5.84+
+- TanStack Query v5.90+
 
 Usage:
 
@@ -115,7 +115,7 @@ Rules:
 
 #### Client / UI State
 
-- Zustand v5.0.8+
+- Zustand v5.0.9+
 
 Usage:
 
@@ -150,11 +150,11 @@ Rules:
 
 ### 1.6 Performance & Interaction
 
-- Lists: `@shopify/flash-list` v2.2+ (New Architecture required)
+- Lists: `@shopify/flash-list` v2.0+ (New Architecture required)
 - Bottom Sheet: `@gorhom/bottom-sheet` v5.2+ — **현재 미사용** (자세한 이유는 [`docs/decisions/0001-bottom-sheet-pattern.md`](./docs/decisions/0001-bottom-sheet-pattern.md) 참고). 모든 sheet/dialog는 RN `<Modal>` + visible-gate 패턴으로 통일됨.
 - Secure Storage: `expo-secure-store`
-- Gestures: `react-native-gesture-handler` v2.20+
-- Animations: `react-native-reanimated` v4.1+ (New Architecture required)
+- Gestures: `react-native-gesture-handler` v2.30+
+- Animations: `react-native-reanimated` v4.2+ (New Architecture required)
 
 Optional animation libraries:
 
@@ -208,12 +208,12 @@ Benefits:
 - ✅ Concurrent rendering support
 
 Requirements:
-- Expo SDK 54+
-- React Native 0.81+
+- Expo SDK 55+
+- React Native 0.83+
 - All native dependencies must support New Architecture
 
 Libraries that require New Architecture:
-- `react-native-reanimated` v4+
+- `react-native-reanimated` v4+ (worklets는 별도 패키지 `react-native-worklets`로 분리됨)
 - `@shopify/flash-list` v2+
 - Modern gesture handling features
 
@@ -652,6 +652,30 @@ Rules:
 - Avoid `Platform.OS` branching unless unavoidable
 - Platform-specific code must be isolated
 - Web compatibility should not break mobile behavior
+
+### 10.1 UI Cross-Platform Compatibility (iOS ↔ Android)
+
+UI를 구현하거나 수정할 때 항상 **iOS와 Android 양쪽이 함께 동작하는지** 검증한다.
+한쪽만 보고 작업하면 "Android 고치니 iOS 깨짐" / "iOS 고치니 Android 깨짐"의 회귀가 반복된다.
+
+**원칙:**
+- 새 화면·컴포넌트 작업 시 **두 플랫폼 모두 즉시 확인** (시뮬레이터/에뮬레이터)
+- 한 플랫폼의 시각·동작 이슈를 고칠 때 반대 플랫폼 영향을 **사전 검토**한 뒤 변경:
+  - SafeAreaInsets / KeyboardAvoidingView 동작 차이
+  - `Switch` / `<Modal>` / `Pressable`의 native 시각·이벤트 차이 (iOS Pressable 이중 fire 등 알려진 quirk)
+  - 폰트 렌더링, `lineHeight`, padding 해석 차이
+  - 권한 다이얼로그 / 시스템 설정 진입 (`app-settings:` iOS-only 등)
+- `Platform.OS` 분기는 최후의 수단. 분기를 추가할 땐 "왜 통합 솔루션이 불가능한가"를 주석으로 명시
+
+**UI 변경 PR 전 체크리스트:**
+1. iOS 시뮬레이터에서 동작 확인
+2. Android 에뮬레이터(Pixel 7/8, API 34)에서 동작 확인
+3. 360–420 dp 폭 모두에서 레이아웃 깨지지 않음 (Section 1.1 Responsive layouts)
+4. 다크/라이트 모드 모두 검증
+5. 키보드 인터랙션이 있다면 키보드 뜬 상태도 확인
+6. 권한·시스템 다이얼로그가 있다면 양 플랫폼 모두 정상 흐름 + 거부 흐름 확인
+
+> ⚠️ **어느 한 플랫폼만 동작 확인하고 머지 금지.** Section 1.1의 Android baseline 규칙(Android 먼저 → iOS 반드시 확인)과 함께 적용된다.
 
 ---
 
