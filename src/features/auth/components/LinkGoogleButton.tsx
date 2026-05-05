@@ -8,6 +8,7 @@ import { useAlertDialog } from '@/shared/ui/AlertDialog/useAlertDialog';
 import {
   useCheckGoogleLinkMutation,
   useLinkToGoogleMutation,
+  GoogleSignInCancelledError,
 } from '@/features/auth/hooks/mutations/useLinkGoogleMutations';
 import { logEvent, AnalyticsEvents } from '@/services/firebase';
 import { getFontStyle } from '@/shared/theme/typography';
@@ -59,7 +60,9 @@ export function LinkGoogleButton() {
           },
         );
       },
-      onError: () => {
+      onError: (err) => {
+        // 사용자가 native sheet에서 [취소]를 누른 케이스는 정상 흐름이므로 analytics 스킵
+        if (err instanceof GoogleSignInCancelledError) return;
         logEvent(AnalyticsEvents.LINK_GOOGLE_FAIL, { reason: 'check_error' });
       },
     });

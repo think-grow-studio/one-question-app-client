@@ -8,6 +8,7 @@ import { useAlertDialog } from '@/shared/ui/AlertDialog/useAlertDialog';
 import {
   useCheckAppleLinkMutation,
   useLinkToAppleMutation,
+  AppleSignInCancelledError,
 } from '@/features/auth/hooks/mutations/useLinkAppleMutations';
 import { logEvent, AnalyticsEvents } from '@/services/firebase';
 import { getFontStyle } from '@/shared/theme/typography';
@@ -60,7 +61,9 @@ export function LinkAppleButton() {
           },
         );
       },
-      onError: () => {
+      onError: (err) => {
+        // 사용자가 native sheet에서 [취소]를 누른 케이스는 정상 흐름이므로 analytics 스킵
+        if (err instanceof AppleSignInCancelledError) return;
         logEvent(AnalyticsEvents.LINK_APPLE_FAIL, { reason: 'check_error' });
       },
     });

@@ -7,6 +7,17 @@ import { queryClient } from '@/services/queryClient';
 import { memberQueryKeys } from '@/features/member/hooks/queries/useMemberQueries';
 import { createAppleNonce } from '@/features/auth/utils/appleNonce';
 
+/**
+ * Apple Sign-In native sheet에서 사용자가 [취소]를 눌렀음을 나타내는 sentinel.
+ * mutation onError에서 instanceof로 식별해 일반 에러와 다르게 silent 처리한다.
+ */
+export class AppleSignInCancelledError extends Error {
+  constructor() {
+    super('Apple Sign-In cancelled by user');
+    this.name = 'AppleSignInCancelledError';
+  }
+}
+
 interface CheckAppleLinkResult {
   checkResult: { exists: boolean };
   identityToken: string;
@@ -18,6 +29,9 @@ interface CheckAppleLinkResult {
 // Apple 로그인 → 중복 확인
 export function useCheckAppleLinkMutation() {
   return useMutation<CheckAppleLinkResult, Error, void>({
+    // 사용자 액션 기반 흐름 — retry 시 native sheet가 다시 뜨므로 UX 망가짐.
+    // 또한 cancel sentinel은 status가 없어 전역 default retry 정책에 retryable로 잡힘.
+    retry: false,
     mutationFn: async () => {
       if (Platform.OS !== 'ios') {
         throw new Error('Apple Sign-In is only available on iOS');
@@ -30,13 +44,22 @@ export function useCheckAppleLinkMutation() {
 
       const { rawNonce, hashedNonce } = await createAppleNonce();
 
-      const credential = await AppleAuthentication.signInAsync({
-        requestedScopes: [
-          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
-          AppleAuthentication.AppleAuthenticationScope.EMAIL,
-        ],
-        nonce: hashedNonce,
-      });
+      let credential: AppleAuthentication.AppleAuthenticationCredential;
+      try {
+        credential = await AppleAuthentication.signInAsync({
+          requestedScopes: [
+            AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+            AppleAuthentication.AppleAuthenticationScope.EMAIL,
+          ],
+          nonce: hashedNonce,
+        });
+      } catch (error: unknown) {
+        const code = (error as { code?: string })?.code;
+        if (code === 'ERR_REQUEST_CANCELED') {
+          throw new AppleSignInCancelledError();
+        }
+        throw error;
+      }
 
       if (!credential.identityToken) {
         throw new Error('No identityToken received from Apple');
@@ -69,6 +92,8 @@ export function useLinkToAppleMutation() {
   const { login } = useAuthStore();
 
   return useMutation({
+    // 멱등 보장 어려운 link 호출 — 자동 retry로 중복 시도되지 않도록 차단.
+    retry: false,
     mutationFn: async (params: {
       identityToken: string;
       name?: string;
