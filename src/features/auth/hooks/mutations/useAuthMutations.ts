@@ -5,19 +5,19 @@ import { useAuthStore } from '@/shared/stores/useAuthStore';
 
 /**
  * 회원탈퇴 Mutation
- * - DELETE /api/v1/auth/me 호출
- * - 성공 시 자동 로그아웃 및 로그인 화면으로 이동
+ * - DELETE /api/v1/auth/me 호출 (서버가 fcm_token row를 cascade로 정리)
+ * - 성공 시 cleanupLocalAuth로 로컬 세션만 정리하고 로그인 화면으로 이동.
+ *   logout()을 호출하지 않는 이유: 서버가 이미 fcm 토큰을 삭제했으므로
+ *   추가 deleteFcmToken 호출 시 서버에서 "회원을 찾을 수 없다" 에러 발생.
  */
 export function useWithdrawMutation() {
   const router = useRouter();
-  const logout = useAuthStore((state) => state.logout);
+  const cleanupLocalAuth = useAuthStore((state) => state.cleanupLocalAuth);
 
   return useMutation({
     mutationFn: authApi.withdraw,
     onSuccess: async () => {
-      // 회원탈퇴 성공 시 로그아웃 처리
-      await logout();
-      // 로그인 화면으로 이동
+      await cleanupLocalAuth();
       router.replace('/(auth)/login');
     },
   });
