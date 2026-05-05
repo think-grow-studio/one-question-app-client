@@ -134,7 +134,7 @@ export default function SettingsScreen() {
             <Text variant="caption" muted px="$1">
               {t('account.title')}
             </Text>
-            {member && isAnonymousProvider && (
+            {member && (
               <YStack
                 py="$3"
                 px="$4"
@@ -142,43 +142,24 @@ export default function SettingsScreen() {
                 borderRadius={12}
                 gap="$3"
               >
-                {/* Provider Info */}
-                <XStack alignItems="center" gap="$2">
-                  <Text variant="body">{providerLabel}</Text>
-                </XStack>
-                {/* Warning */}
-                <Text variant="caption" muted>
-                  {t('account.linkGoogleWarning')}
-                </Text>
-                {/* Link Buttons */}
-                <YStack gap="$2">
-                  <LinkGoogleButton />
-                  {Platform.OS === 'ios' && <LinkAppleButton />}
-                </YStack>
-              </YStack>
-            )}
-            {member && !isAnonymousProvider && (
-              <YStack
-                py="$3"
-                px="$4"
-                bg="$backgroundSoft"
-                borderRadius={12}
-                gap="$3"
-              >
-                {/* Provider Info */}
+                {/* Provider Info — 공통 (아이콘은 비익명만) */}
                 <XStack alignItems="center" gap="$2">
                   {isGoogleProvider && <GoogleIcon size={20} />}
                   {isAppleProvider && <AppleIcon size={20} color={theme.color?.val} />}
                   <Text variant="body">{providerLabel}</Text>
                 </XStack>
-                {/* Email */}
-                <View>
-                  <Text variant="caption" muted mb="$1">
-                    {t('account.email')}
-                  </Text>
-                  <Text variant="body">{member.email}</Text>
-                </View>
-                {/* Question Start Date */}
+
+                {/* Email — 비익명만 (익명은 이메일 없음) */}
+                {!isAnonymousProvider && (
+                  <View>
+                    <Text variant="caption" muted mb="$1">
+                      {t('account.email')}
+                    </Text>
+                    <Text variant="body">{member.email}</Text>
+                  </View>
+                )}
+
+                {/* Question Start Date — 모든 provider 공통 */}
                 {member.cycleStartDate && (
                   <View>
                     <XStack alignItems="center" gap="$1">
@@ -199,6 +180,19 @@ export default function SettingsScreen() {
                     )}
                     <Text variant="body" mt="$1">{formattedCycleStartDate}</Text>
                   </View>
+                )}
+
+                {/* 익명 한정: 연결 안내 + 버튼 */}
+                {isAnonymousProvider && (
+                  <>
+                    <Text variant="caption" muted>
+                      {t('account.linkGoogleWarning')}
+                    </Text>
+                    <YStack gap="$2">
+                      <LinkGoogleButton />
+                      {Platform.OS === 'ios' && <LinkAppleButton />}
+                    </YStack>
+                  </>
                 )}
               </YStack>
             )}
