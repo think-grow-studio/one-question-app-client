@@ -72,6 +72,9 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     alignItems: 'center',
-    justifyContent: 'center',
+    // 실제 광고가 RESERVED_BANNER_HEIGHT보다 작을 때 남는 공간이 위/아래로
+    // 분배되며 tab bar 사이에 미세한 틈이 생기는 것을 방지. 광고를 하단에
+    // 붙여 잉여 공간이 위쪽(콘텐츠와의 간격)으로만 가도록 함.
+    justifyContent: 'flex-end',
   },
 });
