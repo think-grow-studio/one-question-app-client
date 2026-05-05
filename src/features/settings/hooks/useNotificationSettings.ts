@@ -47,6 +47,11 @@ export function useNotificationSettings() {
   const [hour, minute] = parseAlarmTime(alarmTime);
   const isTogglingNotification =
     isPreparingEnable || enableMutation.isPending || disableMutation.isPending;
+  // Switch에 표시할 optimistic value.
+  // - isEnabled: 서버 truth (enable mutation onMutate에서 즉시 true로 패치됨)
+  // - isPreparingEnable: 토글 탭 직후 ~ mutate() 호출 직전 구간을 메움 (권한·토큰 단계)
+  // → 사용자가 토글을 누른 순간부터 ON으로 보이고, 권한 거부 시에만 OFF로 복귀
+  const displayedIsEnabled = isEnabled || isPreparingEnable;
 
   useEffect(() => {
     return () => {
@@ -112,6 +117,7 @@ export function useNotificationSettings() {
 
   return {
     isEnabled,
+    displayedIsEnabled,
     hour,
     minute,
     fcmToken,

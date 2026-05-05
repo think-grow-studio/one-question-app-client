@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Switch, View, Pressable } from 'react-native';
+import { Switch, View, Pressable, ActivityIndicator } from 'react-native';
 import { XStack, YStack, useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
@@ -17,10 +17,12 @@ export function NotificationSettings() {
   const { t } = useTranslation(['settings', 'common']);
   const {
     isEnabled,
+    displayedIsEnabled,
     hour,
     minute,
     toggleNotification,
     updateNotificationTime,
+    isTogglingNotification,
     isToggleInteractionDisabled,
   } =
     useNotificationSettings();
@@ -91,17 +93,22 @@ export function NotificationSettings() {
               {t('notification.description')}
             </Text>
           </View>
-          <Switch
-            value={isEnabled}
-            onValueChange={handleToggle}
-            disabled={isToggleInteractionDisabled}
-            trackColor={{
-              false: theme.borderColor?.val,
-              true: accent.primary,
-            }}
-            thumbColor="#FFFFFF"
-            ios_backgroundColor={theme.borderColor?.val}
-          />
+          <XStack ai="center" gap="$2">
+            {isTogglingNotification && (
+              <ActivityIndicator size="small" color={theme.colorMuted?.val} />
+            )}
+            <Switch
+              value={displayedIsEnabled}
+              onValueChange={handleToggle}
+              disabled={isToggleInteractionDisabled}
+              trackColor={{
+                false: theme.borderColor?.val,
+                true: accent.primary,
+              }}
+              thumbColor="#FFFFFF"
+              ios_backgroundColor={theme.borderColor?.val}
+            />
+          </XStack>
         </XStack>
 
         {/* 알림 시간 설정 - 비활성화 시 회색 처리 */}
