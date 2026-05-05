@@ -18,10 +18,23 @@ export function useFCMReconciliation() {
   const { data: member } = useMemberMe();
   const queryClient = useQueryClient();
   const isReconciling = useRef(false);
+  const prevEnabledRef = useRef<boolean | null>(null);
   const setting = member?.notificationSetting;
   const enabled = setting?.enabled ?? false;
+  // member 로딩 전에는 enabled가 default false라 false→true 전이로 오인되므로,
+  // 데이터 로드 이후의 effect run에서만 prevEnabledRef를 갱신한다.
+  const isMemberLoaded = !!member;
 
   useEffect(() => {
+    if (!isMemberLoaded) return;
+
+    // race 방어: enabled가 false→true로 전이된 effect 재실행은 useEnableNotificationMutation이
+    // 토큰 등록을 처리 중이라는 신호이므로 첫 reconcile을 skip한다. AppState 복귀 시의
+    // reconcile은 정상 수행되어야 하므로 이 가드는 effect 진입 1회에만 적용한다.
+    // mount 직후 첫 진입은 prevEnabledRef.current === null이라 가드 통과 → reconcile 실행.
+    const justEnabled = prevEnabledRef.current === false && enabled === true;
+    prevEnabledRef.current = enabled;
+
     const reconcile = async () => {
       if (!enabled || !setting) return;
       if (isReconciling.current) return;
@@ -58,7 +71,9 @@ export function useFCMReconciliation() {
       }
     };
 
-    reconcile();
+    if (!justEnabled) {
+      reconcile();
+    }
 
     let prevState: AppStateStatus = AppState.currentState;
     const subscription = AppState.addEventListener('change', (nextState) => {
@@ -69,5 +84,5 @@ export function useFCMReconciliation() {
     });
 
     return () => subscription.remove();
-  }, [enabled, setting?.alarmTime, setting?.timezone, queryClient]);
+  }, [isMemberLoaded, enabled, setting?.alarmTime, setting?.timezone, queryClient]);
 }

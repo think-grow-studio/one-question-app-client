@@ -53,6 +53,7 @@ export function useUpdateNotificationTimeMutation() {
     onMutate: async (input) => {
       await queryClient.cancelQueries({ queryKey: memberQueryKeys.me() });
       const previous = queryClient.getQueryData<GetMemberResponse>(memberQueryKeys.me());
+      const previousFcmToken = useNotificationStore.getState().fcmToken;
 
       queryClient.setQueryData<GetMemberResponse>(memberQueryKeys.me(), (old) => {
         if (!old) return old;
@@ -64,16 +65,19 @@ export function useUpdateNotificationTimeMutation() {
         return { ...old, notificationSetting: nextSetting };
       });
 
-      return { previous };
-    },
-
-    onSuccess: (_data, input) => {
+      // race 방어: useFCMReconciliation이 setting 변경을 감지해 reconcile()을 발사하기 전에
+      // store에 새 토큰을 넣어야 sdkToken === storedToken으로 중복 register를 막을 수 있음.
       useNotificationStore.getState().setFcmToken(input.token);
+
+      return { previous, previousFcmToken };
     },
 
     onError: (_err, _input, context) => {
       if (context?.previous) {
         queryClient.setQueryData(memberQueryKeys.me(), context.previous);
+      }
+      if (context) {
+        useNotificationStore.getState().setFcmToken(context.previousFcmToken ?? null);
       }
     },
 
@@ -104,6 +108,7 @@ export function useEnableNotificationMutation() {
     onMutate: async (input) => {
       await queryClient.cancelQueries({ queryKey: memberQueryKeys.me() });
       const previous = queryClient.getQueryData<GetMemberResponse>(memberQueryKeys.me());
+      const previousFcmToken = useNotificationStore.getState().fcmToken;
 
       patchMemberSetting(queryClient, {
         alarmTime: input.alarmTime,
@@ -111,16 +116,19 @@ export function useEnableNotificationMutation() {
         enabled: true,
       });
 
-      return { previous };
-    },
-
-    onSuccess: (_data, input) => {
+      // race 방어: useFCMReconciliation이 optimistic enabled flip을 감지해 reconcile()을
+      // 발사하기 전에 store에 새 토큰을 넣어야 sdkToken === storedToken으로 중복 register를 막을 수 있음.
       useNotificationStore.getState().setFcmToken(input.token);
+
+      return { previous, previousFcmToken };
     },
 
     onError: (_err, _input, context) => {
       if (context?.previous) {
         queryClient.setQueryData(memberQueryKeys.me(), context.previous);
+      }
+      if (context) {
+        useNotificationStore.getState().setFcmToken(context.previousFcmToken ?? null);
       }
     },
 
