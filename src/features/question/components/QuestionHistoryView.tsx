@@ -111,7 +111,8 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
 
   // 회원 정보 조회 (cycleStartDate 제한용)
   const { data: member } = useMemberMe();
-  const { showAdAndWait: requestReward } = useInterstitialAd('interstitialPastQuestion');
+  const { showAdAndWait: requestPastQuestionAd } = useInterstitialAd('interstitialPastQuestion');
+  const { showAdAndWait: requestReloadAd } = useInterstitialAd('interstitialReload');
 
   // 현재 질문/답변 데이터 (히스토리 기반)
   const currentItem = currentHistory?.question
@@ -192,13 +193,14 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
       if (!requiresReward) {
         return true;
       }
-      const { success } = await requestReward();
+      const showAd = action === 'random' ? requestPastQuestionAd : requestReloadAd;
+      const { success } = await showAd();
       if (!success) {
         console.warn('[QuestionHistoryView] Rewarded ad was not completed.');
       }
       return success;
     },
-    [requestReward, shouldGateRandomQuestion, shouldGateReloadQuestion]
+    [requestPastQuestionAd, requestReloadAd, shouldGateRandomQuestion, shouldGateReloadQuestion]
   );
 
   const translateX = useSharedValue(0);

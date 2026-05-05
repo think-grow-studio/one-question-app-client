@@ -78,7 +78,13 @@ export function useInterstitialAd(adUnitKey: AdUnitKey) {
   const showAd = useCallback(async (): Promise<void> => {
     if (!isAdMobSupportedPlatform) return;
     const ad = adRef.current;
-    if (!ad || !isLoadedRef.current) return;
+    if (!ad || !isLoadedRef.current) {
+      logEvent(AnalyticsEvents.INTERSTITIAL_AD_SKIPPED, {
+        placement: adUnitKey,
+        reason: ad ? 'not_loaded' : 'no_instance',
+      });
+      return;
+    }
 
     logEvent(AnalyticsEvents.INTERSTITIAL_AD_SHOW, { placement: adUnitKey });
     try {
@@ -92,7 +98,13 @@ export function useInterstitialAd(adUnitKey: AdUnitKey) {
   const showAdAndWait = useCallback(async (): Promise<{ success: boolean }> => {
     if (!isAdMobSupportedPlatform) return { success: true };
     const ad = adRef.current;
-    if (!ad || !isLoadedRef.current) return { success: true };
+    if (!ad || !isLoadedRef.current) {
+      logEvent(AnalyticsEvents.INTERSTITIAL_AD_SKIPPED, {
+        placement: adUnitKey,
+        reason: ad ? 'not_loaded' : 'no_instance',
+      });
+      return { success: true };
+    }
     // 이미 표시 중이면 통과 처리 (중첩 호출 방지)
     if (pendingResolveRef.current) return { success: true };
 
