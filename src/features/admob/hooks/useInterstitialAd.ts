@@ -10,11 +10,16 @@ import { logEvent, AnalyticsEvents } from '@/services/firebase';
 
 type AdUnitKey = 'interstitialSwipe' | 'interstitialPastQuestion' | 'interstitialReload';
 
+// showAdAndWait가 호출됐는데 광고가 아직 로드 중이면 LOADED/ERROR 이벤트를
+// 잠깐 기다린다. fill이 보통 0.3~1.5초 걸리므로 1500ms면 대부분 잡히고,
+// 그 이상은 사용자가 "버튼이 굳었나" 인지하기 시작함 (UX 손익분기점).
+const AD_LOAD_WAIT_MS = 1500;
+
 /**
  * 통합 전면 광고 훅
  * - showAd(): fire-and-forget (비차단)
- * - showAdAndWait(): 광고 닫힐 때까지 대기 후 진행 (차단)
- * - 광고 미로드 시 두 함수 모두 블로킹 없이 통과
+ * - showAdAndWait(): 광고 닫힐 때까지 대기 후 진행 (차단). 미로드 시 짧게 기다린 후
+ *   여전히 미로드면 통과
  */
 export function useInterstitialAd(adUnitKey: AdUnitKey) {
   const adRef = useRef<InterstitialAd | null>(null);
@@ -23,11 +28,20 @@ export function useInterstitialAd(adUnitKey: AdUnitKey) {
   // useEffect의 단일 CLOSED 리스너에서 통일 처리해 ad.load() 중복 호출과
   // 분석 이벤트 중복 로깅을 방지함.
   const pendingResolveRef = useRef<((result: { success: boolean }) => void) | null>(null);
+  // showAdAndWait가 LOADED를 기다리는 중일 때 깨워줄 waiter들.
+  // LOADED/ERROR 발생 시 일괄 resolve.
+  const loadWaitersRef = useRef<Array<() => void>>([]);
 
   const settlePending = (result: { success: boolean }) => {
     const resolve = pendingResolveRef.current;
     pendingResolveRef.current = null;
     resolve?.(result);
+  };
+
+  const drainLoadWaiters = () => {
+    const waiters = loadWaitersRef.current;
+    loadWaitersRef.current = [];
+    waiters.forEach((w) => w());
   };
 
   useEffect(() => {
@@ -48,10 +62,13 @@ export function useInterstitialAd(adUnitKey: AdUnitKey) {
       unsubscribers.push(
         ad.addAdEventListener(AdEventType.LOADED, () => {
           isLoadedRef.current = true;
+          drainLoadWaiters();
         }),
         ad.addAdEventListener(AdEventType.ERROR, (error) => {
           if (__DEV__) console.warn(`[useInterstitialAd:${adUnitKey}] Ad load error:`, error);
           isLoadedRef.current = false;
+          // ERROR 시점에 대기 중인 waiter도 풀어줘야 1.5s 다 못 채우고 즉시 skip 가능
+          drainLoadWaiters();
           // 표시 시도 중 ERROR가 나면 대기 중인 showAdAndWait도 풀어줘야 함
           settlePending({ success: false });
         }),
@@ -70,6 +87,7 @@ export function useInterstitialAd(adUnitKey: AdUnitKey) {
       cancelled = true;
       unsubscribers.forEach((u) => u());
       // 언마운트 시 hanging promise 방지
+      drainLoadWaiters();
       settlePending({ success: false });
     };
   }, [adUnitKey]);
@@ -98,13 +116,36 @@ export function useInterstitialAd(adUnitKey: AdUnitKey) {
   const showAdAndWait = useCallback(async (): Promise<{ success: boolean }> => {
     if (!isAdMobSupportedPlatform) return { success: true };
     const ad = adRef.current;
-    if (!ad || !isLoadedRef.current) {
+    if (!ad) {
       logEvent(AnalyticsEvents.INTERSTITIAL_AD_SKIPPED, {
         placement: adUnitKey,
-        reason: ad ? 'not_loaded' : 'no_instance',
+        reason: 'no_instance',
       });
       return { success: true };
     }
+
+    // 미로드면 LOADED/ERROR 이벤트나 timeout까지 대기 후 재확인
+    if (!isLoadedRef.current) {
+      await new Promise<void>((resolve) => {
+        let settled = false;
+        const settle = () => {
+          if (settled) return;
+          settled = true;
+          resolve();
+        };
+        loadWaitersRef.current.push(settle);
+        setTimeout(settle, AD_LOAD_WAIT_MS);
+      });
+
+      if (!isLoadedRef.current) {
+        logEvent(AnalyticsEvents.INTERSTITIAL_AD_SKIPPED, {
+          placement: adUnitKey,
+          reason: 'wait_timeout',
+        });
+        return { success: true };
+      }
+    }
+
     // 이미 표시 중이면 통과 처리 (중첩 호출 방지)
     if (pendingResolveRef.current) return { success: true };
 
