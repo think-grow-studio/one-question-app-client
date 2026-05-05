@@ -2,65 +2,60 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-type ReviewStatus = 'none' | 'postponed' | 'declined' | 'completed';
-
 interface AppReviewState {
   answerCompletionCount: number;
-  reviewStatus: ReviewStatus;
-  answerCountAtPostpone: number; // 나중에 누른 시점의 답변 수
+  hasRequestedReview: boolean;
 
   incrementAnswerCount: () => void;
-  setReviewStatus: (status: 'postponed' | 'declined' | 'completed') => void;
   shouldShowReviewPrompt: () => boolean;
+  markReviewRequested: () => void;
 }
 
-const REVIEW_TRIGGER_COUNT = 5;  // 1회차: 5번 답변
-const POSTPONE_ANSWER_COUNT = 5; // 2회차: 5번 더 답변
+const REVIEW_TRIGGER_COUNT = 5; // 첫 답변 5번 달성 시 native review 호출
 
 export const useAppReviewStore = create<AppReviewState>()(
   persist(
     (set, get) => ({
       answerCompletionCount: 0,
-      reviewStatus: 'none',
-      answerCountAtPostpone: 0,
+      hasRequestedReview: false,
 
       incrementAnswerCount: () =>
         set((state) => ({
           answerCompletionCount: state.answerCompletionCount + 1,
         })),
 
-      setReviewStatus: (status: 'postponed' | 'declined' | 'completed') =>
-        set((state) => ({
-          reviewStatus: status,
-          answerCountAtPostpone: status === 'postponed'
-            ? state.answerCompletionCount
-            : state.answerCountAtPostpone,
-        })),
-
+      // 한 번 요청한 뒤로는 expo-store-review의 system 빈도 제한에 위임 (iOS 1년 3회 등).
+      // 우리 로직은 "처음 한 번 호출할 시점"만 결정 — 그 이후는 system 책임.
       shouldShowReviewPrompt: () => {
-        const { answerCompletionCount, reviewStatus, answerCountAtPostpone } = get();
-
-        // 이미 리뷰 완료 또는 거절한 경우 → 영원히 안 보여줌
-        if (reviewStatus === 'completed' || reviewStatus === 'declined') {
-          return false;
-        }
-
-        // 1회차: 5번 답변 달성시
-        if (answerCompletionCount >= REVIEW_TRIGGER_COUNT && reviewStatus === 'none') {
-          return true;
-        }
-
-        // 2회차: 나중에 누른 후 5번 더 답변
-        if (reviewStatus === 'postponed') {
-          return answerCompletionCount >= answerCountAtPostpone + POSTPONE_ANSWER_COUNT;
-        }
-
-        return false;
+        const { answerCompletionCount, hasRequestedReview } = get();
+        if (hasRequestedReview) return false;
+        return answerCompletionCount >= REVIEW_TRIGGER_COUNT;
       },
+
+      markReviewRequested: () => set({ hasRequestedReview: true }),
     }),
     {
       name: 'app-review-storage',
       storage: createJSONStorage(() => AsyncStorage),
+      version: 2,
+      // v1(reviewStatus 4-state) → v2(hasRequestedReview boolean) 마이그레이션.
+      // - 'completed'/'declined' → hasRequestedReview=true (이미 처리된 사용자, 재호출 X)
+      // - 'postponed'/'none' → hasRequestedReview=false (재트리거 가능, system이 빈도 제한)
+      migrate: (persistedState: unknown, version: number) => {
+        if (version < 2) {
+          const old = persistedState as {
+            answerCompletionCount?: number;
+            reviewStatus?: 'none' | 'postponed' | 'declined' | 'completed';
+          } | null;
+          const hasRequestedReview =
+            old?.reviewStatus === 'completed' || old?.reviewStatus === 'declined';
+          return {
+            answerCompletionCount: old?.answerCompletionCount ?? 0,
+            hasRequestedReview,
+          };
+        }
+        return persistedState as AppReviewState;
+      },
     }
   )
 );

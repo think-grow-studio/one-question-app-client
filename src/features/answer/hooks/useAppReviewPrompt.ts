@@ -1,50 +1,24 @@
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useAppReviewStore } from '@/features/answer/stores/useAppReviewStore';
 import { requestAppReview } from '@/services/appReview';
 
+/**
+ * 답변 제출 흐름의 마지막에 호출. 트리거 조건(첫 5번째 답변, 1회 한정) 충족 시
+ * expo-store-review의 native review API를 즉시 호출한다. 자체 pre-prompt(별도 dialog)는
+ * 두지 않는다 — Apple/Google 가이드라인이 pre-prompt를 명시적으로 지양하고 system이
+ * 자체 빈도 제한을 갖기 때문. system이 dialog를 띄울지 말지는 system이 결정.
+ */
 export function useAppReviewPrompt() {
-  const [showPrePrompt, setShowPrePrompt] = useState(false);
-  const { incrementAnswerCount, shouldShowReviewPrompt, setReviewStatus } =
-    useAppReviewStore();
+  const incrementAnswerCount = useAppReviewStore((s) => s.incrementAnswerCount);
+  const shouldShowReviewPrompt = useAppReviewStore((s) => s.shouldShowReviewPrompt);
+  const markReviewRequested = useAppReviewStore((s) => s.markReviewRequested);
 
-  // 답변 제출 후 호출 - 리뷰 필요 여부 반환 (상태 변경 없음)
-  const prepareReview = useCallback((): boolean => {
+  const maybeRequestReview = useCallback(async () => {
     incrementAnswerCount();
-    return shouldShowReviewPrompt();
-  }, [incrementAnswerCount, shouldShowReviewPrompt]);
+    if (!shouldShowReviewPrompt()) return;
+    markReviewRequested();
+    await requestAppReview();
+  }, [incrementAnswerCount, shouldShowReviewPrompt, markReviewRequested]);
 
-  // 성공 팝업 닫힌 후 리뷰 팝업 표시
-  const showReviewPrompt = useCallback(() => {
-    setShowPrePrompt(true);
-  }, []);
-
-  const handleLater = useCallback(() => {
-    const currentStatus = useAppReviewStore.getState().reviewStatus;
-    if (currentStatus === 'postponed') {
-      // 두 번째 나중에 → 영원히 안 보여줌
-      setReviewStatus('declined');
-    } else {
-      // 첫 번째 나중에 → 5번 더 답변 후 재요청
-      setReviewStatus('postponed');
-    }
-    setShowPrePrompt(false);
-  }, [setReviewStatus]);
-
-  const handleAccept = useCallback(async () => {
-    setShowPrePrompt(false);
-    const success = await requestAppReview();
-    if (success) {
-      setReviewStatus('completed');
-    } else {
-      setReviewStatus('postponed');
-    }
-  }, [setReviewStatus]);
-
-  return {
-    showPrePrompt,
-    prepareReview,
-    showReviewPrompt,
-    handleLater,
-    handleAccept,
-  };
+  return { maybeRequestReview };
 }

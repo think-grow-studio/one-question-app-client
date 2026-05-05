@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   TextInput,
   StyleSheet,
@@ -18,7 +18,6 @@ import { useTranslation } from 'react-i18next';
 import { useQuestionCardStyles } from '@/shared/ui/QuestionCard';
 import { ScreenHeader } from '@/shared/ui/ScreenHeader';
 import { AlertDialog, AlertDialogButton } from '@/shared/ui/AlertDialog';
-import { ReviewPromptDialog } from './ReviewPromptDialog';
 import { CloseIcon } from '@/shared/icons/CloseIcon';
 import { useAccentColors } from '@/shared/theme';
 import { useThrottledCallback } from '@/shared/hooks/useThrottledCallback';
@@ -51,14 +50,7 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
   const accent = useAccentColors();
   const { t } = useTranslation(['answer', 'question', 'common']);
   const cardStyles = useQuestionCardStyles();
-  const {
-    showPrePrompt,
-    prepareReview,
-    showReviewPrompt,
-    handleLater,
-    handleAccept,
-  } = useAppReviewPrompt();
-  const pendingReview = useRef(false);
+  const { maybeRequestReview } = useAppReviewPrompt();
   const isAdFreeMember = useIsAdFreeMember();
 
   const inputMinHeight = (cardStyles.input?.minHeight as number) || 0;
@@ -152,7 +144,6 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
           answer_length: answer.trim().length,
         });
         await createAnswerMutation.mutateAsync({ date: data.date, answer: answer.trim(), publish: ENABLE_PUBLIC_FEED ? published : false });
-        pendingReview.current = prepareReview(); // 새 답변 작성시에만 카운트
       }
 
       // 성공 메시지 표시
@@ -167,12 +158,13 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
           label: t('common:buttons.confirm'),
           variant: 'primary',
           onPress: () => {
-            if (pendingReview.current) {
-              pendingReview.current = false;
-              setTimeout(() => showReviewPrompt(), 80);
-            } else {
-              router.back();
+            // 새 답변(create) 경로일 때만 review 트리거. system 빈도 제한이 dialog 표시 여부를 결정.
+            // fire-and-forget — router.back()을 막지 않음. native dialog는 system-level이라
+            // 다음 화면 위로 자연스럽게 표시됨.
+            if (!isEditMode) {
+              void maybeRequestReview();
             }
+            router.back();
           },
         }],
       });
@@ -352,17 +344,6 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
         message={alertConfig.message}
         buttons={alertConfig.buttons}
         onClose={closeAlert}
-      />
-
-      {/* App Review Pre-prompt Dialog */}
-      <ReviewPromptDialog
-        visible={showPrePrompt}
-        title={t('answer:reviewPrompt.title')}
-        message={t('answer:reviewPrompt.message')}
-        onAccept={async () => { await handleAccept(); router.back(); }}
-        onLater={() => { handleLater(); router.back(); }}
-        acceptLabel={t('answer:reviewPrompt.accept')}
-        laterLabel={t('answer:reviewPrompt.later')}
       />
     </KeyboardAvoidingView>
   );
