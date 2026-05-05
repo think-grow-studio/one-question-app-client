@@ -6,8 +6,6 @@ import {
 import Constants from 'expo-constants';
 import { authApi } from '@/features/auth/api/authApi';
 import { useAuthStore } from '@/shared/stores/useAuthStore';
-import { queryClient } from '@/services/queryClient';
-import { memberQueryKeys } from '@/features/member/hooks/queries/useMemberQueries';
 
 /**
  * Google Sign-In native sheet에서 사용자가 [취소]를 눌렀음을 나타내는 sentinel.
@@ -101,7 +99,10 @@ export function useLinkToGoogleMutation() {
     },
     onSuccess: async (data) => {
       await login(data.accessToken, data.refreshToken);
-      queryClient.invalidateQueries({ queryKey: memberQueryKeys.me() });
+      // member 캐시 invalidate는 호출자(LinkGoogleButton)가 success dialog 닫힘 시점에 트리거.
+      // 이유: 즉시 invalidate하면 useMemberMe refetch → provider ANONYMOUS→GOOGLE 변경 →
+      // settings.tsx의 isAnonymousProvider 분기로 LinkGoogleButton 자체가 unmount →
+      // 자식 AlertDialog 함께 unmount되어 사용자가 안내를 보지 못함.
     },
   });
 }

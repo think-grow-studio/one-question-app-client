@@ -1,6 +1,8 @@
+import { useRef } from 'react';
 import { StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import { XStack, useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
+import { useQueryClient } from '@tanstack/react-query';
 import { Text } from '@/shared/ui/Text';
 import { AppleIcon } from '@/shared/icons/AppleIcon';
 import { AlertDialog } from '@/shared/ui/AlertDialog/AlertDialog';
@@ -10,6 +12,7 @@ import {
   useLinkToAppleMutation,
   AppleSignInCancelledError,
 } from '@/features/auth/hooks/mutations/useLinkAppleMutations';
+import { memberQueryKeys } from '@/features/member/hooks/queries/useMemberQueries';
 import { logEvent, AnalyticsEvents } from '@/services/firebase';
 import { getFontStyle } from '@/shared/theme/typography';
 import { sp, radius } from '@/shared/utils/responsive';
@@ -18,11 +21,26 @@ export function LinkAppleButton() {
   const theme = useTheme();
   const { t } = useTranslation('settings');
   const alertDialog = useAlertDialog();
+  const queryClient = useQueryClient();
 
   const checkMutation = useCheckAppleLinkMutation();
   const linkMutation = useLinkToAppleMutation();
 
   const isPending = checkMutation.isPending || linkMutation.isPending;
+  // success dialog 닫힘 시점에 member 캐시 invalidate를 트리거하기 위한 신호.
+  // mutation onSuccess에서 즉시 invalidate하면 LinkAppleButton이 unmount되며 dialog가
+  // 함께 사라지기 때문(상세는 useLinkToAppleMutation 주석 참고).
+  const pendingInvalidateRef = useRef(false);
+
+  // AlertDialog의 모든 닫힘 경로(button onPress / backdrop tap)는 onClose로 통합됨.
+  // 이 한 곳에서 보류된 invalidate를 트리거.
+  const handleDialogClose = () => {
+    alertDialog.hide();
+    if (pendingInvalidateRef.current) {
+      pendingInvalidateRef.current = false;
+      queryClient.invalidateQueries({ queryKey: memberQueryKeys.me() });
+    }
+  };
 
   const handlePress = async () => {
     logEvent(AnalyticsEvents.LINK_APPLE_START);
@@ -31,6 +49,7 @@ export function LinkAppleButton() {
       onSuccess: (result) => {
         if (result.checkResult.exists) {
           logEvent(AnalyticsEvents.LINK_APPLE_FAIL, { reason: 'conflict' });
+          // conflict는 provider가 변경되지 않으므로 invalidate 불필요
           alertDialog.show({
             title: t('account.linkAppleConflict'),
             message: t('account.linkAppleConflictMessage'),
@@ -49,6 +68,8 @@ export function LinkAppleButton() {
           {
             onSuccess: () => {
               logEvent(AnalyticsEvents.LINK_APPLE_SUCCESS);
+              // 사용자가 안내를 본 뒤 dialog를 닫을 때 member 캐시 invalidate
+              pendingInvalidateRef.current = true;
               alertDialog.show({
                 title: t('account.linkAppleSuccess'),
                 message: t('account.linkAppleSuccessMessage'),
@@ -102,7 +123,7 @@ export function LinkAppleButton() {
         title={alertDialog.config.title}
         message={alertDialog.config.message}
         buttons={alertDialog.config.buttons}
-        onClose={alertDialog.hide}
+        onClose={handleDialogClose}
       />
     </>
   );
