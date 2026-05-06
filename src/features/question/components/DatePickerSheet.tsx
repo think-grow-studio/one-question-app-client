@@ -22,7 +22,7 @@ import type { DailyQuestionDomain } from '../domain/questionDomain';
 
 const WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
 const MAX_WEEKS = 6;
-const DISMISS_THRESHOLD = 100;
+const DISMISS_RATIO = 0.3;
 
 export const DatePickerSheet = memo(function DatePickerSheet() {
   const theme = useTheme();
@@ -182,7 +182,7 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
         translateY.value = newValue;
       },
       onPanResponderRelease: (_, gestureState) => {
-        if (gestureState.dy > DISMISS_THRESHOLD || gestureState.vy > 0.5) {
+        if (gestureState.dy > SHEET_HEIGHT * DISMISS_RATIO || gestureState.vy > 0.5) {
           closeSheet();
         } else {
           translateY.value = withTiming(0, { duration: 200 });
@@ -524,9 +524,9 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
         <Animated.View style={[styles.backdropOverlay, backdropStyle]} />
       </Pressable>
 
-      <Animated.View style={[styles.sheetContainer, responsiveStyles.sheetContainer, sheetStyle, themedStyles.sheet]}>
-        {/* Handle - Draggable area */}
-        <View {...panResponder.panHandlers} style={styles.handleContainer}>
+      <Animated.View {...panResponder.panHandlers} style={[styles.sheetContainer, responsiveStyles.sheetContainer, sheetStyle, themedStyles.sheet]}>
+        {/* Handle */}
+        <View style={styles.handleContainer}>
           <View style={[styles.handle, themedStyles.handle]} />
         </View>
 

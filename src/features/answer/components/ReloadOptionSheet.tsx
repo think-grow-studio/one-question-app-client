@@ -23,7 +23,7 @@ import {
 import type { QuestionCandidateDomain } from '@/features/question/domain/questionDomain';
 import { AlertDialog, useAlertDialog } from '@/shared/ui/AlertDialog';
 
-const DISMISS_THRESHOLD = 100;
+const DISMISS_RATIO = 0.3;
 
 type ReloadOptionSheetProps = {
   visible: boolean;
@@ -150,7 +150,7 @@ export function ReloadOptionSheet({
           translateY.value = withTiming(0, { duration: 200 });
           return;
         }
-        if (gestureState.dy > DISMISS_THRESHOLD || gestureState.vy > 0.5) {
+        if (gestureState.dy > SHEET_HEIGHT * DISMISS_RATIO || gestureState.vy > 0.5) {
           closeSheet();
         } else {
           translateY.value = withTiming(0, { duration: 200 });
@@ -400,7 +400,7 @@ export function ReloadOptionSheet({
           )}
 
           {/* 하단 고정 섹션 — 후보 수와 관계없이 위치 고정 */}
-          <View style={styles.bottomFixedSection}>
+          <View {...panResponder.panHandlers} style={styles.bottomFixedSection}>
             {hasCandidates && (
               <View style={[styles.divider, { backgroundColor: theme.borderColor?.val }]} />
             )}
