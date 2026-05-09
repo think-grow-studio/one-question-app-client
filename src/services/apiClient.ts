@@ -4,7 +4,6 @@ import { config } from '@/constants/config';
 import { LANGUAGE_LOCALE_MAP } from '@/shared/stores/useLanguageStore';
 import { storage } from './storage';
 import i18n from '@/locales';
-import { useApiErrorStore } from '@/shared/stores/useApiErrorStore';
 import { useAuthStore } from '@/shared/stores/useAuthStore';
 import { ApiErrorResponse, AuthResponse } from '@/shared/types/api';
 import { tokenRefreshService } from './tokenRefreshService';
@@ -109,15 +108,7 @@ apiClient.interceptors.response.use(
         ? i18n.t('common:error.server')
         : i18n.t('common:error.unknown'));
 
-    // 401 에러는 팝업 표시하지 않음 (로그인 필요 상태에서 불필요한 팝업 방지)
-    // 다른 에러(400, 500 등)는 기존대로 팝업 표시
-    if (error.response?.status !== 401) {
-      useApiErrorStore.getState().showError(
-        errorMessage,
-        error.response?.data?.traceId // 🆕 traceId 전달
-      );
-    }
-
+    // 표시는 queryClient의 QueryCache/MutationCache.onError가 담당
     // 에러 정규화 후 reject
     const normalizedError: ApiErrorResponse = {
       traceId: error.response?.data?.traceId || '',

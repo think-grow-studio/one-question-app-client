@@ -954,31 +954,238 @@ export class ErrorBoundary extends React.Component<
 
 ### 15.2 API Error Handling
 
-**services/interceptors.ts:**
+**핵심 원칙: 정규화는 인프라가, 표시는 cache-level(default) 또는 컴포넌트(액션 필요 시)에서, 도메인 후속 처리는 mutation hook에서.**
+
+| 계층 | 책임 |
+|---|---|
+| Axios interceptor (`services/apiClient.ts`) | (1) 401 토큰 refresh, (2) 에러 정규화(`ApiErrorResponse`), (3) Crashlytics 보고. **사용자 표시(showError) 호출 금지.** |
+| `QueryCache.onError` / `MutationCache.onError` (`services/queryClient.ts`) | 모든 query/mutation 실패에 대한 **default 표시 처리**. silent 코드 화이트리스트(`SILENT_ERROR_CODES`)에 없으면 `useApiErrorStore.showError()` 호출. |
+| Mutation hook `onError` (선택) | 도메인 후속 처리 — 캐시 무효화, 호출자 callback(navigation/dialog) 트리거. **표시 호출 금지** (cache-level 또는 컴포넌트가 담당). |
+| `GlobalErrorHandler` (`shared/error/`) | `useApiErrorStore` 상태 1개를 보고 `<AlertDialog>` 1개 렌더. pathname 변화 시 자동 reset(stuck 방지). |
+| Component | mutation hook 사용 + callback 전달. silent 코드의 후속 액션이 필요하면 컴포넌트의 local `<AlertDialog>` 사용. **`queryClient` / query keys 직접 의존 금지.** |
+
+---
+
+**Dialog 표시 위치 결정 기준 (글로벌 vs 로컬)**
+
+같은 `<AlertDialog>` 컴포넌트(`shared/ui/AlertDialog/`)를 쓰지만, 어떤 store를 통해 띄우느냐가 다르다.
+
+| 카테고리 | 예시 | 표시 위치 |
+|---|---|---|
+| **단순 알림** (확인 = 닫기만) | 5xx, 네트워크, 일반 4xx | **글로벌** — `useApiErrorStore.showError()` |
+| **확인 후 도메인 액션 필요** (refetch, navigation 등) | QUESTION-004 (silent 처리되는 도메인 충돌 코드) | **로컬** — 컴포넌트 `useState<AlertConfig>` |
+
+판단 기준: dialog의 confirm 버튼 누른 뒤 **화면별로 다른 동작**이 필요하면 로컬, **단순 닫기만** 하면 글로벌. 글로벌 store에 callback을 담는 건 store 직렬화 깨짐 + 모델 복잡화로 over-engineering이라 회피.
+
+**왜 cache-level로 통합하나:**
+- TanStack Query v5에서 `useQuery`의 `onError` prop이 제거됨 → cache-level이 query의 공식 글로벌 에러 처리 위치
+- 17개 mutation에 동일 boilerplate 반복하지 않아도 default 동작 일관 적용 (DRY)
+- silent 코드 추가/수정이 1곳(`SILENT_ERROR_CODES` Set)으로 집중
+- mutation retry(5xx/네트워크) 중 dialog 중복 표시 자동 방지 — cache-level handler는 최종 실패에만 1회 호출
+
+**왜 interceptor에서 표시를 분리하나:**
+- 같은 에러여도 silent 처리가 필요한 도메인 코드(예: QUESTION-004)가 있으므로 인프라가 일률적으로 dialog를 띄우는 건 leaky abstraction
+- 인프라 계층이 UI store에 직접 결합되는 의존 방향 역전 회피
+
+---
+
+**ApiErrorResponse 타입** (`shared/types/api.ts`):
 ```typescript
-import { AxiosError } from 'axios'
-
-export function setupInterceptors(axiosInstance) {
-  axiosInstance.interceptors.response.use(
-    (response) => response,
-    async (error: AxiosError) => {
-      // Token refresh logic
-      if (error.response?.status === 401) {
-        // Handle token refresh
-      }
-
-      // Normalize error format
-      const normalizedError = {
-        message: error.response?.data?.message || 'Network error',
-        status: error.response?.status,
-        code: error.code,
-      }
-
-      return Promise.reject(normalizedError)
-    }
-  )
+export interface ApiErrorResponse {
+  traceId: string;
+  status: number;
+  code: string;       // 서버가 부여한 도메인 에러 코드 (예: "QUESTION-004")
+  message: string;
 }
 ```
+
+**Interceptor 패턴** (`services/apiClient.ts`):
+```typescript
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error: AxiosError<ApiErrorResponse>) => {
+    // 1. 401 → 토큰 refresh 후 재시도
+    if (error.response?.status === 401 && !isRefreshRequest) {
+      // ... token refresh logic
+    }
+
+    // 2. 에러 메시지 결정 (서버 message 우선, fallback i18n)
+    const errorMessage = error.response?.data?.message || /* fallback */;
+
+    // 3. 정규화 — 표시는 하지 않음
+    const normalizedError: ApiErrorResponse = {
+      traceId: error.response?.data?.traceId || '',
+      status: error.response?.status || 0,
+      code: error.response?.data?.code || 'UNKNOWN_ERROR',
+      message: errorMessage,
+    };
+
+    // 4. (Production) 5xx/네트워크만 Crashlytics 보고
+    if (!__DEV__ && (!error.response?.status || error.response.status >= 500)) {
+      recordError(/* ... */);
+    }
+
+    return Promise.reject(normalizedError);
+  }
+);
+```
+
+---
+
+**Cache-level handler 패턴** (`services/queryClient.ts`):
+```typescript
+import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query';
+import { useApiErrorStore } from '@/shared/stores/useApiErrorStore';
+import type { ApiErrorResponse } from '@/shared/types/api';
+
+// silent 처리 코드 — dialog 표시 생략. 호출자(mutation hook)에서 후속 처리 책임.
+const SILENT_ERROR_CODES = new Set<string>(['QUESTION-004']);
+
+const handleApiError = (error: unknown) => {
+  const apiError = error as ApiErrorResponse;
+  if (!apiError?.code) return;
+  if (SILENT_ERROR_CODES.has(apiError.code)) return;
+  useApiErrorStore.getState().showError(apiError.message, apiError.traceId);
+};
+
+export const queryClient = new QueryClient({
+  queryCache: new QueryCache({ onError: handleApiError }),
+  mutationCache: new MutationCache({ onError: handleApiError }),
+  defaultOptions: { /* retry, staleTime 등 */ },
+});
+```
+
+---
+
+**Mutation hook 패턴** — 도메인 후속 처리가 필요한 경우만 `onError` 추가:
+
+silent 코드의 후속 액션을 컴포넌트에 넘길 때는 **closure 형태로 캡슐화**하여 컴포넌트가 query keys / queryClient를 직접 알 필요 없게 한다.
+
+```typescript
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import type { ApiErrorResponse } from '@/shared/types/api';
+
+export function useCreateAnswer(options?: {
+  /**
+   * QUESTION-004(중복 답변) 발생 시 호출. 표시 책임은 호출자에게 위임.
+   * @param info.message - 서버가 내려준 에러 메시지 (dialog 본문에 사용)
+   * @param info.syncQueries - 사용자가 confirm 누른 뒤 호출할 캐시 동기화 closure
+   */
+  onDuplicateAnswer?: (info: { message: string; syncQueries: () => void }) => void;
+}) {
+  const queryClient = useQueryClient();
+
+  const invalidateDateQueries = (date: string) => {
+    queryClient.invalidateQueries({ queryKey: questionQueryKeys.daily(date) });
+    queryClient.invalidateQueries({
+      queryKey: questionQueryKeys.calendar(getCalendarBaseDate(date)),
+    });
+  };
+
+  return useMutation<unknown, ApiErrorResponse, CreateAnswerVars>({
+    mutationFn: ({ date, answer, publish }) =>
+      questionApi.createAnswer(date, { answer, publish }).then((res) => res.data),
+    onSuccess: (_, { date }) => invalidateDateQueries(date),
+    onError: (error, { date }) => {
+      // QUESTION-004는 cache.onError에서 silent 처리됨.
+      // 여기선 컴포넌트가 dialog를 띄울 수 있도록 message + 동기화 closure 전달.
+      if (error?.code === 'QUESTION-004') {
+        options?.onDuplicateAnswer?.({
+          message: error.message,
+          syncQueries: () => invalidateDateQueries(date),
+        });
+      }
+    },
+  });
+}
+```
+
+도메인 후속 처리가 없는 mutation은 `onError` 생략 가능 — cache-level handler가 default 표시를 담당.
+
+---
+
+**Component 패턴** — silent 코드 처리 시 local AlertDialog 사용:
+
+```typescript
+const createAnswer = useCreateAnswer({
+  onDuplicateAnswer: ({ message, syncQueries }) => {
+    // 사용자 confirm 시점에 캐시 동기화 + 시트 닫기
+    setAlertConfig({
+      visible: true,
+      title: t('common:error.title'),
+      message,
+      buttons: [{
+        label: t('common:buttons.confirm'),
+        variant: 'primary',
+        onPress: () => {
+          syncQueries();
+          router.back();
+        },
+      }],
+    });
+  },
+});
+
+try {
+  await createAnswer.mutateAsync(payload);
+  // 성공 처리
+} catch {
+  // QUESTION-004 → onDuplicateAnswer에서 dialog 표시
+  // 그 외 에러 → cache.onError에서 글로벌 dialog 표시
+}
+```
+
+컴포넌트는 `queryClient`, `questionQueryKeys`를 직접 의존하지 않는다 — `syncQueries` closure만 호출.
+
+---
+
+**GlobalErrorHandler 패턴** (`shared/error/GlobalErrorHandler.tsx`):
+```typescript
+export function GlobalErrorHandler() {
+  const { isVisible, message, traceId, hideError } = useApiErrorStore();
+  const pathname = usePathname();
+  const isFirstRenderRef = useRef(true);
+
+  // 사용자가 dialog 무시하고 router.back() 시 다음 화면 터치 먹통 stuck 방지.
+  // 초기 mount는 무시 (mount 시점 pathname 변화가 showError trigger와 race하지 않도록).
+  useEffect(() => {
+    if (isFirstRenderRef.current) {
+      isFirstRenderRef.current = false;
+      return;
+    }
+    if (isVisible) hideError();
+  }, [pathname]);
+
+  return <AlertDialog visible={isVisible} message={message} onClose={hideError} />;
+}
+```
+
+---
+
+**Do:**
+- ✅ Default 표시는 cache-level handler(`QueryCache.onError` / `MutationCache.onError`)가 담당
+- ✅ 도메인 후속 처리(캐시 무효화, navigation callback)가 필요한 mutation만 `onError` 추가
+- ✅ silent 코드는 `services/queryClient.ts`의 `SILENT_ERROR_CODES` Set 한 곳에 집중
+- ✅ silent 코드는 호출자(mutation hook + 그 위 컴포넌트)에서 반드시 후속 처리 책임 — refetch + callback 등
+- ✅ **단순 알림** dialog(확인=닫기만)는 `useApiErrorStore.showError()` 사용 — 같은 dialog를 화면별로 따로 만들지 않기
+- ✅ **확인 후 화면별 액션이 필요한** dialog(refetch / navigation 등)는 컴포넌트의 local `<AlertDialog>` + `useState` 사용 — 액션이 화면 컨텍스트에 묶이므로 글로벌 store에 callback 넣는 건 over-engineering
+- ✅ 컴포넌트는 mutation hook에 callback만 전달 — `queryClient`, query keys, `ApiErrorResponse` 직접 의존 X
+- ✅ `<AlertDialog>` UI 컴포넌트는 항상 `shared/ui/AlertDialog/` 재사용 (글로벌이든 로컬이든 같은 컴포넌트)
+
+**Do NOT:**
+- ❌ Interceptor 안에서 `useApiErrorStore.showError()` 호출
+- ❌ Mutation `onError`에서 `useApiErrorStore.showError()` 호출 (cache-level과 중복 표시)
+- ❌ 컴포넌트에서 `useQueryClient()` 직접 사용해 invalidate — mutation hook 안으로 캡슐화 (closure로 노출)
+- ❌ 같은 silent 코드를 여러 feature가 각자 Set으로 정의 — `SILENT_ERROR_CODES` 한 곳에 집중
+- ❌ 401 에러를 화면에서 직접 처리 (interceptor가 refresh로 흡수)
+- ❌ 단순 알림(닫기만 하는 dialog)을 화면별 local state로 만들기 — 글로벌 store 사용
+- ❌ 글로벌 `useApiErrorStore`에 onConfirm callback / 화면별 콜백 추가 — 직렬화 깨짐 + 모델 복잡화. 화면 액션이 필요하면 로컬 dialog로 분리
+
+---
+
+**Retry 정책과의 상호작용**:
+- `queryClient.ts`의 mutation retry(5xx/네트워크 1회)는 cache-level handler를 **최종 실패 시 1회만** 호출 → dialog 중복 없음
+- silent 코드(QUESTION-004 등)는 비즈니스 로직 에러라 retry 대상에서 제외 (`shouldRetry: (error) => error.status >= 500`)
 
 ---
 

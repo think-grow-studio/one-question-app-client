@@ -1,4 +1,19 @@
-import { QueryClient } from '@tanstack/react-query';
+import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query';
+import { useApiErrorStore } from '@/shared/stores/useApiErrorStore';
+import type { ApiErrorResponse } from '@/shared/types/api';
+
+/**
+ * 코드별 silent 처리 (dialog 표시 생략).
+ * 호출자에서 try/catch로 도메인 후속 처리 책임.
+ */
+const SILENT_ERROR_CODES = new Set<string>(['QUESTION-004']);
+
+const handleApiError = (error: unknown) => {
+  const apiError = error as ApiErrorResponse;
+  if (!apiError?.code) return;
+  if (SILENT_ERROR_CODES.has(apiError.code)) return;
+  useApiErrorStore.getState().showError(apiError.message, apiError.traceId);
+};
 
 /**
  * Exponential Backoff with Jitter
@@ -54,6 +69,8 @@ const shouldRetry = (failureCount: number, error: any) => {
 };
 
 export const queryClient = new QueryClient({
+  queryCache: new QueryCache({ onError: handleApiError }),
+  mutationCache: new MutationCache({ onError: handleApiError }),
   defaultOptions: {
     queries: {
       retry: shouldRetry,

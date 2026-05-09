@@ -58,7 +58,24 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
   const [isAnswerScrollable, setIsAnswerScrollable] = useState(false);
 
   // API Mutations
-  const createAnswerMutation = useCreateAnswer();
+  const createAnswerMutation = useCreateAnswer({
+    onDuplicateAnswer: ({ message, syncQueries }) => {
+      // 사용자가 dialog 확인 시점에 캐시 동기화 + 시트 닫기
+      setAlertConfig({
+        visible: true,
+        title: t('common:error.title'),
+        message,
+        buttons: [{
+          label: t('common:buttons.confirm'),
+          variant: 'primary',
+          onPress: () => {
+            syncQueries();
+            router.back();
+          },
+        }],
+      });
+    },
+  });
   const updateAnswerMutation = useUpdateAnswer();
 
   // 답변 초기값: 수정 모드면 기존 답변, 아니면 빈 문자열
@@ -169,7 +186,8 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
         }],
       });
     } catch {
-      // 에러는 전역 에러 핸들러에서 처리됨
+      // QUESTION-004 → useCreateAnswer의 onDuplicateAnswer 콜백에서 처리
+      // 그 외 에러 → cache.onError에서 dialog 표시 완료
     }
   }, 500);
 
