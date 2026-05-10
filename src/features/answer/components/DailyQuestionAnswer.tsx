@@ -255,7 +255,7 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
             <View style={cardStyles.card}>
               {/* Question Section */}
               <View style={styles.questionSection}>
-                <Text style={[cardStyles.labelText, { marginBottom: 8 }]}>{t('question:labels.question')}</Text>
+                <Text style={[cardStyles.labelText, { marginBottom: sp(8) }]}>{t('question:labels.question')}</Text>
                 <Text
                   style={cardStyles.questionText}
                   numberOfLines={2}
@@ -283,7 +283,7 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
 
               {/* Answer Section */}
               <View style={styles.answerSection}>
-                <Text style={[cardStyles.labelText, { marginBottom: 12 }]}>{t('question:labels.answer')}</Text>
+                <Text style={[cardStyles.labelText, { marginBottom: sp(12) }]}>{t('question:labels.answer')}</Text>
                 <View style={cardStyles.inputContainer}>
                   <ScrollView
                     style={[styles.answerScroll, { height: resolvedInputHeight }]}
@@ -350,7 +350,7 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
           </View>
         </ScrollView>
         {!isAdFreeMember && (
-          <View style={{ width: '100%', paddingHorizontal: 20 }}>
+          <View style={{ width: '100%', paddingHorizontal: sp(20) }}>
             <BannerAdSlot disableSafeAreaPadding />
           </View>
         )}
@@ -376,11 +376,11 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 20,
+    paddingBottom: sp(20),
   },
   cardContainer: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: sp(20),
   },
   questionSection: {},
   answerSection: {
@@ -393,12 +393,12 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   toggleContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
+    paddingHorizontal: sp(20),
+    paddingTop: sp(12),
   },
   submitContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 8,
+    paddingHorizontal: sp(20),
+    paddingTop: sp(12),
+    paddingBottom: sp(8),
   },
 });
