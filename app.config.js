@@ -43,7 +43,7 @@ const ENV = {
 // (eas.json의 appVersionSource: "remote" + autoIncrement: true)
 // 매 빌드마다 자동으로 +1 되므로 아래 androidVersion / iosVersion 값은 무시됨. 수동 수정 불필요.
 const APP_VERSIONS = {
-    version: '1.0.4',
+    version: '1.0.5',
     androidVersion: 1,
     iosVersion: '1',
 };
