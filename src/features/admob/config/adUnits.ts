@@ -1,9 +1,12 @@
 import { Platform } from 'react-native';
 
-import { config } from '@/constants/config';
+// @env는 react-native-dotenv Babel 플러그인이 번들링 시점에 직접 .env 파일을 읽어 인라인함
+// (process.env / Constants.expoConfig 타이밍 이슈 없음)
+// eslint-disable-next-line import/no-unresolved
+import { APP_ENV } from '@env';
 
 const isMobile = Platform.OS === 'ios' || Platform.OS === 'android';
-const isProduction = config.environment === 'production';
+const isProduction = APP_ENV === 'production';
 export const isAdMobProduction = isProduction;
 
 // v16에서 TestIds가 빈 문자열로 변경되어 Google 공식 테스트 Ad Unit ID를 직접 사용.

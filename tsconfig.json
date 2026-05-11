@@ -13,5 +13,5 @@
       "@/assets/*": ["./src/assets/*"]
     }
   },
-  "include": ["src/**/*", "index.ts", "tamagui.config.ts"]
+  "include": ["src/**/*", "index.ts", "tamagui.config.ts", "env.d.ts"]
 }

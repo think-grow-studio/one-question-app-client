@@ -93,10 +93,6 @@ export default {
       predictiveBackGestureEnabled: false,
       googleServicesFile: ENV.googleServicesFile,
     },
-    web: {
-      favicon: './assets/favicon.png',
-      bundler: 'metro',
-    },
     plugins: [
       'expo-router',
       'expo-localization',
