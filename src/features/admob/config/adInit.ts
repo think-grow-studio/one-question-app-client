@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 import mobileAds from 'react-native-google-mobile-ads';
 import { requestTrackingPermissionsAsync } from 'expo-tracking-transparency';
-import { isAdMobSupportedPlatform } from './adUnits';
+import { isAdMobSupportedPlatform, isAdMobProduction } from './adUnits';
 
 /**
  * iOS에서만 ATT(App Tracking Transparency) 권한 요청.
@@ -32,11 +32,13 @@ export const admobInitPromise: Promise<boolean> = isAdMobSupportedPlatform
         await requestATTIfNeeded();
 
         await mobileAds().setRequestConfiguration({
-          testDeviceIdentifiers: [
-            'EMULATOR',
-            '1AA71683D3B0DD450FF6F68CE236AC37', // debug build
-            '4D58ED45A1C6473D6C2D47DFCE3327F1', // preview/release build
-          ],
+          testDeviceIdentifiers: isAdMobProduction
+            ? ['EMULATOR']
+            : [
+                'EMULATOR',
+                '1AA71683D3B0DD450FF6F68CE236AC37', // debug build
+                '4D58ED45A1C6473D6C2D47DFCE3327F1', // preview build
+              ],
         });
         await mobileAds().initialize();
         return true;

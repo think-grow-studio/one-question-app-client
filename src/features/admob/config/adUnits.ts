@@ -4,6 +4,7 @@ import { config } from '@/constants/config';
 
 const isMobile = Platform.OS === 'ios' || Platform.OS === 'android';
 const isProduction = config.environment === 'production';
+export const isAdMobProduction = isProduction;
 
 // v16에서 TestIds가 빈 문자열로 변경되어 Google 공식 테스트 Ad Unit ID를 직접 사용.
 // 플랫폼별로 다른 ID를 사용해야 함 (잘못된 platform의 ID 사용 시 publisher 불일치로
