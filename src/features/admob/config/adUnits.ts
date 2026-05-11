@@ -1,12 +1,9 @@
 import { Platform } from 'react-native';
 
-// @env는 react-native-dotenv Babel 플러그인이 번들링 시점에 직접 .env 파일을 읽어 인라인함
-// (process.env / Constants.expoConfig 타이밍 이슈 없음)
-// eslint-disable-next-line import/no-unresolved
-import { APP_ENV } from '@env';
-
+// EXPO_PUBLIC_* 변수는 Expo Metro가 번들링 시점에 코드에 직접 인라인 (Expo 공식 권장)
+// → Babel 플러그인 의존성 없음, 런타임 타이밍 이슈 없음
 const isMobile = Platform.OS === 'ios' || Platform.OS === 'android';
-const isProduction = APP_ENV === 'production';
+const isProduction = process.env.EXPO_PUBLIC_APP_ENV === 'production';
 export const isAdMobProduction = isProduction;
 
 // v16에서 TestIds가 빈 문자열로 변경되어 Google 공식 테스트 Ad Unit ID를 직접 사용.
