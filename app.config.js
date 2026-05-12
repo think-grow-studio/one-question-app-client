@@ -1,16 +1,28 @@
-const path = require('path');
-const envFile = process.env.APP_ENV === 'production' ? '.env.production' : '.env';
-require('dotenv').config({ path: path.resolve(__dirname, envFile), override: true });
+// app.config.js는 env에 의존하지 않는다 — 평가 시점/타이밍 quirk와 분리.
+// Ad Unit ID 등 런타임 값은 .env(.production)를 통해 Metro가 EXPO_PUBLIC_*로 inline.
 
-const isPreview = process.env.APP_ENV === 'preview';
-const isProduction = process.env.APP_ENV === 'production';
+const appEnv = process.env.APP_ENV === 'production' ? 'production' : 'preview';
+const isPreview = appEnv === 'preview';
+const isProduction = appEnv === 'production';
 
-// Google 공식 테스트 App ID (production 외 환경에서 사용)
-// adUnits.ts의 TEST_IDS(테스트 Ad Unit ID)와 동일 publisher(Google)이어야
-// "Publisher data not found / no-fill" 에러를 방지할 수 있음.
+// AdMob App ID는 코드에 박는다 (publisher ID는 빌드 산출물에 평문으로 노출되므로
+// 비밀이 아님). production은 실제 App ID, 그 외 환경은 Google 공식 테스트 App ID.
+// 테스트 App ID는 adUnits.ts의 TEST_IDS와 publisher(Google)를 일치시켜 no-fill 방지.
+const PRODUCTION_ADMOB_APP_IDS = {
+  android: 'ca-app-pub-3306112973611341~9359454301',
+  ios: 'ca-app-pub-3306112973611341~2078867684',
+};
 const TEST_ADMOB_APP_IDS = {
   android: 'ca-app-pub-3940256099942544~3347511713',
   ios: 'ca-app-pub-3940256099942544~1458002511',
+};
+const ADMOB_APP_IDS = isProduction ? PRODUCTION_ADMOB_APP_IDS : TEST_ADMOB_APP_IDS;
+
+// Google OAuth Client IDs — 환경별로 다르지 않고, publicly visible identifier라 비밀 아님.
+// (실제 비밀은 client_secret이며 클라이언트에 둘 일 없음. 백엔드만 사용.)
+const GOOGLE_CLIENT_IDS = {
+  web: '414345295903-18bi0jgjfskfdleb8h85o9t1oms71pgh.apps.googleusercontent.com',
+  ios: '414345295903-m4duf6ondgto532r6davv25qirummlj2.apps.googleusercontent.com',
 };
 
 const LOCALIZED_NAMES = {
@@ -35,7 +47,16 @@ const ENV = {
     googleServicesFile: './google-services.json',
     iosGoogleServicesFile: './GoogleService-Info.plist',
   },
-}[process.env.APP_ENV ?? 'production'];
+}[appEnv];
+
+// Build-time diagnostic — emitted to stderr on every config evaluation.
+// Shows up in `eas build --local` prebuild logs and `expo export` runs.
+process.stderr.write(
+  `[app.config.js] appEnv=${appEnv} ` +
+    `iosBundleId=${ENV.iosBundleId} ` +
+    `nodeEnv=${process.env.NODE_ENV || '(unset)'} ` +
+    `iosBanner=${process.env.EXPO_PUBLIC_ADMOB_IOS_BANNER_ID || '(unset)'}\n`,
+);
 
 // 플랫폼별 버전 관리
 
@@ -150,24 +171,16 @@ export default {
       [
         './plugins/with-google-mobile-ads',
         {
-          // production만 실제 App ID 사용 — 그 외 환경은 테스트 App ID로 강제하여
-          // adUnits.ts의 TEST_IDS와 publisher를 일치시킴 (no-fill 에러 방지).
-          androidAppId: isProduction
-            ? (process.env.EXPO_PUBLIC_ADMOB_ANDROID_APP_ID || TEST_ADMOB_APP_IDS.android)
-            : TEST_ADMOB_APP_IDS.android,
-          iosAppId: isProduction
-            ? (process.env.EXPO_PUBLIC_ADMOB_IOS_APP_ID || TEST_ADMOB_APP_IDS.ios)
-            : TEST_ADMOB_APP_IDS.ios,
+          androidAppId: ADMOB_APP_IDS.android,
+          iosAppId: ADMOB_APP_IDS.ios,
         },
       ],
     ],
     extra: {
       apiUrl: process.env.API_URL || 'https://dev.one-question.org',
-      environment: process.env.APP_ENV ?? 'production',
-      // Google OAuth Client IDs
-      googleClientIdWeb: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB,
-      googleClientIdIos: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS,
-      googleClientIdAndroid: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_ANDROID,
+      environment: appEnv,
+      googleClientIdWeb: GOOGLE_CLIENT_IDS.web,
+      googleClientIdIos: GOOGLE_CLIENT_IDS.ios,
       eas: {
         projectId: 'd2581480-0979-4cc5-9dac-01c48af69bf2',
       },

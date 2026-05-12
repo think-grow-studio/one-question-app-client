@@ -40,13 +40,7 @@ const platformEnv =
         interstitialReload: process.env.EXPO_PUBLIC_ADMOB_ANDROID_INTERSTITIAL_RELOAD_ID,
       };
 
-const envIds = {
-  banner: process.env.EXPO_PUBLIC_ADMOB_BANNER_ID || platformEnv.banner,
-  rewarded: process.env.EXPO_PUBLIC_ADMOB_REWARDED_ID || platformEnv.rewarded,
-  interstitialSwipe: platformEnv.interstitialSwipe,
-  interstitialPastQuestion: platformEnv.interstitialPastQuestion,
-  interstitialReload: platformEnv.interstitialReload,
-};
+const envIds = platformEnv;
 
 // production에서만 실제 Ad Unit ID 사용, 그 외(preview/development)에서는 테스트 ID 사용
 export const admobUnitIds = {

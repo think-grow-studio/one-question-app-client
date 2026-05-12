@@ -5,6 +5,7 @@
   },
   "build": {
     "development": {
+      "environment": "development",
       "developmentClient": true,
       "distribution": "internal",
       "channel": "development",
@@ -12,10 +13,13 @@
         "image": "latest"
       },
       "env": {
-        "API_URL": "https://dev.one-question.org"
+        "API_URL": "https://dev.one-question.org",
+        "APP_ENV": "preview",
+        "EXPO_PUBLIC_APP_ENV": "preview"
       }
     },
     "preview": {
+      "environment": "preview",
       "distribution": "internal",
       "channel": "preview",
       "ios": {
@@ -24,13 +28,11 @@
       "env": {
         "API_URL": "https://dev.one-question.org",
         "APP_ENV": "preview",
-        "NODE_ENV": "production",
-        "EXPO_PUBLIC_APP_ENV": "preview",
-        "EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB": "414345295903-18bi0jgjfskfdleb8h85o9t1oms71pgh.apps.googleusercontent.com",
-        "EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS": "414345295903-m4duf6ondgto532r6davv25qirummlj2.apps.googleusercontent.com"
+        "EXPO_PUBLIC_APP_ENV": "preview"
       }
     },
     "production": {
+      "environment": "production",
       "autoIncrement": true,
       "channel": "production",
       "ios": {
@@ -39,22 +41,7 @@
       "env": {
         "API_URL": "https://one-question.org",
         "APP_ENV": "production",
-        "NODE_ENV": "production",
-        "EXPO_PUBLIC_APP_ENV": "production",
-        "EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB": "414345295903-18bi0jgjfskfdleb8h85o9t1oms71pgh.apps.googleusercontent.com",
-        "EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS": "414345295903-m4duf6ondgto532r6davv25qirummlj2.apps.googleusercontent.com",
-        "EXPO_PUBLIC_ADMOB_ANDROID_APP_ID": "ca-app-pub-3306112973611341~9359454301",
-        "EXPO_PUBLIC_ADMOB_ANDROID_REWARDED_ID": "ca-app-pub-3306112973611341/9855404054",
-        "EXPO_PUBLIC_ADMOB_ANDROID_BANNER_ID": "ca-app-pub-3306112973611341/4523621097",
-        "EXPO_PUBLIC_ADMOB_ANDROID_INTERSTITIAL_SWIPE_ID": "ca-app-pub-3306112973611341/1976512052",
-        "EXPO_PUBLIC_ADMOB_ANDROID_INTERSTITIAL_PAST_QUESTION_ID": "ca-app-pub-3306112973611341/3929998183",
-        "EXPO_PUBLIC_ADMOB_ANDROID_INTERSTITIAL_RELOAD_ID": "ca-app-pub-3306112973611341/6549362010",
-        "EXPO_PUBLIC_ADMOB_ANDROID_NATIVE_ID": "ca-app-pub-3306112973611341/3022146205",
-        "EXPO_PUBLIC_ADMOB_IOS_APP_ID": "ca-app-pub-3306112973611341~2078867684",
-        "EXPO_PUBLIC_ADMOB_IOS_REWARDED_ID": "ca-app-pub-3306112973611341/6142740356",
-        "EXPO_PUBLIC_ADMOB_IOS_BANNER_ID": "ca-app-pub-3306112973611341/8392519237",
-        "EXPO_PUBLIC_ADMOB_IOS_INTERSTITIAL_SWIPE_ID": "ca-app-pub-3306112973611341/6114820193",
-        "EXPO_PUBLIC_ADMOB_IOS_NATIVE_ID": "ca-app-pub-3306112973611341/4610166830"
+        "EXPO_PUBLIC_APP_ENV": "production"
       }
     }
   },
