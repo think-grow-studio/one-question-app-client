@@ -5,6 +5,14 @@ const appEnv = process.env.APP_ENV === 'production' ? 'production' : 'preview';
 const isPreview = appEnv === 'preview';
 const isProduction = appEnv === 'production';
 
+// API URL은 appEnv로만 결정. process.env.API_URL fallback은 절대 사용 금지.
+// 이유: app.config.js는 .env 파일 로드 전에 평가되는 시점이 있어
+// process.env.API_URL이 unset이면 fallback이 production OTA 번들에 박히는 사고가 발생함.
+const API_URLS = {
+  production: 'https://one-question.org',
+  preview: 'https://dev.one-question.org',
+};
+
 // AdMob App ID는 코드에 박는다 (publisher ID는 빌드 산출물에 평문으로 노출되므로
 // 비밀이 아님). production은 실제 App ID, 그 외 환경은 Google 공식 테스트 App ID.
 // 테스트 App ID는 adUnits.ts의 TEST_IDS와 publisher(Google)를 일치시켜 no-fill 방지.
@@ -177,7 +185,7 @@ export default {
       ],
     ],
     extra: {
-      apiUrl: process.env.API_URL || 'https://dev.one-question.org',
+      apiUrl: API_URLS[appEnv],
       environment: appEnv,
       googleClientIdWeb: GOOGLE_CLIENT_IDS.web,
       googleClientIdIos: GOOGLE_CLIENT_IDS.ios,

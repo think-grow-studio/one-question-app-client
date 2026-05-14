@@ -224,11 +224,16 @@ Xcode 빌드 + Metro 번들링
 npm run update-ios-production
   │
   ▼
-한 줄로 export + upload 체이닝:
-"NODE_ENV=production npx expo export ... && eas update --skip-bundler --input-dir dist/ios-production ..."
+"export APP_ENV=production NODE_ENV=production && \
+   npx expo export ... && \
+   eas update --skip-bundler --input-dir dist/ios-production --environment production ..."
   │
-  ├─► 1단계: NODE_ENV=production npx expo export
-  │     │  @expo/env가 .env.production 자동 로드
+  ├─► 사전: `export VAR=...`로 셸에 등록 → 이후 모든 `&&` 체인 명령에 전파
+  │   (⚠️ `VAR=value cmd1 && cmd2` 형태는 cmd1에만 적용됨 — 2026-05-14 사고 원인)
+  │
+  ├─► 1단계: npx expo export
+  │     │  @expo/env가 .env.production 자동 로드 (NODE_ENV=production 덕분)
+  │     │  app.config.js 평가: appEnv='production' (APP_ENV=production)
   │     │
   │     └─► 레이어 B만 수행 (네이티브 안 건드림)
   │           Metro가 EXPO_PUBLIC_* inline
@@ -236,13 +241,18 @@ npm run update-ios-production
   │
   └─► 2단계: eas update --skip-bundler --input-dir dist/ios-production
         이미 만들어진 번들을 그대로 EAS에 업로드
-        → 재번들링 안 함, env quirk 끼어들 여지 0
+        하지만 manifest 생성을 위해 app.config.js를 **다시 평가**한다
+        → APP_ENV이 셸에 등록되어 있어야 manifest에도 production extra가 박힘
 
 결과: 사용자 단말에 다운로드 시
-  - 기존 native (레이어 A, 빌드 시점 박힌 값) + 새 JS bundle (레이어 B, OTA 교체)
+  - 기존 native (레이어 A, 빌드 시점 박힌 값)
+  - 새 JS bundle (레이어 B, OTA 교체)
+  - 새 manifest (Constants.expoConfig.extra.*의 출처)
 ```
 
-> **핵심**: `--skip-bundler --input-dir` 패턴이 `eas update`의 자체 번들링을 차단. `docs/ADMOB_ENV_DEBUG.md`가 추적했던 OTA env 누수 버그를 영구히 막는다.
+> **핵심 1**: `--skip-bundler --input-dir`가 `eas update`의 자체 번들링은 차단하지만, **manifest 생성은 차단하지 않는다**. manifest 생성 시 `app.config.js`가 재평가되므로, env가 그 시점에도 set돼 있어야 한다.
+>
+> **핵심 2**: `Constants.expoConfig.extra.*`는 **bundle string이 아니라 manifest에서 읽는다**. 둘 중 어느 하나만 오염돼도 런타임 영향. 자세한 사례: `docs/POSTMORTEM_2026-05-14_PROD_OTA_DEV_URL.md`.
 
 ---
 

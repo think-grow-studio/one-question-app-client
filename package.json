@@ -16,8 +16,8 @@
     "build-ios-preview": "rm -rf ios && eas build --platform ios --profile preview --local --clear-cache",
     "build-ios-production-local": "rm -rf ios && NODE_ENV=production eas build --platform ios --profile production --local --clear-cache",
     "build-ios-production-cloud-submit": "rm -rf ios && NODE_ENV=production eas build --platform ios --profile production --auto-submit --clear-cache",
-    "update-ios-production": "NODE_ENV=production npx expo export --platform ios --output-dir dist/ios-production --clear && eas update --branch production --platform ios --environment production --input-dir dist/ios-production --skip-bundler --message",
-    "update-android-production": "NODE_ENV=production npx expo export --platform android --output-dir dist/android-production --clear && eas update --branch production --platform android --environment production --input-dir dist/android-production --skip-bundler --message",
+    "update-ios-production": "export APP_ENV=production NODE_ENV=production && npx expo export --platform ios --output-dir dist/ios-production --clear && eas update --branch production --platform ios --environment production --input-dir dist/ios-production --skip-bundler --message",
+    "update-android-production": "export APP_ENV=production NODE_ENV=production && npx expo export --platform android --output-dir dist/android-production --clear && eas update --branch production --platform android --environment production --input-dir dist/android-production --skip-bundler --message",
     "postinstall": "patch-package",
     "test": "jest",
     "test:watch": "jest --watch"
