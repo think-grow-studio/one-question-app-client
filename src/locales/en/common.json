@@ -58,7 +58,7 @@
   "versionCheck": {
     "forceUpdate": {
       "title": "Update Required",
-      "message": "Version {{version}} is required. Please update to continue."
+      "message": "An update is required! Please update to continue!"
     },
     "optionalUpdate": {
       "title": "Update Available",
