@@ -62,7 +62,7 @@
     },
     "optionalUpdate": {
       "title": "Update Available",
-      "message": "Version {{version}} is now available. Update for new features!"
+      "message": "There are updates available! Please update the app!"
     },
     "serverDown": {
       "title": "Server Maintenance",
