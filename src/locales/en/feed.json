@@ -1,10 +1,16 @@
 {
-  "title": "Everyone's Thoughts",
-  "headerLabel": "EVERYONE'S THOUGHTS",
+  "title": "Everyone's Questions",
+  "headerLabel": "EVERYONE'S QUESTIONS",
   "headerDesc": "Same question, different perspectives",
-  "empty": "No public thoughts yet",
-  "emptyDesc": "Be the first to share your thoughts",
+  "empty": "No public answers yet",
+  "emptyDesc": "Be the first to share your answer",
   "loading": "Loading...",
+  "todayQuestionLabel": "Today's Question",
+  "pastQuestionLabel": "Past Question",
+  "weekdays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+  "answersTitle": "Other answers",
+  "answersCount_one": "{{count}} answer",
+  "answersCount_other": "{{count}} answers",
   "detail": {
     "questionLabel": "Question",
     "answerLabel": "Answer",
@@ -15,7 +21,7 @@
     "likeCount_other": "{{count}} likes"
   },
   "publicToggle": {
-    "label": "Share to Everyone's Thoughts",
+    "label": "Share to Everyone's Questions",
     "helper": "When shared, others can see your answer with an anonymous nickname",
     "publicStatus": "Public",
     "privateStatus": "Private"

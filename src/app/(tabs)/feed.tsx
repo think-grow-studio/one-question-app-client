@@ -2,21 +2,40 @@ import { useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 import { YStack, useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
+import { useRouter } from 'expo-router';
 import { Screen } from '@/shared/layout/Screen';
 import { Text } from '@/shared/ui/Text';
-import { FeedList } from '@/features/feed/components/FeedList';
+import { CommonQuestionFeed } from '@/features/feed/components/CommonQuestionFeed';
+import { FloatingActionButton } from '@/shared/ui/FloatingActionButton';
+import { PlusIcon } from '@/shared/icons/PlusIcon';
+import { MOCK_COMMON_QUESTION } from '@/features/feed/api/__mocks__/commonQuestionMock';
+import { formatLocalDate } from '@/shared/utils/date';
 import { getFontStyle } from '@/shared/theme/typography';
 import { useAccentColors } from '@/shared/theme';
+import { cs } from '@/shared/utils/responsive';
 import { logScreenView } from '@/services/firebase';
 
 export default function FeedScreen() {
   const { t } = useTranslation('feed');
   const theme = useTheme();
   const accent = useAccentColors();
+  const router = useRouter();
 
   useEffect(() => {
     logScreenView('Feed');
   }, []);
+
+  const handleWriteAnswer = () => {
+    router.push({
+      pathname: '/answer',
+      params: {
+        source: 'feed',
+        date: formatLocalDate(),
+        question: MOCK_COMMON_QUESTION.content,
+        description: MOCK_COMMON_QUESTION.description ?? '',
+      },
+    });
+  };
 
   return (
     <Screen edges={['top']} bgColor={theme.backgroundSoft?.val}>
@@ -38,9 +57,14 @@ export default function FeedScreen() {
           </Text>
         </YStack>
 
-        {/* Feed List */}
-        <FeedList />
+        {/* Common Question + Answers */}
+        <CommonQuestionFeed />
       </YStack>
+
+      {/* Floating Write Button */}
+      <FloatingActionButton onPress={handleWriteAnswer} aboveTabBar>
+        <PlusIcon size={cs(26)} color="#ffffff" strokeWidth={2.4} />
+      </FloatingActionButton>
     </Screen>
   );
 }

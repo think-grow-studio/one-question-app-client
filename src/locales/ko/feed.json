@@ -1,10 +1,16 @@
 {
-  "title": "모두의 생각",
-  "headerLabel": "EVERYONE'S THOUGHTS",
+  "title": "모두의 질문",
+  "headerLabel": "EVERYONE'S QUESTIONS",
   "headerDesc": "같은 질문, 다른 생각들을 만나보세요",
-  "empty": "아직 공개된 생각이 없어요",
-  "emptyDesc": "첫 번째로 생각을 공유해보세요",
+  "empty": "아직 공개된 답변이 없어요",
+  "emptyDesc": "첫 번째로 답변을 공유해보세요",
   "loading": "불러오는 중...",
+  "todayQuestionLabel": "오늘의 질문",
+  "pastQuestionLabel": "지난 질문",
+  "weekdays": ["일", "월", "화", "수", "목", "금", "토"],
+  "answersTitle": "다른 사람들의 답변",
+  "answersCount_one": "답변 {{count}}개",
+  "answersCount_other": "답변 {{count}}개",
   "detail": {
     "questionLabel": "질문",
     "answerLabel": "답변",
@@ -15,7 +21,7 @@
     "likeCount_other": "{{count}}명이 공감"
   },
   "publicToggle": {
-    "label": "모두의 생각에 공개",
+    "label": "모두의 질문에 공개",
     "helper": "공개하면 익명 닉네임으로 다른 사람들이 볼 수 있어요",
     "publicStatus": "공개 중",
     "privateStatus": "비공개"
