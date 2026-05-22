@@ -9,6 +9,7 @@ import { useAccentColors } from '@/shared/theme';
 import { getFontStyle } from '@/shared/theme/typography';
 import { fs, sp, cs } from '@/shared/utils/responsive';
 import { AnswerCard } from './AnswerCard';
+import { MyAnswerCard } from './MyAnswerCard';
 import { MOCK_COMMON_QUESTION, MOCK_COMMON_ANSWERS } from '../api/__mocks__/commonQuestionMock';
 import type { FeedItemDomain } from '../types/api';
 
@@ -16,6 +17,8 @@ interface CommonQuestionFeedProps {
   /** Optional: pass real data later. Falls back to mock data when omitted. */
   question?: { content: string; description?: string | null };
   answers?: FeedItemDomain[];
+  /** Called when user taps their own answer card (for edit / detail view). */
+  onMyAnswerPress?: () => void;
 }
 
 const EN_MONTHS = [
@@ -51,13 +54,17 @@ function formatQuestionDate(date: Date, lang: string, weekdays: string[]): strin
   return `${EN_MONTHS[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()} (${wd})`;
 }
 
-export function CommonQuestionFeed({ question, answers }: CommonQuestionFeedProps) {
+export function CommonQuestionFeed({ question, answers, onMyAnswerPress }: CommonQuestionFeedProps) {
   const { t, i18n } = useTranslation('feed');
   const theme = useTheme();
   const accent = useAccentColors();
 
   const q = question ?? MOCK_COMMON_QUESTION;
-  const data = answers ?? MOCK_COMMON_ANSWERS;
+  const rawData = answers ?? MOCK_COMMON_ANSWERS;
+
+  // Separate user's own answer from the rest of the feed.
+  const myAnswer = useMemo(() => rawData.find((a) => a.mine), [rawData]);
+  const data = useMemo(() => rawData.filter((a) => !a.mine), [rawData]);
 
   const today = useMemo(() => startOfDay(new Date()), []);
   const [selectedDate, setSelectedDate] = useState<Date>(today);
@@ -134,13 +141,15 @@ export function CommonQuestionFeed({ question, answers }: CommonQuestionFeedProp
     </View>
   );
 
+  const isEmpty = data.length === 0 && !myAnswer;
+
   return (
     <YStack flex={1}>
       {/* Fixed question card */}
       {questionCard}
 
-      {/* Scrollable answers */}
-      {data.length === 0 ? (
+      {/* Scrollable area: my answer (header) + public answers */}
+      {isEmpty ? (
         <YStack flex={1} justifyContent="center" alignItems="center" gap={sp(8)} px={sp(16)}>
           <Text variant="body" muted center>
             {t('empty')}
@@ -157,6 +166,9 @@ export function CommonQuestionFeed({ question, answers }: CommonQuestionFeedProp
             keyExtractor={(item) => String(item.answerPostId)}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
+            ListHeaderComponent={
+              myAnswer ? <MyAnswerCard item={myAnswer} onPress={onMyAnswerPress} /> : null
+            }
           />
         </View>
       )}

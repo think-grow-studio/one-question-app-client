@@ -1,7 +1,5 @@
 {
-  "title": "모두의 질문",
-  "headerLabel": "EVERYONE'S QUESTIONS",
-  "headerDesc": "같은 질문, 다른 생각들을 만나보세요",
+  "infoButtonA11y": "안내 보기",
   "empty": "아직 공개된 답변이 없어요",
   "emptyDesc": "첫 번째로 답변을 공유해보세요",
   "loading": "불러오는 중...",
@@ -9,6 +7,8 @@
   "pastQuestionLabel": "지난 질문",
   "weekdays": ["일", "월", "화", "수", "목", "금", "토"],
   "writeButton": "답변하기",
+  "editButton": "수정하기",
+  "myAnswerBadge": "내 답변",
   "answersTitle": "다른 사람들의 답변",
   "answersCount_one": "답변 {{count}}개",
   "answersCount_other": "답변 {{count}}개",

@@ -1,29 +1,37 @@
-import { useEffect } from 'react';
-import { StyleSheet } from 'react-native';
-import { YStack, useTheme } from 'tamagui';
+import { useEffect, useMemo } from 'react';
+import { Pressable, StyleSheet } from 'react-native';
+import { XStack, YStack, useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { Screen } from '@/shared/layout/Screen';
-import { Text } from '@/shared/ui/Text';
 import { CommonQuestionFeed } from '@/features/feed/components/CommonQuestionFeed';
 import { FloatingActionButton } from '@/shared/ui/FloatingActionButton';
-import { MOCK_COMMON_QUESTION } from '@/features/feed/api/__mocks__/commonQuestionMock';
+import { InfoIcon } from '@/shared/icons/InfoIcon';
+import {
+  MOCK_COMMON_QUESTION,
+  MOCK_COMMON_ANSWERS,
+} from '@/features/feed/api/__mocks__/commonQuestionMock';
 import { formatLocalDate } from '@/shared/utils/date';
-import { getFontStyle } from '@/shared/theme/typography';
-import { useAccentColors } from '@/shared/theme';
+import { cs } from '@/shared/utils/responsive';
 import { logScreenView } from '@/services/firebase';
 
 export default function FeedScreen() {
   const { t } = useTranslation('feed');
   const theme = useTheme();
-  const accent = useAccentColors();
   const router = useRouter();
 
   useEffect(() => {
     logScreenView('Feed');
   }, []);
 
-  const handleWriteAnswer = () => {
+  // TODO: replace with TanStack Query result once the public-feed endpoint lands.
+  const myAnswer = useMemo(
+    () => MOCK_COMMON_ANSWERS.find((a) => a.mine),
+    [],
+  );
+  const hasAnswered = Boolean(myAnswer);
+
+  const handleWriteOrEdit = () => {
     router.push({
       pathname: '/answer',
       params: {
@@ -35,50 +43,51 @@ export default function FeedScreen() {
     });
   };
 
+  // TODO: 튜토리얼 안내 모달 연결
+  const handleShowGuide = () => {
+    // intentionally empty — UI only for now
+  };
+
   return (
     <Screen edges={['top']} bgColor={theme.backgroundSoft?.val}>
       <YStack flex={1}>
-        {/* Header */}
-        <YStack style={styles.header}>
-          <Text
-            variant="caption"
-            style={[styles.headerLabel, { color: accent.primary }]}
-            {...getFontStyle('700')}
+        {/* Guide trigger — top-right only */}
+        <XStack style={styles.header} jc="flex-end">
+          <Pressable
+            onPress={handleShowGuide}
+            accessibilityRole="button"
+            accessibilityLabel={t('infoButtonA11y')}
+            hitSlop={8}
+            style={({ pressed }) => [
+              styles.infoButton,
+              { opacity: pressed ? 0.5 : 1 },
+            ]}
           >
-            {t('headerLabel')}
-          </Text>
-          <Text variant="subheading" {...getFontStyle('700')}>
-            {t('title')}
-          </Text>
-          <Text variant="caption" muted style={styles.headerDesc}>
-            {t('headerDesc')}
-          </Text>
-        </YStack>
+            <InfoIcon size={cs(20)} color={theme.colorMuted?.val ?? '#888'} />
+          </Pressable>
+        </XStack>
 
         {/* Common Question + Answers */}
-        <CommonQuestionFeed />
+        <CommonQuestionFeed onMyAnswerPress={handleWriteOrEdit} />
       </YStack>
 
-      {/* Floating Write Button */}
-      <FloatingActionButton onPress={handleWriteAnswer} aboveTabBar label={t('writeButton')} />
+      {/* Floating Write / Edit Button */}
+      <FloatingActionButton
+        onPress={handleWriteOrEdit}
+        aboveTabBar
+        label={t(hasAnswered ? 'editButton' : 'writeButton')}
+      />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   header: {
-    paddingHorizontal: 24,
-    paddingTop: 28,
-    paddingBottom: 12,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 4,
   },
-  headerLabel: {
-    fontSize: 11,
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
-    marginBottom: 8,
-  },
-  headerDesc: {
-    marginTop: 6,
-    fontSize: 13,
+  infoButton: {
+    padding: 6,
   },
 });

@@ -49,5 +49,5 @@ export const MOCK_COMMON_ANSWERS: FeedItemDomain[] = ANSWERS.map((content, i) =>
   postedAt: hoursAgo(i * 2 + 1),
   likeCount: Math.floor(Math.random() * 80) + 3,
   liked: i % 5 === 0,
-  mine: false,
+  mine: i === 2,
 }));

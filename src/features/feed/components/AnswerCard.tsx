@@ -50,7 +50,7 @@ export function AnswerCard({ item, onPress }: AnswerCardProps) {
         },
       ]}
     >
-      <YStack gap={sp(12)}>
+      <YStack gap={sp(8)}>
         {/* Top: nickname · date */}
         <XStack alignItems="center" gap={sp(6)}>
           <Text style={styles.nickname} {...getFontStyle('600')} numberOfLines={1}>
@@ -102,9 +102,9 @@ export function AnswerCard({ item, onPress }: AnswerCardProps) {
 const styles = StyleSheet.create({
   card: {
     marginHorizontal: sp(20),
-    marginVertical: sp(6),
-    paddingVertical: sp(18),
-    paddingHorizontal: sp(20),
+    marginVertical: sp(4),
+    paddingVertical: sp(12),
+    paddingHorizontal: sp(18),
     borderRadius: radius(16),
   },
   nickname: {

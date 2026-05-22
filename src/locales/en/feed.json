@@ -1,7 +1,5 @@
 {
-  "title": "Everyone's Questions",
-  "headerLabel": "EVERYONE'S QUESTIONS",
-  "headerDesc": "Same question, different perspectives",
+  "infoButtonA11y": "Show guide",
   "empty": "No public answers yet",
   "emptyDesc": "Be the first to share your answer",
   "loading": "Loading...",
@@ -9,6 +7,8 @@
   "pastQuestionLabel": "Past Question",
   "weekdays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
   "writeButton": "Answer",
+  "editButton": "Edit",
+  "myAnswerBadge": "My answer",
   "answersTitle": "Other answers",
   "answersCount_one": "{{count}} answer",
   "answersCount_other": "{{count}} answers",
