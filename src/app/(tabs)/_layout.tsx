@@ -42,20 +42,6 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
-        options={{
-          title: t('tabs.home'),
-          tabBarIcon: ({ color, focused }) => (
-            <HomeIcon size={24} color={color} active={focused} />
-          ),
-          tabBarLabel: ({ color, focused }) => (
-            <Text style={{ color, fontSize: 10, ...getFontStyle(focused ? '700' : '400') }}>
-              {t('tabs.home')}
-            </Text>
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="feed"
         options={{
           title: t('tabs.feed'),
@@ -66,6 +52,20 @@ export default function TabLayout() {
           tabBarLabel: ({ color, focused }) => (
             <Text style={{ color, fontSize: 10, ...getFontStyle(focused ? '700' : '400') }}>
               {t('tabs.feed')}
+            </Text>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: t('tabs.home'),
+          tabBarIcon: ({ color, focused }) => (
+            <HomeIcon size={24} color={color} active={focused} />
+          ),
+          tabBarLabel: ({ color, focused }) => (
+            <Text style={{ color, fontSize: 10, ...getFontStyle(focused ? '700' : '400') }}>
+              {t('tabs.home')}
             </Text>
           ),
         }}
