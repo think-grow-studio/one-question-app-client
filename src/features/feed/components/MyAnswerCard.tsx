@@ -1,4 +1,4 @@
-import { Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 import { XStack, YStack, useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
@@ -6,6 +6,7 @@ import { HeartIcon } from '@/shared/icons/HeartIcon';
 import { useAccentColors } from '@/shared/theme';
 import { getFontStyle } from '@/shared/theme/typography';
 import { fs, sp, radius, cs } from '@/shared/utils/responsive';
+import { formatFeedDate } from '../utils/feedUtils';
 import type { FeedItemDomain } from '../types/api';
 
 interface MyAnswerCardProps {
@@ -21,36 +22,29 @@ export function MyAnswerCard({ item, onPress }: MyAnswerCardProps) {
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={t('myAnswerBadge')}
       style={({ pressed }) => [
         styles.card,
         {
           backgroundColor: theme.background?.val ?? '#ffffff',
-          ...Platform.select({
-            ios: {
-              shadowColor: accent.primary,
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.08,
-              shadowRadius: 8,
-            },
-            android: {
-              elevation: 2,
-            },
-          }),
+          borderColor: accent.primary,
           transform: [{ scale: pressed && onPress ? 0.99 : 1 }],
         },
       ]}
     >
-      {/* Left accent stripe */}
-      <View style={[styles.stripe, { backgroundColor: accent.primary }]} />
-
-      <YStack flex={1} gap={sp(8)} pl={sp(14)} pr={sp(14)} py={sp(12)}>
+      <YStack gap={sp(12)}>
+        {/* Top: nickname · date + like count */}
         <XStack ai="center" jc="space-between">
-          <Text
-            style={[styles.badge, { color: accent.primary }]}
-            {...getFontStyle('700')}
-          >
-            {t('myAnswerBadge')}
-          </Text>
+          <XStack ai="center" gap={sp(6)} flex={1}>
+            <Text style={styles.nickname} {...getFontStyle('600')} numberOfLines={1}>
+              {item.anonymousNickname}
+            </Text>
+            <Text muted style={styles.metaDot}>·</Text>
+            <Text muted style={styles.meta}>
+              {formatFeedDate(item.postedAt)}
+            </Text>
+          </XStack>
 
           <XStack ai="center" gap={sp(4)}>
             <HeartIcon
@@ -68,7 +62,8 @@ export function MyAnswerCard({ item, onPress }: MyAnswerCardProps) {
           </XStack>
         </XStack>
 
-        <Text style={styles.answerText} numberOfLines={2}>
+        {/* Answer body — 2 line preview */}
+        <Text style={styles.answerText} numberOfLines={4}>
           {item.answerContent}
         </Text>
       </YStack>
@@ -78,20 +73,23 @@ export function MyAnswerCard({ item, onPress }: MyAnswerCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: 'row',
     marginHorizontal: sp(20),
-    marginTop: sp(4),
-    marginBottom: sp(10),
-    borderRadius: radius(14),
-    overflow: 'hidden',
+    marginVertical: sp(14),
+    paddingTop: sp(14),
+    paddingBottom: sp(40),
+    paddingHorizontal: sp(18),
+    borderRadius: radius(16),
+    borderWidth: 1.25,
   },
-  stripe: {
-    width: 4,
+  nickname: {
+    fontSize: fs(13),
+    letterSpacing: -0.2,
   },
-  badge: {
-    fontSize: fs(10),
-    textTransform: 'uppercase',
-    letterSpacing: 1.2,
+  metaDot: {
+    fontSize: fs(11),
+  },
+  meta: {
+    fontSize: fs(11),
   },
   answerText: {
     fontSize: fs(14),
