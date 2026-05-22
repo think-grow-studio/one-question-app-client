@@ -7,12 +7,10 @@ import { Screen } from '@/shared/layout/Screen';
 import { Text } from '@/shared/ui/Text';
 import { CommonQuestionFeed } from '@/features/feed/components/CommonQuestionFeed';
 import { FloatingActionButton } from '@/shared/ui/FloatingActionButton';
-import { PlusIcon } from '@/shared/icons/PlusIcon';
 import { MOCK_COMMON_QUESTION } from '@/features/feed/api/__mocks__/commonQuestionMock';
 import { formatLocalDate } from '@/shared/utils/date';
 import { getFontStyle } from '@/shared/theme/typography';
 import { useAccentColors } from '@/shared/theme';
-import { cs } from '@/shared/utils/responsive';
 import { logScreenView } from '@/services/firebase';
 
 export default function FeedScreen() {
@@ -62,9 +60,7 @@ export default function FeedScreen() {
       </YStack>
 
       {/* Floating Write Button */}
-      <FloatingActionButton onPress={handleWriteAnswer} aboveTabBar>
-        <PlusIcon size={cs(26)} color="#ffffff" strokeWidth={2.4} />
-      </FloatingActionButton>
+      <FloatingActionButton onPress={handleWriteAnswer} aboveTabBar label={t('writeButton')} />
     </Screen>
   );
 }

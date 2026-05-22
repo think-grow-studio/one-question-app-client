@@ -8,6 +8,7 @@
   "todayQuestionLabel": "오늘의 질문",
   "pastQuestionLabel": "지난 질문",
   "weekdays": ["일", "월", "화", "수", "목", "금", "토"],
+  "writeButton": "답변하기",
   "answersTitle": "다른 사람들의 답변",
   "answersCount_one": "답변 {{count}}개",
   "answersCount_other": "답변 {{count}}개",

@@ -1,36 +1,56 @@
-import { ReactNode } from 'react';
-import { Platform, Pressable, StyleSheet } from 'react-native';
+import { ReactNode, useContext } from 'react';
+import { Platform, Pressable, StyleSheet, Text, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { useTheme } from 'tamagui';
 import { useAccentColors } from '@/shared/theme';
-import { cs, sp } from '@/shared/utils/responsive';
+import { cs, fs, sp } from '@/shared/utils/responsive';
 
 interface FloatingActionButtonProps {
   onPress: () => void;
-  children: ReactNode;
-  /** Whether the button sits above a tab bar. When true, adds tab bar offset. */
+  children?: ReactNode;
+  /** Text label — renders a pill-shaped button instead of a circular icon button. */
+  label?: string;
+  /**
+   * Set true when inside a screen that's hosted by a Bottom Tab navigator.
+   * When the tab bar is non-absolute (default), React Navigation already shrinks
+   * the screen area so `bottom: 0` sits exactly above the tab bar — no extra
+   * offset needed. We still consume `BottomTabBarHeightContext` to re-render
+   * on tab bar height changes.
+   */
   aboveTabBar?: boolean;
-  /** Position from edges (before tab bar / safe area offsets). */
+  /** Distance from the right edge. */
   margin?: number;
+  /** Gap above the tab bar / safe area. Negative values overlap. */
+  bottomSpacing?: number;
   testID?: string;
 }
-
-const TAB_BAR_CONTENT_HEIGHT = Platform.select({ ios: 50, android: 60, default: 50 });
 
 export function FloatingActionButton({
   onPress,
   children,
+  label,
   aboveTabBar = false,
   margin,
+  bottomSpacing,
   testID,
 }: FloatingActionButtonProps) {
   const theme = useTheme();
   const accent = useAccentColors();
   const insets = useSafeAreaInsets();
+  // Touch the context so the FAB re-renders on tab bar height changes.
+  useContext(BottomTabBarHeightContext);
+  useWindowDimensions();
 
-  const edgeMargin = margin ?? sp(20);
-  const bottomOffset =
-    edgeMargin + insets.bottom + (aboveTabBar ? TAB_BAR_CONTENT_HEIGHT : 0);
+  const isPill = Boolean(label);
+  const rightEdge = margin ?? sp(20);
+  const verticalGap = bottomSpacing ?? sp(24);
+  // Non-absolute tab bar already removes its area from the screen.
+  // Only add safe-area bottom when there's no tab bar handling it for us.
+  const bottomOffset = aboveTabBar ? verticalGap : verticalGap + insets.bottom;
+
+  const buttonHeight = cs(isPill ? 44 : 56);
+  const buttonRadius = cs(isPill ? 22 : 28);
 
   return (
     <Pressable
@@ -39,11 +59,13 @@ export function FloatingActionButton({
       style={({ pressed }) => [
         styles.fab,
         {
-          right: edgeMargin,
+          right: rightEdge,
           bottom: bottomOffset,
-          width: cs(56),
-          height: cs(56),
-          borderRadius: cs(28),
+          height: buttonHeight,
+          borderRadius: buttonRadius,
+          ...(isPill
+            ? { paddingHorizontal: sp(22) }
+            : { width: cs(56) }),
           backgroundColor: accent.primary,
           ...Platform.select({
             ios: {
@@ -60,7 +82,11 @@ export function FloatingActionButton({
         },
       ]}
     >
-      {children}
+      {isPill ? (
+        <Text style={[styles.label, { fontSize: fs(15) }]}>{label}</Text>
+      ) : (
+        children
+      )}
     </Pressable>
   );
 }
@@ -70,5 +96,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  label: {
+    color: '#ffffff',
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
 });

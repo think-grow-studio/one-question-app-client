@@ -8,6 +8,7 @@
   "todayQuestionLabel": "Today's Question",
   "pastQuestionLabel": "Past Question",
   "weekdays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+  "writeButton": "Answer",
   "answersTitle": "Other answers",
   "answersCount_one": "{{count}} answer",
   "answersCount_other": "{{count}} answers",
