@@ -37,8 +37,6 @@ import { formatLocalDate } from '@/shared/utils/date';
 import { SCREEN, sp } from '@/shared/utils/responsive';
 import { canReloadQuestion, getReloadCountDisplay } from '../constants/limits';
 import { logEvent, AnalyticsEvents } from '@/services/firebase';
-import { PublicStatusBadge } from '@/features/feed/components/PublicStatusBadge';
-import { ENABLE_PUBLIC_FEED } from '@/shared/constants/features';
 import { QuestionLikeButton } from './QuestionLikeButton';
 
 const SWIPE_THRESHOLD = SCREEN.width * 0.2; // 20% - 더 쉽게 넘어가도록 조정 (이전: 0.3)
@@ -488,7 +486,6 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
         question: currentItem.question,
         description: currentItem.description || '',
         existingAnswer: currentItem.answer,
-        existingPublished: String(currentHistory?.answer?.published ?? false),
       },
     });
   }, [currentItem, currentDate, currentHistory, router]);
@@ -617,14 +614,6 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
                       {currentItem.answer}
                     </Text>
                   </ScrollView>
-                  {/* Public Status Badge */}
-                  {ENABLE_PUBLIC_FEED && (
-                    <View style={styles.publicStatusContainer}>
-                      <PublicStatusBadge
-                        published={currentHistory?.answer?.published ?? false}
-                      />
-                    </View>
-                  )}
                 </>
               ) : (
                 <View style={styles.noAnswerContainer}>
@@ -745,10 +734,6 @@ const styles = StyleSheet.create({
   },
   answerSection: {
     flex: 1, // 나머지 공간 전부 차지
-  },
-  publicStatusContainer: {
-    marginTop: 12,
-    paddingTop: 8,
   },
   answerScroll: {
     flex: 1,

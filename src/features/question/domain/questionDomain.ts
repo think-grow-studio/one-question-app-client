@@ -30,7 +30,6 @@ export interface AnswerDomain {
   dailyAnswerId: number;
   content: string;
   answeredAt: string;
-  published: boolean;
 }
 
 export interface DailyQuestionDomain {
@@ -75,7 +74,6 @@ export function fromHistoryItem(item: QuestionHistoryItemDto): DailyQuestionDoma
           dailyAnswerId: item.answer.dailyAnswerId,
           content: item.answer.content,
           answeredAt: item.answer.answeredAt,
-          published: item.answer.published,
         }
       : null,
   };
@@ -113,7 +111,6 @@ export function withAnswer(
       dailyAnswerId: answer.dailyAnswerId,
       content: answer.content,
       answeredAt: answer.answeredAt,
-      published: answer.published,
     },
   };
 }

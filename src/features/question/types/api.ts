@@ -32,26 +32,22 @@ export interface ServeDailyQuestionResponse {
 
 export interface CreateAnswerRequest {
   answer: string;
-  publish?: boolean;
 }
 
 export interface CreateAnswerResponse {
   dailyAnswerId: number;
   content: string;
   answeredAt: string;
-  published: boolean;
 }
 
 export interface UpdateAnswerRequest {
   answer: string;
-  publish?: boolean;
 }
 
 export interface UpdateAnswerResponse {
   dailyAnswerId: number;
   content: string;
   answeredAt: string;
-  published: boolean;
 }
 
 export type HistoryStatus = 'ANSWERED' | 'UNANSWERED' | 'NO_QUESTION';
@@ -71,7 +67,6 @@ export interface QuestionHistoryAnswerDto {
   dailyAnswerId: number;
   content: string;
   answeredAt: string;
-  published: boolean;
 }
 
 export interface QuestionHistoryItemDto {

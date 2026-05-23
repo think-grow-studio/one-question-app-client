@@ -126,28 +126,3 @@ export interface AppVersionCheckResponse {
   serverLive: boolean;
 }
 
-// ============================================
-// Feed Types (모두의 생각) — AnswerPost API
-// ============================================
-
-export interface AnswerPostFeedItemDto {
-  answerPostId: number;
-  questionContent: string;
-  description: string | null;
-  answerContent: string;
-  anonymousNickname: string;
-  postedAt: string;
-  likeCount: number;
-  liked: boolean;
-  mine: boolean;
-}
-
-export interface AnswerPostFeedResponse {
-  items: AnswerPostFeedItemDto[];
-  hasNext: boolean;
-  nextCursor: string | null;
-}
-
-export interface ToggleLikeResponse {
-  liked: boolean;
-}

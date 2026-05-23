@@ -21,6 +21,16 @@
     "likeCount_one": "{{count}}명이 공감",
     "likeCount_other": "{{count}}명이 공감"
   },
+  "editAnswer": {
+    "button": "수정"
+  },
+  "deleteAnswer": {
+    "button": "삭제",
+    "confirmTitle": "답변을 삭제할까요?",
+    "confirmMessage": "삭제하면 복구할 수 없어요.",
+    "confirmButton": "삭제",
+    "cancelButton": "취소"
+  },
   "publicToggle": {
     "label": "모두의 질문에 공개",
     "helper": "공개하면 익명 닉네임으로 다른 사람들이 볼 수 있어요",

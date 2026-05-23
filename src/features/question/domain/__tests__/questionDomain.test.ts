@@ -78,14 +78,12 @@ describe('questionDomain', () => {
       dailyAnswerId: 10,
       content: '답변 내용',
       answeredAt: '2025-03-15T10:00:00',
-      published: false,
     };
 
     it('답변 추가 시 status가 ANSWERED로 변경된다', () => {
       const result = withAnswer(domain, answer);
       expect(result.status).toBe('ANSWERED');
       expect(result.answer?.content).toBe('답변 내용');
-      expect(result.answer?.published).toBe(false);
     });
 
     it('원본 도메인은 변경되지 않는다', () => {

@@ -21,6 +21,16 @@
     "likeCount_one": "{{count}} like",
     "likeCount_other": "{{count}} likes"
   },
+  "editAnswer": {
+    "button": "Edit"
+  },
+  "deleteAnswer": {
+    "button": "Delete",
+    "confirmTitle": "Delete your answer?",
+    "confirmMessage": "This can't be undone.",
+    "confirmButton": "Delete",
+    "cancelButton": "Cancel"
+  },
   "publicToggle": {
     "label": "Share to Everyone's Questions",
     "helper": "When shared, others can see your answer with an anonymous nickname",

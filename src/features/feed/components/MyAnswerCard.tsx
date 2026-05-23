@@ -1,8 +1,12 @@
-import { Image, Pressable, StyleSheet } from 'react-native';
+import { useState } from 'react';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { XStack, YStack, useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
 import { HeartIcon } from '@/shared/icons/HeartIcon';
+import { EditIcon } from '@/shared/icons/EditIcon';
+import { TrashIcon } from '@/shared/icons/TrashIcon';
+import { AlertDialog } from '@/shared/ui/AlertDialog';
 import { useAccentColors } from '@/shared/theme';
 import { getFontStyle } from '@/shared/theme/typography';
 import { fs, sp, radius, cs } from '@/shared/utils/responsive';
@@ -12,25 +16,23 @@ import type { FeedItemDomain } from '../types/api';
 
 interface MyAnswerCardProps {
   item: FeedItemDomain;
-  onPress?: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
-export function MyAnswerCard({ item, onPress }: MyAnswerCardProps) {
+export function MyAnswerCard({ item, onEdit, onDelete }: MyAnswerCardProps) {
   const { t } = useTranslation('feed');
   const theme = useTheme();
   const accent = useAccentColors();
+  const [confirmVisible, setConfirmVisible] = useState(false);
 
   return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={t('myAnswerBadge')}
-      style={({ pressed }) => [
+    <View
+      style={[
         styles.card,
         {
           backgroundColor: theme.background?.val ?? '#ffffff',
           borderColor: accent.primary,
-          transform: [{ scale: pressed && onPress ? 0.99 : 1 }],
         },
       ]}
     >
@@ -72,8 +74,63 @@ export function MyAnswerCard({ item, onPress }: MyAnswerCardProps) {
         <Text style={styles.answerText} numberOfLines={4}>
           {item.answerContent}
         </Text>
+
+        {/* Bottom row: edit / delete buttons */}
+        {(onEdit || onDelete) ? (
+          <XStack jc="flex-end" gap={sp(8)}>
+            {onEdit ? (
+              <Pressable
+                onPress={onEdit}
+                hitSlop={12}
+                accessibilityRole="button"
+                accessibilityLabel={t('editAnswer.button')}
+                style={({ pressed }) => [
+                  styles.actionBtn,
+                  { opacity: pressed ? 0.5 : 1 },
+                ]}
+              >
+                <EditIcon size={cs(18)} color={accent.primary} />
+              </Pressable>
+            ) : null}
+            {onDelete ? (
+              <Pressable
+                onPress={() => setConfirmVisible(true)}
+                hitSlop={12}
+                accessibilityRole="button"
+                accessibilityLabel={t('deleteAnswer.button')}
+                style={({ pressed }) => [
+                  styles.actionBtn,
+                  { opacity: pressed ? 0.5 : 1 },
+                ]}
+              >
+                <TrashIcon size={cs(18)} color="#EF4444" />
+              </Pressable>
+            ) : null}
+          </XStack>
+        ) : null}
       </YStack>
-    </Pressable>
+
+      <AlertDialog
+        visible={confirmVisible}
+        title={t('deleteAnswer.confirmTitle')}
+        message={t('deleteAnswer.confirmMessage')}
+        buttons={[
+          {
+            label: t('deleteAnswer.cancelButton'),
+            variant: 'default',
+          },
+          {
+            label: t('deleteAnswer.confirmButton'),
+            variant: 'primary',
+            onPress: () => {
+              setConfirmVisible(false);
+              onDelete?.();
+            },
+          },
+        ]}
+        onClose={() => setConfirmVisible(false)}
+      />
+    </View>
   );
 }
 
@@ -82,7 +139,7 @@ const styles = StyleSheet.create({
     marginHorizontal: sp(20),
     marginVertical: sp(14),
     paddingTop: sp(14),
-    paddingBottom: sp(40),
+    paddingBottom: sp(14),
     paddingHorizontal: sp(18),
     borderRadius: radius(16),
     borderWidth: 1.25,
@@ -108,5 +165,8 @@ const styles = StyleSheet.create({
   },
   likeCount: {
     fontSize: fs(11),
+  },
+  actionBtn: {
+    padding: sp(4),
   },
 });

@@ -13,20 +13,41 @@ import type { FeedItemDomain } from '../types/api';
 interface AnswerCardProps {
   item: FeedItemDomain;
   onPress?: () => void;
+  /**
+   * 서버 토글 결과의 `liked` 값을 반환. 호출부(부모)가 mutation 을 소유하므로
+   * `item.answerPostId` 외에 `pdqId` 같은 컨텍스트를 카드가 알 필요가 없다.
+   * 미지정 시 로컬 토글만 수행 (mock / preview 환경 호환).
+   */
+  onToggleLike?: (item: FeedItemDomain) => Promise<boolean> | boolean;
+  /** 본인 답변 등 좋아요 누를 수 없는 경우. */
+  likeDisabled?: boolean;
 }
 
-export function AnswerCard({ item, onPress }: AnswerCardProps) {
+export function AnswerCard({ item, onPress, onToggleLike, likeDisabled }: AnswerCardProps) {
   const theme = useTheme();
   const accent = useAccentColors();
 
   const [liked, setLiked] = useState(item.liked);
   const [likeCount, setLikeCount] = useState(item.likeCount);
 
-  const handleToggleLike = () => {
-    setLiked((prev) => {
-      setLikeCount((c) => c + (prev ? -1 : 1));
-      return !prev;
-    });
+  const applyLiked = (next: boolean) => {
+    if (next === liked) return;
+    setLiked(next);
+    setLikeCount((c) => c + (next ? 1 : -1));
+  };
+
+  const handleToggleLike = async () => {
+    if (likeDisabled) return;
+    if (!onToggleLike) {
+      applyLiked(!liked);
+      return;
+    }
+    try {
+      const serverLiked = await Promise.resolve(onToggleLike(item));
+      applyLiked(serverLiked);
+    } catch {
+      // mutation cache.onError 가 글로벌 dialog 로 표시. row state 는 그대로 유지.
+    }
   };
 
   return (
@@ -77,12 +98,14 @@ export function AnswerCard({ item, onPress }: AnswerCardProps) {
         <XStack justifyContent="flex-end" alignItems="center">
           <Pressable
             onPress={handleToggleLike}
+            disabled={likeDisabled}
             hitSlop={10}
             style={({ pressed }) => [
               styles.likeButton,
               {
                 backgroundColor: liked ? `${accent.like}14` : 'transparent',
-                transform: [{ scale: pressed ? 0.94 : 1 }],
+                opacity: likeDisabled ? 0.5 : 1,
+                transform: [{ scale: pressed && !likeDisabled ? 0.94 : 1 }],
               },
             ]}
           >

@@ -132,10 +132,10 @@ export function useCreateAnswer(options?: {
   return useMutation<
     unknown,
     ApiErrorResponse,
-    { date: string; answer: string; publish?: boolean }
+    { date: string; answer: string }
   >({
-    mutationFn: ({ date, answer, publish }) =>
-      questionApi.createAnswer(date, { answer, publish }).then((res) => res.data),
+    mutationFn: ({ date, answer }) =>
+      questionApi.createAnswer(date, { answer }).then((res) => res.data),
     onSuccess: (_, { date }) => invalidateDateQueries(date),
     onError: (error, { date }) => {
       if (error?.code === 'QUESTION-004') {
@@ -152,8 +152,8 @@ export function useUpdateAnswer() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ date, answer, publish }: { date: string; answer: string; publish?: boolean }) =>
-      questionApi.updateAnswer(date, { answer, publish }).then((res) => res.data),
+    mutationFn: ({ date, answer }: { date: string; answer: string }) =>
+      questionApi.updateAnswer(date, { answer }).then((res) => res.data),
     onSuccess: (_, { date }) => {
       queryClient.invalidateQueries({ queryKey: questionQueryKeys.daily(date) });
 

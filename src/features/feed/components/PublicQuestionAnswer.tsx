@@ -21,43 +21,54 @@ import { AlertDialog, AlertDialogButton } from '@/shared/ui/AlertDialog';
 import { CloseIcon } from '@/shared/icons/CloseIcon';
 import { useAccentColors } from '@/shared/theme';
 import { useThrottledCallback } from '@/shared/hooks/useThrottledCallback';
-import { useAppReviewPrompt } from '../hooks/useAppReviewPrompt';
-import { useCreateAnswer, useUpdateAnswer } from '@/features/question/hooks/mutations/useQuestionMutations';
-import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
 import { useIsAdFreeMember } from '@/features/member/hooks/queries/useMemberQueries';
+import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
 import { sp } from '@/shared/utils/responsive';
-import { logScreenView, logEvent, AnalyticsEvents } from '@/services/firebase';
+import {
+  useCreatePublicAnswer,
+  useUpdatePublicAnswer,
+} from '../hooks/mutations/usePublicQuestionMutations';
 
-interface QuestionData {
+interface PublicQuestionAnswerProps {
+  mode?: 'create' | 'edit';
+  pdqId: number;
   date: string;
   question: string;
   description?: string;
+  existingAnswerId?: number;
   existingAnswer?: string;
 }
 
-interface DailyQuestionAnswerProps {
-  mode?: 'create' | 'edit';
-  data: QuestionData;
-}
-
-export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnswerProps) {
+export function PublicQuestionAnswer({
+  mode = 'create',
+  pdqId,
+  date,
+  question,
+  description,
+  existingAnswerId,
+  existingAnswer,
+}: PublicQuestionAnswerProps) {
   const isEditMode = mode === 'edit';
   const router = useRouter();
   const theme = useTheme();
   const accent = useAccentColors();
   const { t } = useTranslation(['answer', 'question', 'common']);
   const cardStyles = useQuestionCardStyles();
-  const { maybeRequestReview } = useAppReviewPrompt();
   const isAdFreeMember = useIsAdFreeMember();
 
   const inputMinHeight = (cardStyles.input?.minHeight as number) || 0;
   const resolvedInputHeight = inputMinHeight > 0 ? inputMinHeight : 320;
   const [isAnswerScrollable, setIsAnswerScrollable] = useState(false);
 
-  // API Mutations
-  const createAnswerMutation = useCreateAnswer({
-    onDuplicateAnswer: ({ message, syncQueries }) => {
-      // 사용자가 dialog 확인 시점에 캐시 동기화 + 시트 닫기
+  const [alertConfig, setAlertConfig] = useState<{
+    visible: boolean;
+    title: string;
+    message?: string;
+    buttons?: AlertDialogButton[];
+  }>({ visible: false, title: '' });
+
+  const createMutation = useCreatePublicAnswer({
+    onAlreadyAnswered: ({ message, syncQueries }) => {
       setAlertConfig({
         visible: true,
         title: t('common:error.title'),
@@ -73,149 +84,110 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
       });
     },
   });
-  const updateAnswerMutation = useUpdateAnswer();
 
-  // 답변 초기값: 수정 모드면 기존 답변, 아니면 빈 문자열
-  const [answer, setAnswer] = useState(() => (isEditMode && data.existingAnswer ? data.existingAnswer : ''));
-  const [originalAnswer] = useState(() => (isEditMode && data.existingAnswer ? data.existingAnswer : ''));
-
-  // 변경사항 감지 (dirty state)
-  const isDirty = answer !== originalAnswer;
-
-  // Analytics: 화면 진입
-  useEffect(() => {
-    if (isEditMode) {
-      logScreenView('Answer_Edit');
-    } else {
-      logScreenView('Answer_Create');
-      logEvent(AnalyticsEvents.ANSWER_START, {
-        date: data.date,
-      });
-    }
-  }, [isEditMode, data.date]);
-
-  const [alertConfig, setAlertConfig] = useState<{
-    visible: boolean;
-    title: string;
-    message?: string;
-    buttons?: AlertDialogButton[];
-  }>({ visible: false, title: '' });
-
-  const handleInputContentSizeChange = useCallback(
-    (event: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => {
-      const contentHeight = event?.nativeEvent?.contentSize?.height;
-      if (!contentHeight) return;
-
-      const shouldScroll = contentHeight > resolvedInputHeight;
-      setIsAnswerScrollable((prev) => (prev === shouldScroll ? prev : shouldScroll));
-    },
-    [resolvedInputHeight]
-  );
-
-  // Android 뒤로가기 버튼 처리
-  useEffect(() => {
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
-      const hasContent = answer.trim().length > 0;
-      const shouldShowAlert = isEditMode ? isDirty : hasContent;
-
-      if (shouldShowAlert) {
-        setAlertConfig({
-          visible: true,
-          title: t('answer:cancelEdit.title'),
-          message: t('answer:cancelEdit.message'),
-          buttons: [
-            { label: t('answer:cancelEdit.continue'), variant: 'default' },
-            { label: t('answer:cancelEdit.exit'), variant: 'primary', onPress: () => router.back() },
-          ],
-        });
-        return true; // 기본 뒤로가기 동작 방지
-      }
-      return false; // 기본 뒤로가기 동작 허용
-    });
-
-    return () => backHandler.remove();
-  }, [answer, isEditMode, isDirty]);
-
-  const isSubmitEnabled = answer.trim().length > 0;
-  const isPending = createAnswerMutation.isPending || updateAnswerMutation.isPending;
-
-  const handleSubmit = useThrottledCallback(async () => {
-    if (!isSubmitEnabled || isPending) return;
-
-    try {
-      if (isEditMode) {
-        // Analytics: 답변 수정
-        logEvent(AnalyticsEvents.ANSWER_EDIT, {
-          date: data.date,
-          answer_length: answer.trim().length,
-        });
-        await updateAnswerMutation.mutateAsync({ date: data.date, answer: answer.trim() });
-      } else {
-        // Analytics: 답변 제출
-        logEvent(AnalyticsEvents.ANSWER_SUBMIT, {
-          date: data.date,
-          answer_length: answer.trim().length,
-        });
-        await createAnswerMutation.mutateAsync({ date: data.date, answer: answer.trim() });
-      }
-
-      // 성공 메시지 표시
-      const title = isEditMode ? t('answer:submitEdit') : t('answer:submit');
-      const message = isEditMode ? t('answer:editSuccess') : t('answer:submitSuccess');
-
+  const updateMutation = useUpdatePublicAnswer({
+    onAnswerGone: ({ message, syncQueries }) => {
       setAlertConfig({
         visible: true,
-        title,
+        title: t('common:error.title'),
         message,
         buttons: [{
           label: t('common:buttons.confirm'),
           variant: 'primary',
           onPress: () => {
-            // 새 답변(create) 경로일 때만 review 트리거. system 빈도 제한이 dialog 표시 여부를 결정.
-            // fire-and-forget — router.back()을 막지 않음. native dialog는 system-level이라
-            // 다음 화면 위로 자연스럽게 표시됨.
-            if (!isEditMode) {
-              void maybeRequestReview();
-            }
+            syncQueries();
             router.back();
           },
         }],
       });
+    },
+  });
+
+  const [answer, setAnswer] = useState(() => (isEditMode && existingAnswer ? existingAnswer : ''));
+  const [originalAnswer] = useState(() => (isEditMode && existingAnswer ? existingAnswer : ''));
+
+  const isDirty = answer !== originalAnswer;
+  const isSubmitEnabled = answer.trim().length > 0;
+  const isPending = createMutation.isPending || updateMutation.isPending;
+
+  const handleInputContentSizeChange = useCallback(
+    (event: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => {
+      const contentHeight = event?.nativeEvent?.contentSize?.height;
+      if (!contentHeight) return;
+      const shouldScroll = contentHeight > resolvedInputHeight;
+      setIsAnswerScrollable((prev) => (prev === shouldScroll ? prev : shouldScroll));
+    },
+    [resolvedInputHeight],
+  );
+
+  const showDiscardAlert = useCallback(() => {
+    setAlertConfig({
+      visible: true,
+      title: t('answer:cancelEdit.title'),
+      message: t('answer:cancelEdit.message'),
+      buttons: [
+        { label: t('answer:cancelEdit.continue'), variant: 'default' },
+        { label: t('answer:cancelEdit.exit'), variant: 'primary', onPress: () => router.back() },
+      ],
+    });
+  }, [t, router]);
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      const hasContent = answer.trim().length > 0;
+      const shouldShowAlert = isEditMode ? isDirty : hasContent;
+      if (shouldShowAlert) {
+        showDiscardAlert();
+        return true;
+      }
+      return false;
+    });
+    return () => backHandler.remove();
+  }, [answer, isEditMode, isDirty, showDiscardAlert]);
+
+  const handleSubmit = useThrottledCallback(async () => {
+    if (!isSubmitEnabled || isPending) return;
+    try {
+      if (isEditMode && existingAnswerId !== undefined) {
+        await updateMutation.mutateAsync({
+          pdqId,
+          answerId: existingAnswerId,
+          date,
+          content: answer.trim(),
+        });
+      } else {
+        await createMutation.mutateAsync({ pdqId, date, content: answer.trim() });
+      }
+
+      setAlertConfig({
+        visible: true,
+        title: isEditMode ? t('answer:submitEdit') : t('answer:submit'),
+        message: isEditMode ? t('answer:editSuccess') : t('answer:submitSuccess'),
+        buttons: [{
+          label: t('common:buttons.confirm'),
+          variant: 'primary',
+          onPress: () => router.back(),
+        }],
+      });
     } catch {
-      // QUESTION-004 → useCreateAnswer의 onDuplicateAnswer 콜백에서 처리
-      // 그 외 에러 → cache.onError에서 dialog 표시 완료
+      // PUBLIC-QUESTION-004 → onAlreadyAnswered 콜백에서 처리
+      // PUBLIC-QUESTION-005 → onAnswerGone 콜백에서 처리
+      // 그 외 에러 → cache.onError에서 글로벌 dialog 표시
     }
   }, 500);
 
-  const closeAlert = () => {
-    setAlertConfig((prev) => ({ ...prev, visible: false }));
-  };
-
-  // 닫기 버튼 핸들러 - 수정 모드에서 변경사항이 있으면 확인 다이얼로그 표시
   const handleClose = () => {
-    // 생성 모드: 내용이 있으면 팝업
-    // 수정 모드: 변경사항이 있으면 팝업
     const hasContent = answer.trim().length > 0;
     const shouldShowAlert = isEditMode ? isDirty : hasContent;
-
     if (shouldShowAlert) {
-      setAlertConfig({
-        visible: true,
-        title: t('answer:cancelEdit.title'),
-        message: t('answer:cancelEdit.message'),
-        buttons: [
-          { label: t('answer:cancelEdit.continue'), variant: 'default' },
-          { label: t('answer:cancelEdit.exit'), variant: 'primary', onPress: () => router.back() },
-        ],
-      });
+      showDiscardAlert();
     } else {
       router.back();
     }
   };
 
-  // 날짜 포맷팅 함수
   const getFormattedDate = () => {
-    const dateToFormat = new Date(data.date);
+    const dateToFormat = new Date(date);
     const month = dateToFormat.getMonth() + 1;
     const day = dateToFormat.getDate();
     const weekdayKeys = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
@@ -230,7 +202,6 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
       <YStack flex={1} style={{ backgroundColor: accent.background }}>
-        {/* Header - Date & Close Button */}
         <ScreenHeader
           title={getFormattedDate()}
           rightIcon={<CloseIcon size={16} color={theme.color?.val} />}
@@ -238,7 +209,6 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
           rightButtonStyle="filled"
         />
 
-        {/* Scrollable Content */}
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
@@ -246,12 +216,12 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
           showsVerticalScrollIndicator={false}
           nestedScrollEnabled
         >
-          {/* Question Card */}
           <View style={styles.cardContainer}>
             <View style={cardStyles.card}>
-              {/* Question Section */}
               <View style={styles.questionSection}>
-                <Text style={[cardStyles.labelText, { marginBottom: sp(8) }]}>{t('question:labels.question')}</Text>
+                <Text style={[cardStyles.labelText, { marginBottom: sp(8) }]}>
+                  {t('question:labels.question')}
+                </Text>
                 <Text
                   style={cardStyles.questionText}
                   numberOfLines={2}
@@ -260,26 +230,26 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
                   {...(Platform.OS === 'android' && { android_hyphenationFrequency: 'none' })}
                   {...(Platform.OS === 'ios' && { lineBreakMode: 'tail' })}
                 >
-                  {data.question}
+                  {question}
                 </Text>
-                {data.description && (
+                {description ? (
                   <Text
                     style={cardStyles.questionDescription}
                     numberOfLines={1}
                     adjustsFontSizeToFit
                     minimumFontScale={0.85}
                   >
-                    {data.description}
+                    {description}
                   </Text>
-                )}
+                ) : null}
               </View>
 
-              {/* Divider */}
-              <View style={[cardStyles.divider, !data.description && { marginTop: sp(16) }]} />
+              <View style={[cardStyles.divider, !description && { marginTop: sp(16) }]} />
 
-              {/* Answer Section */}
               <View style={styles.answerSection}>
-                <Text style={[cardStyles.labelText, { marginBottom: sp(12) }]}>{t('question:labels.answer')}</Text>
+                <Text style={[cardStyles.labelText, { marginBottom: sp(12) }]}>
+                  {t('question:labels.answer')}
+                </Text>
                 <View style={cardStyles.inputContainer}>
                   <ScrollView
                     style={[styles.answerScroll, { height: resolvedInputHeight }]}
@@ -313,12 +283,13 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
             </View>
           </View>
 
-          {/* Submit Button */}
           <View style={styles.submitContainer}>
             <Pressable
               style={[
                 cardStyles.submitButton,
-                isSubmitEnabled && !isPending ? cardStyles.submitButtonEnabled : cardStyles.submitButtonDisabled,
+                isSubmitEnabled && !isPending
+                  ? cardStyles.submitButtonEnabled
+                  : cardStyles.submitButtonDisabled,
               ]}
               onPress={handleSubmit}
               disabled={!isSubmitEnabled || isPending}
@@ -326,7 +297,9 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
               <Text
                 style={[
                   cardStyles.submitButtonText,
-                  isSubmitEnabled && !isPending ? cardStyles.submitTextEnabled : cardStyles.submitTextDisabled,
+                  isSubmitEnabled && !isPending
+                    ? cardStyles.submitTextEnabled
+                    : cardStyles.submitTextDisabled,
                 ]}
               >
                 {isPending
@@ -338,6 +311,7 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
             </Pressable>
           </View>
         </ScrollView>
+
         {!isAdFreeMember && (
           <View style={{ width: '100%', paddingHorizontal: sp(20) }}>
             <BannerAdSlot disableSafeAreaPadding />
@@ -350,37 +324,21 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
         title={alertConfig.title}
         message={alertConfig.message}
         buttons={alertConfig.buttons}
-        onClose={closeAlert}
+        onClose={() => setAlertConfig((prev) => ({ ...prev, visible: false }))}
       />
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: sp(20),
-  },
-  cardContainer: {
-    flex: 1,
-    paddingHorizontal: sp(20),
-  },
+  container: { flex: 1 },
+  scrollView: { flex: 1 },
+  scrollContent: { flexGrow: 1, paddingBottom: sp(20) },
+  cardContainer: { flex: 1, paddingHorizontal: sp(20) },
   questionSection: {},
-  answerSection: {
-    flex: 1,
-  },
-  answerScroll: {
-    flex: 1,
-  },
-  answerScrollContent: {
-    flexGrow: 1,
-  },
+  answerSection: { flex: 1 },
+  answerScroll: { flex: 1 },
+  answerScrollContent: { flexGrow: 1 },
   submitContainer: {
     paddingHorizontal: sp(20),
     paddingTop: sp(12),

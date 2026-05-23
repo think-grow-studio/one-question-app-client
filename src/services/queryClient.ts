@@ -6,7 +6,16 @@ import type { ApiErrorResponse } from '@/shared/types/api';
  * 코드별 silent 처리 (dialog 표시 생략).
  * 호출자에서 try/catch로 도메인 후속 처리 책임.
  */
-const SILENT_ERROR_CODES = new Set<string>(['QUESTION-004']);
+const SILENT_ERROR_CODES = new Set<string>([
+  'QUESTION-004',
+  // 공개 일일 질문 — 404/409 중 글로벌 dialog 가 어색한 코드들.
+  // 003: 그 날짜에 PDQ 없음 → 화면이 빈 상태로 분기. dialog 불필요.
+  // 004: 이미 답변 → 컴포넌트 local dialog + daily refetch.
+  // 005: 답변 없음/권한 없음 → 컴포넌트 local dialog + daily refetch.
+  'PUBLIC-QUESTION-003',
+  'PUBLIC-QUESTION-004',
+  'PUBLIC-QUESTION-005',
+]);
 
 const handleApiError = (error: unknown) => {
   const apiError = error as ApiErrorResponse;
