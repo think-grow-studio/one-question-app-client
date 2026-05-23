@@ -82,6 +82,8 @@ export default function FeedScreen() {
 }
 
 const styles = StyleSheet.create({
+  // 헤더는 UI chrome 이라 의도적으로 raw dp 사용 (큰 화면에서 헤더만 부풀어 오르는 걸 방지).
+  // 콘텐츠 영역은 반응형 sp()/cs() 사용.
   header: {
     paddingHorizontal: 16,
     paddingTop: 12,

@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet } from 'react-native';
+import { Image, Pressable, StyleSheet } from 'react-native';
 import { XStack, YStack, useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
@@ -6,6 +6,7 @@ import { HeartIcon } from '@/shared/icons/HeartIcon';
 import { useAccentColors } from '@/shared/theme';
 import { getFontStyle } from '@/shared/theme/typography';
 import { fs, sp, radius, cs } from '@/shared/utils/responsive';
+import { pickNicknameCharacter } from '@/shared/utils/nicknameCharacter';
 import { formatFeedDate } from '../utils/feedUtils';
 import type { FeedItemDomain } from '../types/api';
 
@@ -40,6 +41,11 @@ export function MyAnswerCard({ item, onPress }: MyAnswerCardProps) {
             <Text style={styles.nickname} {...getFontStyle('600')} numberOfLines={1}>
               {item.anonymousNickname}
             </Text>
+            <Image
+              source={pickNicknameCharacter(item.anonymousNickname)}
+              style={styles.avatar}
+              resizeMode="contain"
+            />
             <Text muted style={styles.metaDot}>·</Text>
             <Text muted style={styles.meta}>
               {formatFeedDate(item.postedAt)}
@@ -84,6 +90,10 @@ const styles = StyleSheet.create({
   nickname: {
     fontSize: fs(13),
     letterSpacing: -0.2,
+  },
+  avatar: {
+    width: cs(22),
+    height: cs(22),
   },
   metaDot: {
     fontSize: fs(11),
