@@ -14,12 +14,12 @@
     "answer": "Answer"
   },
   "empty": {
-    "noQuestion": "No question for this day",
+    "noQuestion": "Get a new question!",
     "drawQuestion": "Random Question",
     "yearAgo": "Past Question"
   },
   "actions": {
-    "goToAnswer": "Write an answer",
+    "goToAnswer": "Answer",
     "swipeHint": "Swipe left or right to change the date",
     "edit": "Edit"
   },

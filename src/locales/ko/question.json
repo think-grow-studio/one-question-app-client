@@ -14,12 +14,12 @@
     "answer": "답변"
   },
   "empty": {
-    "noQuestion": "이 날의 질문이 없습니다",
+    "noQuestion": "새로운 질문을 받아보세요!",
     "drawQuestion": "랜덤 질문",
     "yearAgo": "과거 질문"
   },
   "actions": {
-    "goToAnswer": "답변하러 가기",
+    "goToAnswer": "답변하기",
     "swipeHint": "좌우로 밀어서 날짜 이동",
     "edit": "수정"
   },

@@ -23,7 +23,7 @@ export function useQuestionCardStyles() {
           borderWidth: 1,
           borderColor: theme.borderColor?.val,
           paddingHorizontal: sp(32),
-          paddingTop: sp(24),
+          paddingTop: sp(16),
           paddingBottom: sp(48),
           flexDirection: 'column' as const,
         },
@@ -118,9 +118,9 @@ export function useQuestionCardStyles() {
 
         // Reload button
         reloadButton: {
-          width: cs(36),
-          height: cs(36),
-          borderRadius: cs(18),
+          width: cs(32),
+          height: cs(32),
+          borderRadius: cs(16),
           backgroundColor: theme.background?.val,
           alignItems: 'center' as const,
           justifyContent: 'center' as const,
@@ -131,7 +131,7 @@ export function useQuestionCardStyles() {
           minWidth: cs(20),
           height: cs(20),
           borderRadius: cs(10),
-          backgroundColor: accent.background,
+          backgroundColor: theme.backgroundSoft?.val,
           alignItems: 'center' as const,
           justifyContent: 'center' as const,
           paddingHorizontal: sp(6),
@@ -139,7 +139,7 @@ export function useQuestionCardStyles() {
         reloadCountText: {
           fontSize: fs(12),
           ...getFontStyle('600'),
-          color: accent.primary,
+          color: theme.colorMuted?.val,
         },
 
         // Empty state

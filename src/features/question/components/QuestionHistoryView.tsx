@@ -33,8 +33,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import { DatePickerSheet } from './DatePickerSheet';
 import { ReloadOptionSheet } from '@/features/answer/components/ReloadOptionSheet';
 import { getFontStyle } from '@/shared/theme/typography';
+import { useAccentColors } from '@/shared/theme';
 import { formatLocalDate } from '@/shared/utils/date';
-import { SCREEN, sp } from '@/shared/utils/responsive';
+import { SCREEN, sp, cs } from '@/shared/utils/responsive';
 import { canReloadQuestion, getReloadCountDisplay } from '../constants/limits';
 import { logEvent, AnalyticsEvents } from '@/services/firebase';
 import { QuestionLikeButton } from './QuestionLikeButton';
@@ -46,6 +47,7 @@ const getTodayDateString = () => formatLocalDate();
 export const QuestionHistoryView = memo(function QuestionHistoryView() {
   const router = useRouter();
   const theme = useTheme();
+  const accent = useAccentColors();
   const { t } = useTranslation(['question', 'common', 'answer']);
   const { currentDate, setCurrentDate, setIsDatePickerVisible } = useDatePickerStore();
   const { direction, setDirectionForNextDay, setDirectionForPreviousDay } = useSlideDirectionStore();
@@ -527,15 +529,12 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
         <View style={styles.contentWrapper}>
           <View style={[cardStyles.card, cardStyles.cardFull]}>
             <View style={styles.questionSection}>
-              <XStack ai="center" jc="space-between" mb="$3" style={styles.questionHeader}>
-                <XStack ai="center" gap="$2">
-                  <Text style={cardStyles.labelText}>{t('labels.question')}</Text>
-                  <QuestionLikeButton
-                    questionId={currentHistory!.question!.questionId}
-                    date={currentHistory!.date}
-                    initialLiked={currentHistory!.question!.liked}
-                  />
-                </XStack>
+              <XStack ai="center" jc="space-between" mb="$2" style={styles.questionHeader}>
+                <QuestionLikeButton
+                  questionId={currentHistory!.question!.questionId}
+                  date={currentHistory!.date}
+                  initialLiked={currentHistory!.question!.liked}
+                />
                 {/* 답변이 없을 때만 reload 버튼 표시 */}
                 {!currentItem.answer && (
                   <XStack ai="center" gap="$2">
@@ -552,7 +551,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
                     >
                       <ReloadIcon
                         size={18}
-                        color={canReload ? theme.color?.val : theme.colorMuted?.val}
+                        color={canReload ? accent.primary : theme.colorMuted?.val}
                       />
                     </Pressable>
                   </XStack>
@@ -566,6 +565,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
                 {...(Platform.OS === 'android' && { android_hyphenationFrequency: 'none' })}
                 {...(Platform.OS === 'ios' && { lineBreakMode: 'tail' })}
               >
+                <Text style={[cardStyles.questionText, { color: accent.primary }]}>Q. </Text>
                 {currentItem.question}
               </Text>
               {currentItem.description && (
@@ -586,17 +586,16 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
               {currentItem.answer ? (
                 <>
                   <XStack ai="center" jc="space-between" mb="$2">
-                    <Text style={cardStyles.labelText}>{t('labels.answer')}</Text>
+                    <Text style={[cardStyles.writtenDateText, { marginTop: 0 }]}>
+                      {t('writtenDate', { date: currentItem.answeredAt ? formatDate(currentItem.answeredAt.split('T')[0]) : formatDate(currentDate) })}
+                    </Text>
                     <Pressable onPress={handleEditAnswer} style={styles.editButton} hitSlop={8}>
-                      <EditIcon size={14} color={theme.colorMuted?.val} />
-                      <Text style={[styles.editButtonText, { color: theme.colorMuted?.val }]}>
+                      <EditIcon size={14} color={accent.primary} />
+                      <Text style={[styles.editButtonText, { color: accent.primary }]}>
                         {t('actions.edit')}
                       </Text>
                     </Pressable>
                   </XStack>
-                  <Text style={[cardStyles.writtenDateText, { marginTop: 0, marginBottom: 12 }]}>
-                    {t('writtenDate', { date: currentItem.answeredAt ? formatDate(currentItem.answeredAt.split('T')[0]) : formatDate(currentDate) })}
-                  </Text>
                   <ScrollView
                     style={styles.answerScroll}
                     contentContainerStyle={styles.answerScrollContent}
@@ -658,7 +657,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
       {/* Header - Date & Calendar */}
       <ScreenHeader
         title={formatDate(currentDate)}
-        rightIcon={<CalendarIcon size={28} color={theme.color?.val} />}
+        rightIcon={<CalendarIcon size={28} color={accent.primary} />}
         onRightPress={handleOpenDatePicker}
         rightButtonStyle="plain"
       />
@@ -730,7 +729,7 @@ const styles = StyleSheet.create({
   },
   questionSection: {},
   questionHeader: {
-    minHeight: 32,
+    minHeight: cs(28),
   },
   answerSection: {
     flex: 1, // 나머지 공간 전부 차지
