@@ -30,23 +30,26 @@ export function AnswerCard({ item, onPress, onToggleLike, likeDisabled }: Answer
   const [liked, setLiked] = useState(item.liked);
   const [likeCount, setLikeCount] = useState(item.likeCount);
 
-  const applyLiked = (next: boolean) => {
-    if (next === liked) return;
-    setLiked(next);
-    setLikeCount((c) => c + (next ? 1 : -1));
-  };
-
   const handleToggleLike = async () => {
     if (likeDisabled) return;
-    if (!onToggleLike) {
-      applyLiked(!liked);
-      return;
-    }
+    // async 대기 중 리렌더가 발생해도 stale closure 없이 동작하도록
+    // 호출 시점 값을 const 로 캡처한 뒤 직접 setter 호출.
+    const prevLiked = liked;
+    const nextLiked = !prevLiked;
+
+    setLiked(nextLiked);
+    setLikeCount((c) => c + (nextLiked ? 1 : -1));
+
+    if (!onToggleLike) return;
     try {
-      const serverLiked = await Promise.resolve(onToggleLike(item));
-      applyLiked(serverLiked);
+      const serverLiked = !!(await Promise.resolve(onToggleLike(item)));
+      if (serverLiked !== nextLiked) {
+        setLiked(serverLiked);
+        setLikeCount((c) => c + (serverLiked ? 1 : -1));
+      }
     } catch {
-      // mutation cache.onError 가 글로벌 dialog 로 표시. row state 는 그대로 유지.
+      setLiked(prevLiked);
+      setLikeCount((c) => c + (prevLiked ? 1 : -1));
     }
   };
 
@@ -84,7 +87,7 @@ export function AnswerCard({ item, onPress, onToggleLike, likeDisabled }: Answer
             resizeMode="contain"
           />
           <Text muted style={styles.metaDot}>·</Text>
-          <Text muted style={styles.meta}>
+          <Text style={[styles.meta, { color: accent.primary }]}>
             {formatFeedDate(item.postedAt)}
           </Text>
         </XStack>

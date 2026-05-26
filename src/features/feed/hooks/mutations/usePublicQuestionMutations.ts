@@ -98,8 +98,7 @@ export function useDeletePublicAnswer(options?: {
   });
 }
 
-// 좋아요 토글: 응답의 새 `liked` 값을 호출부가 받아 row local state 를 갱신한다.
-// 캐시 미사용 정책상 무한 query 전체 invalidate 는 UX 비효율 — 추후 캐시 도입 시 optimistic update 로 승격.
+// 좋아요 토글: AnswerCard 가 낙관적으로 로컬 상태를 먼저 반영하고, 응답의 `liked` 값으로 보정한다.
 export function useTogglePublicAnswerLike() {
   return useMutation<
     ToggleLikeDto,

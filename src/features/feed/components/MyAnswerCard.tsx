@@ -49,7 +49,7 @@ export function MyAnswerCard({ item, onEdit, onDelete }: MyAnswerCardProps) {
               resizeMode="contain"
             />
             <Text muted style={styles.metaDot}>·</Text>
-            <Text muted style={styles.meta}>
+            <Text style={[styles.meta, { color: accent.primary }]}>
               {formatFeedDate(item.postedAt)}
             </Text>
           </XStack>
