@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { YStack, XStack, useTheme } from 'tamagui';
 import { FlashList } from '@shopify/flash-list';
@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
 import { BackIcon } from '@/shared/icons/BackIcon';
+import { FloatingActionButton } from '@/shared/ui/FloatingActionButton';
 import { useAccentColors } from '@/shared/theme';
 import { getFontStyle } from '@/shared/theme/typography';
 import { fs, sp, cs } from '@/shared/utils/responsive';
@@ -21,7 +22,7 @@ import {
   type FeedItemDomain,
   type PublicAnswerDomain,
 } from '../types/api';
-import { toServiceDateString } from '../utils/feedUtils';
+import { getServiceToday, toServiceDateString } from '../utils/feedUtils';
 
 interface CommonQuestionFeedProps {}
 
@@ -64,13 +65,15 @@ export function CommonQuestionFeed(_props: CommonQuestionFeedProps) {
   const accent = useAccentColors();
   const router = useRouter();
 
+  const todayStr = useMemo(() => getServiceToday(), []);
   const today = useMemo(() => startOfDay(new Date()), []);
   const [selectedDate, setSelectedDate] = useState<Date>(today);
 
   const canGoNext = !isSameDay(selectedDate, today);
 
   // 선택 날짜 기준 PDQ 조회. `selectedDate` 가 바뀌면 새 query 가 발동 (캐시 미사용 정책).
-  const dateStr = toServiceDateString(selectedDate);
+  // 오늘 날짜는 feed.tsx 와 동일한 KST 기준 문자열 사용 → 쿼리 키 일치 보장.
+  const dateStr = isSameDay(selectedDate, today) ? todayStr : toServiceDateString(selectedDate);
   const dailyQuery = useDailyPublicQuestion(dateStr);
   const pdq = dailyQuery.data;
   const pdqId = pdq?.publicDailyQuestionId;
@@ -116,6 +119,21 @@ export function CommonQuestionFeed(_props: CommonQuestionFeedProps) {
     });
   };
 
+  // 현재 선택된 날짜의 PDQ 에 답변 작성. 과거 날짜도 동일하게 동작 (서버가 거부하면 글로벌 에러로 표시).
+  const handleWrite = () => {
+    if (!pdq) return;
+    router.push({
+      pathname: '/answer',
+      params: {
+        source: 'feed',
+        pdqId: String(pdq.publicDailyQuestionId),
+        date: dateStr,
+        question: pdq.content,
+        description: pdq.description ?? '',
+      },
+    });
+  };
+
   const handleMyAnswerEdit = () => {
     if (!pdq?.myAnswer) return;
     router.push({
@@ -133,11 +151,14 @@ export function CommonQuestionFeed(_props: CommonQuestionFeedProps) {
     });
   };
 
-  const handleAnswerToggleLike = async (item: FeedItemDomain) => {
-    if (!pdqId) throw new Error('No PDQ id');
-    const res = await toggleLike.mutateAsync({ pdqId, answerId: item.answerPostId });
-    return res.liked;
-  };
+  const handleAnswerToggleLike = useCallback(
+    (item: FeedItemDomain) => {
+      if (!pdqId) return;
+      // fire-and-forget — mutation hook 이 캐시 낙관 업데이트 / 롤백 / 보정 모두 담당.
+      toggleLike.mutate({ pdqId, answerId: item.answerPostId });
+    },
+    [pdqId, toggleLike],
+  );
 
   const handleEndReached = () => {
     if (answersQuery.hasNextPage && !answersQuery.isFetchingNextPage) {
@@ -150,7 +171,8 @@ export function CommonQuestionFeed(_props: CommonQuestionFeedProps) {
 
   const handleRefresh = () => {
     void dailyQuery.refetch();
-    void answersQuery.refetch();
+    // 무한 페이지 누적 캐시는 비우고 첫 페이지부터 — 표준 피드 UX + refetch 비용 절감.
+    answersQuery.resetPagination();
   };
 
   const weekdays = useMemo(() => {
@@ -230,7 +252,20 @@ export function CommonQuestionFeed(_props: CommonQuestionFeedProps) {
   const isLoadingInitial = dailyQuery.isLoading;
   // 404 (PUBLIC-QUESTION-003) — PDQ 없는 날. 빈 상태 화면.
   const isPdqMissing = dailyQuery.isError && !dailyQuery.isLoading;
-  const isEmpty = !isLoadingInitial && (isPdqMissing || (items.length === 0 && !myAnswerItem));
+  // PDQ 는 있지만 답변이 하나도 없을 때 — FAB 으로 작성 유도.
+  const isAnswersEmpty = !isLoadingInitial && !!pdq && items.length === 0 && !myAnswerItem;
+  const isEmpty = !isLoadingInitial && (isPdqMissing || isAnswersEmpty);
+
+  const renderAnswerItem = useCallback(
+    ({ item }: { item: FeedItemDomain }) => (
+      <AnswerCard
+        item={item}
+        onToggleLike={handleAnswerToggleLike}
+        likeDisabled={item.answerPostId === myAnswerId}
+      />
+    ),
+    [handleAnswerToggleLike, myAnswerId],
+  );
 
   return (
     <YStack flex={1}>
@@ -255,23 +290,17 @@ export function CommonQuestionFeed(_props: CommonQuestionFeedProps) {
           }
         >
           <Text variant="body" muted center>
-            {t('empty')}
+            {t(isPdqMissing ? 'noPdq' : 'empty')}
           </Text>
           <Text variant="caption" muted center>
-            {t('emptyDesc')}
+            {t(isPdqMissing ? 'noPdqDesc' : 'emptyDesc')}
           </Text>
         </ScrollView>
       ) : (
         <View style={styles.listWrap}>
           <FlashList<FeedItemDomain>
             data={items}
-            renderItem={({ item }) => (
-              <AnswerCard
-                item={item}
-                onToggleLike={handleAnswerToggleLike}
-                likeDisabled={item.answerPostId === myAnswerId}
-              />
-            )}
+            renderItem={renderAnswerItem}
             keyExtractor={(item) => String(item.answerPostId)}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
@@ -298,6 +327,15 @@ export function CommonQuestionFeed(_props: CommonQuestionFeedProps) {
           />
         </View>
       )}
+
+      {/* 선택된 날짜의 PDQ 에 내 답변이 없을 때만 FAB 노출. 과거 날짜도 동일. */}
+      {pdq && !pdq.myAnswer ? (
+        <FloatingActionButton
+          onPress={handleWrite}
+          aboveTabBar
+          label={t('writeButton')}
+        />
+      ) : null}
     </YStack>
   );
 }

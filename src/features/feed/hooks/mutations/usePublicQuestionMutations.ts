@@ -1,11 +1,18 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, type InfiniteData } from '@tanstack/react-query';
 import type { ApiErrorResponse } from '@/shared/types/api';
 import { publicQuestionApi } from '../../api/publicQuestionApi';
 import type {
+  PublicAnswerDomain,
+  PublicAnswerListDto,
   PublicAnswerWriteDto,
+  PublicDailyQuestionDto,
   ToggleLikeDto,
 } from '../../types/api';
 import { publicQuestionQueryKeys } from '../queries/usePublicQuestionQueries';
+
+// 무한 쿼리에 저장되는 페이지 타입 — items 가 domain 으로 매핑된 형태.
+type AnswersPage = Omit<PublicAnswerListDto, 'items'> & { items: PublicAnswerDomain[] };
+type AnswersInfiniteData = InfiniteData<AnswersPage>;
 
 interface SilentInfo {
   message: string;
@@ -82,12 +89,29 @@ export function useDeletePublicAnswer(options?: {
   return useMutation<
     void,
     ApiErrorResponse,
-    { pdqId: number; answerId: number; date: string }
+    { pdqId: number; answerId: number; date: string },
+    { snapshot: PublicDailyQuestionDto | undefined }
   >({
     mutationFn: ({ pdqId, answerId }) =>
       publicQuestionApi.deleteAnswer(pdqId, answerId).then(() => undefined),
+    // 삭제 확인 즉시 myAnswer 를 null 로 낙관적 업데이트 → FAB 즉시 표시.
+    onMutate: async ({ date }) => {
+      await queryClient.cancelQueries({ queryKey: publicQuestionQueryKeys.daily(date) });
+      const snapshot = queryClient.getQueryData<PublicDailyQuestionDto>(
+        publicQuestionQueryKeys.daily(date),
+      );
+      queryClient.setQueryData<PublicDailyQuestionDto>(
+        publicQuestionQueryKeys.daily(date),
+        (old) => (old ? { ...old, myAnswer: null } : old),
+      );
+      return { snapshot };
+    },
     onSuccess: (_, { date }) => invalidateDaily(date),
-    onError: (error, { date }) => {
+    onError: (error, { date }, context) => {
+      // 실패 시 롤백
+      if (context?.snapshot !== undefined) {
+        queryClient.setQueryData(publicQuestionQueryKeys.daily(date), context.snapshot);
+      }
       if (error?.code === 'PUBLIC-QUESTION-005') {
         options?.onAnswerGone?.({
           message: error.message,
@@ -98,14 +122,70 @@ export function useDeletePublicAnswer(options?: {
   });
 }
 
-// 좋아요 토글: AnswerCard 가 낙관적으로 로컬 상태를 먼저 반영하고, 응답의 `liked` 값으로 보정한다.
+// 좋아요 토글: TanStack Query 캐시를 단일 source of truth 로 유지.
+// onMutate 에서 무한 쿼리의 해당 answer 항목을 직접 낙관적 업데이트 → AnswerCard 는 prop 만 렌더.
+// 서버 refetch 시 자동으로 다른 사용자 토글까지 반영됨 (다중 디바이스 동기화).
 export function useTogglePublicAnswerLike() {
+  const queryClient = useQueryClient();
+
+  const updateAnswerInCache = (
+    pdqId: number,
+    answerId: number,
+    updater: (a: PublicAnswerDomain) => PublicAnswerDomain,
+  ) => {
+    queryClient.setQueryData<AnswersInfiniteData>(
+      publicQuestionQueryKeys.answers(pdqId),
+      (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page) => ({
+            ...page,
+            items: page.items.map((it) =>
+              it.publicDailyQuestionAnswerId === answerId ? updater(it) : it,
+            ),
+          })),
+        };
+      },
+    );
+  };
+
   return useMutation<
     ToggleLikeDto,
     ApiErrorResponse,
-    { pdqId: number; answerId: number }
+    { pdqId: number; answerId: number },
+    { snapshot: AnswersInfiniteData | undefined }
   >({
     mutationFn: ({ pdqId, answerId }) =>
       publicQuestionApi.toggleLike(pdqId, answerId).then((r) => r.data),
+    onMutate: async ({ pdqId, answerId }) => {
+      await queryClient.cancelQueries({ queryKey: publicQuestionQueryKeys.answers(pdqId) });
+      const snapshot = queryClient.getQueryData<AnswersInfiniteData>(
+        publicQuestionQueryKeys.answers(pdqId),
+      );
+      updateAnswerInCache(pdqId, answerId, (a) => ({
+        ...a,
+        liked: !a.liked,
+        likeCount: a.likeCount + (a.liked ? -1 : 1),
+      }));
+      return { snapshot };
+    },
+    onError: (_err, { pdqId }, context) => {
+      // 롤백
+      if (context?.snapshot !== undefined) {
+        queryClient.setQueryData(publicQuestionQueryKeys.answers(pdqId), context.snapshot);
+      }
+    },
+    onSuccess: (data, { pdqId, answerId }) => {
+      // 서버 응답 liked 와 낙관 결과가 다르면 보정 (드물지만 race 대비).
+      updateAnswerInCache(pdqId, answerId, (a) => {
+        if (a.liked === data.liked) return a;
+        return {
+          ...a,
+          liked: data.liked,
+          likeCount: a.likeCount + (data.liked ? 1 : -1),
+        };
+      });
+    },
   });
 }

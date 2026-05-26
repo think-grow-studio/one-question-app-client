@@ -2,6 +2,8 @@
   "infoButtonA11y": "Show guide",
   "empty": "No public answers yet",
   "emptyDesc": "Be the first to share your answer",
+  "noPdq": "No question for this day",
+  "noPdqDesc": "Try checking another date",
   "loading": "Loading...",
   "todayQuestionLabel": "Today's Question",
   "pastQuestionLabel": "Past Question",

@@ -2,6 +2,8 @@
   "infoButtonA11y": "안내 보기",
   "empty": "아직 공개된 답변이 없어요",
   "emptyDesc": "첫 번째로 답변을 공유해보세요",
+  "noPdq": "이 날에는 질문이 없어요",
+  "noPdqDesc": "다른 날을 확인해보세요",
   "loading": "불러오는 중...",
   "todayQuestionLabel": "오늘의 질문",
   "pastQuestionLabel": "지난 질문",

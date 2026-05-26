@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Image, Platform, Pressable, StyleSheet } from 'react-native';
 import { YStack, XStack, useTheme } from 'tamagui';
 import { Text } from '@/shared/ui/Text';
@@ -14,11 +13,11 @@ interface AnswerCardProps {
   item: FeedItemDomain;
   onPress?: () => void;
   /**
-   * 서버 토글 결과의 `liked` 값을 반환. 호출부(부모)가 mutation 을 소유하므로
-   * `item.answerPostId` 외에 `pdqId` 같은 컨텍스트를 카드가 알 필요가 없다.
-   * 미지정 시 로컬 토글만 수행 (mock / preview 환경 호환).
+   * 좋아요 토글 요청. 캐시 낙관 업데이트 / 롤백은 mutation hook 이 담당하므로
+   * 카드는 fire-and-forget 으로 호출만 한다. `liked` / `likeCount` 는 `item` prop
+   * (= 캐시 = single source of truth) 을 그대로 렌더.
    */
-  onToggleLike?: (item: FeedItemDomain) => Promise<boolean> | boolean;
+  onToggleLike?: (item: FeedItemDomain) => void;
   /** 본인 답변 등 좋아요 누를 수 없는 경우. */
   likeDisabled?: boolean;
 }
@@ -27,31 +26,13 @@ export function AnswerCard({ item, onPress, onToggleLike, likeDisabled }: Answer
   const theme = useTheme();
   const accent = useAccentColors();
 
-  const [liked, setLiked] = useState(item.liked);
-  const [likeCount, setLikeCount] = useState(item.likeCount);
-
-  const handleToggleLike = async () => {
+  const handleToggleLike = () => {
     if (likeDisabled) return;
-    // async 대기 중 리렌더가 발생해도 stale closure 없이 동작하도록
-    // 호출 시점 값을 const 로 캡처한 뒤 직접 setter 호출.
-    const prevLiked = liked;
-    const nextLiked = !prevLiked;
-
-    setLiked(nextLiked);
-    setLikeCount((c) => c + (nextLiked ? 1 : -1));
-
-    if (!onToggleLike) return;
-    try {
-      const serverLiked = !!(await Promise.resolve(onToggleLike(item)));
-      if (serverLiked !== nextLiked) {
-        setLiked(serverLiked);
-        setLikeCount((c) => c + (serverLiked ? 1 : -1));
-      }
-    } catch {
-      setLiked(prevLiked);
-      setLikeCount((c) => c + (prevLiked ? 1 : -1));
-    }
+    onToggleLike?.(item);
   };
+
+  const liked = item.liked;
+  const likeCount = item.likeCount;
 
   return (
     <Pressable

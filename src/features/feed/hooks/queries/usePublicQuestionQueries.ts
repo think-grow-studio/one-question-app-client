@@ -1,4 +1,5 @@
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useCallback } from 'react';
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { publicQuestionApi } from '../../api/publicQuestionApi';
 import {
   fromPublicAnswerDto,
@@ -27,7 +28,9 @@ export function useDailyPublicQuestion(date: string) {
 }
 
 export function useInfinitePublicAnswers(pdqId: number | undefined) {
-  return useInfiniteQuery({
+  const queryClient = useQueryClient();
+
+  const query = useInfiniteQuery({
     queryKey: publicQuestionQueryKeys.answers(pdqId ?? -1),
     queryFn: async ({ pageParam }) => {
       const res = await publicQuestionApi.listAnswers(pdqId as number, {
@@ -46,4 +49,14 @@ export function useInfinitePublicAnswers(pdqId: number | undefined) {
     enabled: pdqId !== undefined,
     ...NO_CACHE,
   });
+
+  // pull-to-refresh 용 — 페이지 누적 캐시를 비우고 첫 페이지부터 다시 fetch.
+  // 1000 개 답변 스크롤 후 refetch 하면 전체 페이지 일괄 다운로드되는 비용을 회피.
+  // 컴포넌트가 query key 를 모르도록 closure 로 캡슐화 (§15.2).
+  const resetPagination = useCallback(() => {
+    if (pdqId === undefined) return;
+    void queryClient.resetQueries({ queryKey: publicQuestionQueryKeys.answers(pdqId) });
+  }, [pdqId, queryClient]);
+
+  return Object.assign(query, { resetPagination });
 }
