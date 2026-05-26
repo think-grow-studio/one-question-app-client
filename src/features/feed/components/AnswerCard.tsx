@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Image, Platform, Pressable, StyleSheet } from 'react-native';
 import { YStack, XStack, useTheme } from 'tamagui';
 import { Text } from '@/shared/ui/Text';
@@ -22,7 +23,7 @@ interface AnswerCardProps {
   likeDisabled?: boolean;
 }
 
-export function AnswerCard({ item, onPress, onToggleLike, likeDisabled }: AnswerCardProps) {
+function AnswerCardImpl({ item, onPress, onToggleLike, likeDisabled }: AnswerCardProps) {
   const theme = useTheme();
   const accent = useAccentColors();
 
@@ -111,6 +112,10 @@ export function AnswerCard({ item, onPress, onToggleLike, likeDisabled }: Answer
     </Pressable>
   );
 }
+
+// FlashList 안에서 캐시 변경으로 부모가 리렌더돼도 같은 item ref 면 skip.
+// 좋아요 토글로 변경된 카드만 다시 렌더 (§18.1 useMemo / React.memo).
+export const AnswerCard = memo(AnswerCardImpl);
 
 const styles = StyleSheet.create({
   card: {

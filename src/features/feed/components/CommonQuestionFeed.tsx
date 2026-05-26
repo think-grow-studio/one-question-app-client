@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { GestureDetector } from 'react-native-gesture-handler';
 import { YStack, XStack, useTheme } from 'tamagui';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
@@ -22,42 +23,18 @@ import {
   type FeedItemDomain,
   type PublicAnswerDomain,
 } from '../types/api';
-import { getServiceToday, toServiceDateString } from '../utils/feedUtils';
+import {
+  addDays,
+  formatQuestionDate,
+  getServiceToday,
+  isSameDay,
+  MIN_FEED_DATE,
+  startOfDay,
+  toServiceDateString,
+} from '../utils/feedUtils';
+import { AnimatedView, useDateSwipePager } from '../hooks/useDateSwipePager';
 
 interface CommonQuestionFeedProps {}
-
-const EN_MONTHS = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-];
-
-function startOfDay(d: Date): Date {
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  return x;
-}
-
-function addDays(d: Date, days: number): Date {
-  const x = new Date(d);
-  x.setDate(x.getDate() + days);
-  return x;
-}
-
-function isSameDay(a: Date, b: Date): boolean {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
-}
-
-function formatQuestionDate(date: Date, lang: string, weekdays: string[]): string {
-  const wd = weekdays[date.getDay()] ?? '';
-  if (lang.startsWith('ko')) {
-    return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일 (${wd})`;
-  }
-  return `${EN_MONTHS[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()} (${wd})`;
-}
 
 export function CommonQuestionFeed(_props: CommonQuestionFeedProps) {
   const { t, i18n } = useTranslation('feed');
@@ -74,6 +51,7 @@ export function CommonQuestionFeed(_props: CommonQuestionFeedProps) {
   // 선택 날짜 기준 PDQ 조회. `selectedDate` 가 바뀌면 새 query 가 발동 (캐시 미사용 정책).
   // 오늘 날짜는 feed.tsx 와 동일한 KST 기준 문자열 사용 → 쿼리 키 일치 보장.
   const dateStr = isSameDay(selectedDate, today) ? todayStr : toServiceDateString(selectedDate);
+  const canGoPrev = dateStr > MIN_FEED_DATE;
   const dailyQuery = useDailyPublicQuestion(dateStr);
   const pdq = dailyQuery.data;
   const pdqId = pdq?.publicDailyQuestionId;
@@ -182,10 +160,21 @@ export function CommonQuestionFeed(_props: CommonQuestionFeedProps) {
 
   const dateLabel = formatQuestionDate(selectedDate, i18n.language ?? 'ko', weekdays);
 
-  const handlePrev = () => setSelectedDate((d) => addDays(d, -1));
-  const handleNext = () => {
-    if (canGoNext) setSelectedDate((d) => addDays(d, 1));
-  };
+  const handlePrev = useCallback(() => {
+    if (!canGoPrev) return;
+    setSelectedDate((d) => addDays(d, -1));
+  }, [canGoPrev]);
+  const handleNext = useCallback(() => {
+    if (!canGoNext) return;
+    setSelectedDate((d) => addDays(d, 1));
+  }, [canGoNext]);
+
+  const { gesture: swipePan, slideStyle } = useDateSwipePager({
+    onNext: handleNext,
+    onPrev: handlePrev,
+    canGoNext,
+    canGoPrev,
+  });
 
   const arrowColor = theme.color?.val ?? '#000';
   const arrowMutedColor = theme.colorMuted?.val ?? '#bbb';
@@ -196,13 +185,14 @@ export function CommonQuestionFeed(_props: CommonQuestionFeedProps) {
       <XStack alignItems="center" justifyContent="center" gap={sp(8)} mb={sp(14)}>
         <Pressable
           onPress={handlePrev}
+          disabled={!canGoPrev}
           hitSlop={12}
           style={({ pressed }) => [
             styles.arrowBtn,
-            { opacity: pressed ? 0.5 : 1 },
+            { opacity: !canGoPrev ? 0.35 : pressed ? 0.5 : 1 },
           ]}
         >
-          <BackIcon size={cs(18)} color={arrowColor} />
+          <BackIcon size={cs(18)} color={canGoPrev ? arrowColor : arrowMutedColor} />
         </Pressable>
 
         <Text style={styles.dateText} {...getFontStyle('600')}>
@@ -269,10 +259,12 @@ export function CommonQuestionFeed(_props: CommonQuestionFeedProps) {
 
   return (
     <YStack flex={1}>
-      {/* Fixed question card */}
-      {questionCard}
+      <GestureDetector gesture={swipePan}>
+        <AnimatedView style={[styles.swipeContainer, slideStyle]}>
+          {/* Fixed question card */}
+          {questionCard}
 
-      {isLoadingInitial ? (
+          {isLoadingInitial ? (
         <YStack flex={1} justifyContent="center" alignItems="center">
           <ActivityIndicator color={accent.primary} />
         </YStack>
@@ -327,8 +319,11 @@ export function CommonQuestionFeed(_props: CommonQuestionFeedProps) {
           />
         </View>
       )}
+        </AnimatedView>
+      </GestureDetector>
 
-      {/* 선택된 날짜의 PDQ 에 내 답변이 없을 때만 FAB 노출. 과거 날짜도 동일. */}
+      {/* 선택된 날짜의 PDQ 에 내 답변이 없을 때만 FAB 노출. 과거 날짜도 동일.
+          FAB 은 swipe 영역 밖에 두어 슬라이드와 무관하게 고정. */}
       {pdq && !pdq.myAnswer ? (
         <FloatingActionButton
           onPress={handleWrite}
@@ -341,6 +336,9 @@ export function CommonQuestionFeed(_props: CommonQuestionFeedProps) {
 }
 
 const styles = StyleSheet.create({
+  swipeContainer: {
+    flex: 1,
+  },
   questionWrap: {
     paddingHorizontal: sp(24),
     paddingTop: sp(12),
