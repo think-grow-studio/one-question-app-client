@@ -93,7 +93,7 @@ export function useQuestionCardStyles() {
           marginHorizontal: sp(-16),
           paddingHorizontal: sp(24),
           paddingTop: sp(16),
-          paddingBottom: sp(18),
+          paddingBottom: sp(28),
           backgroundColor: isDark ? theme.background?.val : theme.backgroundSoft?.val,
         },
 
