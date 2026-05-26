@@ -7,7 +7,6 @@ import { HomeIcon } from '@/shared/icons/HomeIcon';
 import { FeedIcon } from '@/shared/icons/FeedIcon';
 import { SettingsIcon } from '@/shared/icons/SettingsIcon';
 import { useAccentColors, getFontStyle } from '@/shared/theme';
-import { ENABLE_PUBLIC_FEED } from '@/shared/constants/features';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 import { useDatePickerStore } from '@/features/question/stores/useDatePickerStore';
 import { formatLocalDate } from '@/shared/utils/date';
@@ -45,7 +44,6 @@ export default function TabLayout() {
         name="feed"
         options={{
           title: t('tabs.feed'),
-          href: ENABLE_PUBLIC_FEED ? undefined : null,
           tabBarIcon: ({ color, focused }) => (
             <FeedIcon size={24} color={color} active={focused} />
           ),
