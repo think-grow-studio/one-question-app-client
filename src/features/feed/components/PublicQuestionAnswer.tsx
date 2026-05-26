@@ -166,8 +166,9 @@ export function PublicQuestionAnswer({
         await createMutation.mutateAsync({ pdqId, date, content: answer.trim() });
       }
 
-      // 과거 날짜 + 비 ad-free 회원 → API 성공 후 광고 먼저, alert 은 광고 닫힌 후.
-      if (isPastDate && !isAdFreeMember) {
+      // 과거 날짜 신규 작성 + 비 ad-free 회원 → API 성공 후 광고 먼저, alert 은 광고 닫힌 후.
+      // 수정(edit) 흐름은 광고 없음 — 이미 본 광고를 또 보이는 건 과한 마찰.
+      if (isPastDate && !isAdFreeMember && !isEditMode) {
         await showPastAnswerAd();
       }
 
@@ -324,8 +325,8 @@ export function PublicQuestionAnswer({
                       ? t('answer:submitEdit')
                       : t('answer:submit')}
                 </Text>
-                {/* 과거 날짜 + 광고 회원 → 작성 완료 시 전면 광고 노출 미리 안내. */}
-                {isPastDate && !isAdFreeMember ? <AdBadge size="compact" /> : null}
+                {/* 과거 날짜 신규 작성 + 광고 회원 → 작성 완료 시 전면 광고 노출 미리 안내. 수정은 광고 없음. */}
+                {isPastDate && !isAdFreeMember && !isEditMode ? <AdBadge size="compact" /> : null}
               </View>
             </Pressable>
           </View>
