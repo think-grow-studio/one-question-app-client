@@ -36,7 +36,7 @@ export function useInfinitePublicAnswers(pdqId: number | undefined) {
       const res = await publicQuestionApi.listAnswers(pdqId as number, {
         cursorAnsweredAt: pageParam?.answeredAt,
         cursorId: pageParam?.id,
-        size: 20,
+        size: 10,
       });
       return {
         ...res.data,
