@@ -1,0 +1,43 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "admob",
+    "Pressable",
+    "tamagui",
+    "netinfo",
+    "reanimated",
+    "tanstack",
+    "zustand",
+    "expo",
+    "refetch",
+    "crashlytics",
+    "interceptor",
+    "interceptors",
+    "mutations",
+    "queries",
+    "FlashList",
+    "interstitial",
+    "rewarded",
+    "Lottie",
+    "Moti",
+    "Bodymovin",
+    "haptics",
+    "worklet",
+    "worklets",
+    "memoized",
+    "memoize",
+    "snapshot",
+    "PDQ",
+    "pdq"
+  ],
+  "ignorePaths": [
+    "node_modules/**",
+    "ios/**",
+    "android/**",
+    ".expo/**",
+    "dist/**",
+    "*.lock",
+    "*.json"
+  ]
+}
