@@ -6,6 +6,8 @@
     "start": "expo start",
     "clear": "expo start --clear",
     "android": "rm -rf ./android && APP_ENV=preview expo run:android",
+    "android-device": "APP_ENV=preview NODE_ENV=development expo run:android --variant release --device",
+    "android-device-clear": "rm -rf ./android && APP_ENV=preview NODE_ENV=development expo run:android --variant release --device",
     "ios": "rm -rf ./ios && APP_ENV=preview expo run:ios",
     "ios-device": "APP_ENV=preview NODE_ENV=development expo run:ios --device --configuration Release",
     "ios-device-clear": "rm -rf ./ios && APP_ENV=preview NODE_ENV=development expo run:ios --device --configuration Release",
