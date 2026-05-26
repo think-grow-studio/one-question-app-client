@@ -70,8 +70,8 @@ export function MyAnswerCard({ item, onEdit, onDelete }: MyAnswerCardProps) {
           </XStack>
         </XStack>
 
-        {/* Answer body — 2 line preview */}
-        <Text style={styles.answerText} numberOfLines={4}>
+        {/* Answer body — 3줄까지 노출, 초과 시 ... 로 잘림. AnswerCard 와 동일 정책. */}
+        <Text style={styles.answerText} numberOfLines={3} ellipsizeMode="tail">
           {item.answerContent}
         </Text>
 

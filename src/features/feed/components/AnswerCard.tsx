@@ -74,8 +74,8 @@ function AnswerCardImpl({ item, onPress, onToggleLike, likeDisabled }: AnswerCar
           </Text>
         </XStack>
 
-        {/* Answer content */}
-        <Text style={styles.answerText}>
+        {/* Answer content — 3줄 까지 노출, 초과 시 ... 로 잘림. 전체는 추후 상세 시트에서. */}
+        <Text style={styles.answerText} numberOfLines={3} ellipsizeMode="tail">
           {item.answerContent}
         </Text>
 
