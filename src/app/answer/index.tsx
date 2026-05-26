@@ -1,11 +1,11 @@
 import { useLocalSearchParams } from 'expo-router';
+import { useTheme } from 'tamagui';
 import { Screen } from '@/shared/layout/Screen';
 import { DailyQuestionAnswer } from '@/features/answer/components/DailyQuestionAnswer';
 import { PublicQuestionAnswer } from '@/features/feed/components/PublicQuestionAnswer';
-import { useAccentColors } from '@/shared/theme';
 
 export default function AnswerScreen() {
-  const accent = useAccentColors();
+  const theme = useTheme();
   const params = useLocalSearchParams<{
     source?: string;
     mode?: 'edit';
@@ -23,7 +23,7 @@ export default function AnswerScreen() {
 
   if (params.source === 'feed' && params.pdqId) {
     return (
-      <Screen variant="modal" edges={['bottom']} bgColor={accent.background}>
+      <Screen variant="modal" edges={['bottom']} bgColor={theme.backgroundSoft?.val}>
         <PublicQuestionAnswer
           mode={isEditMode ? 'edit' : 'create'}
           pdqId={Number(params.pdqId)}
@@ -45,7 +45,7 @@ export default function AnswerScreen() {
   };
 
   return (
-    <Screen variant="modal" edges={['bottom']} bgColor={accent.background}>
+    <Screen variant="modal" edges={['bottom']} bgColor={theme.backgroundSoft?.val}>
       <DailyQuestionAnswer mode={isEditMode ? 'edit' : 'create'} data={data} />
     </Screen>
   );

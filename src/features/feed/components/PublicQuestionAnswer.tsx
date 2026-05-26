@@ -217,10 +217,10 @@ export function PublicQuestionAnswer({
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
-      <YStack flex={1} style={{ backgroundColor: accent.background }}>
+      <YStack flex={1} style={{ backgroundColor: theme.backgroundSoft?.val }}>
         <ScreenHeader
           title={getFormattedDate()}
-          rightIcon={<CloseIcon size={16} color={theme.color?.val} />}
+          rightIcon={<CloseIcon size={16} color={accent.primary} />}
           onRightPress={handleClose}
           rightButtonStyle="filled"
         />
@@ -235,9 +235,6 @@ export function PublicQuestionAnswer({
           <View style={styles.cardContainer}>
             <View style={cardStyles.card}>
               <View style={styles.questionSection}>
-                <Text style={[cardStyles.labelText, { marginBottom: sp(8) }]}>
-                  {t('question:labels.question')}
-                </Text>
                 <Text
                   style={cardStyles.questionText}
                   numberOfLines={2}
@@ -246,6 +243,7 @@ export function PublicQuestionAnswer({
                   {...(Platform.OS === 'android' && { android_hyphenationFrequency: 'none' })}
                   {...(Platform.OS === 'ios' && { lineBreakMode: 'tail' })}
                 >
+                  <Text style={[cardStyles.questionText, { color: accent.primary }]}>Q. </Text>
                   {question}
                 </Text>
                 {description ? (
@@ -263,9 +261,6 @@ export function PublicQuestionAnswer({
               <View style={[cardStyles.divider, !description && { marginTop: sp(16) }]} />
 
               <View style={styles.answerSection}>
-                <Text style={[cardStyles.labelText, { marginBottom: sp(12) }]}>
-                  {t('question:labels.answer')}
-                </Text>
                 <View style={cardStyles.inputContainer}>
                   <ScrollView
                     style={[styles.answerScroll, { height: resolvedInputHeight }]}

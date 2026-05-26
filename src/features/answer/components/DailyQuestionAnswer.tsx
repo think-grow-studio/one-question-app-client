@@ -229,11 +229,11 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
-      <YStack flex={1} style={{ backgroundColor: accent.background }}>
+      <YStack flex={1} style={{ backgroundColor: theme.backgroundSoft?.val }}>
         {/* Header - Date & Close Button */}
         <ScreenHeader
           title={getFormattedDate()}
-          rightIcon={<CloseIcon size={16} color={theme.color?.val} />}
+          rightIcon={<CloseIcon size={16} color={accent.primary} />}
           onRightPress={handleClose}
           rightButtonStyle="filled"
         />
@@ -251,7 +251,6 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
             <View style={cardStyles.card}>
               {/* Question Section */}
               <View style={styles.questionSection}>
-                <Text style={[cardStyles.labelText, { marginBottom: sp(8) }]}>{t('question:labels.question')}</Text>
                 <Text
                   style={cardStyles.questionText}
                   numberOfLines={2}
@@ -260,6 +259,7 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
                   {...(Platform.OS === 'android' && { android_hyphenationFrequency: 'none' })}
                   {...(Platform.OS === 'ios' && { lineBreakMode: 'tail' })}
                 >
+                  <Text style={[cardStyles.questionText, { color: accent.primary }]}>Q. </Text>
                   {data.question}
                 </Text>
                 {data.description && (
@@ -279,7 +279,6 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
 
               {/* Answer Section */}
               <View style={styles.answerSection}>
-                <Text style={[cardStyles.labelText, { marginBottom: sp(12) }]}>{t('question:labels.answer')}</Text>
                 <View style={cardStyles.inputContainer}>
                   <ScrollView
                     style={[styles.answerScroll, { height: resolvedInputHeight }]}

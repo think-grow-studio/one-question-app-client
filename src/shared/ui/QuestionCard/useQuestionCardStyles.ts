@@ -103,7 +103,7 @@ export function useQuestionCardStyles() {
           lineHeight: fs(26),
           letterSpacing: -0.3,
           color: theme.color?.val,
-          minHeight: SCREEN.height * 0.35,
+          minHeight: SCREEN.height * 0.42,
           paddingBottom: sp(28),
         },
 
@@ -113,7 +113,7 @@ export function useQuestionCardStyles() {
           bottom: sp(10),
           right: sp(20),
           fontSize: fs(12),
-          color: theme.color?.val,
+          color: accent.primary,
         },
 
         // Reload button
