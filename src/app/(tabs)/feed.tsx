@@ -5,12 +5,15 @@ import { useTranslation } from 'react-i18next';
 import { Screen } from '@/shared/layout/Screen';
 import { CommonQuestionFeed } from '@/features/feed/components/CommonQuestionFeed';
 import { InfoIcon } from '@/shared/icons/InfoIcon';
+import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
+import { useIsAdFreeMember } from '@/features/member/hooks/queries/useMemberQueries';
 import { cs } from '@/shared/utils/responsive';
 import { logScreenView } from '@/services/firebase';
 
 export default function FeedScreen() {
   const { t } = useTranslation('feed');
   const theme = useTheme();
+  const isAdFreeMember = useIsAdFreeMember();
 
   useEffect(() => {
     logScreenView('Feed');
@@ -43,6 +46,8 @@ export default function FeedScreen() {
         {/* Common Question + Answers (FAB 포함 — selectedDate 기반) */}
         <CommonQuestionFeed />
       </YStack>
+
+      {!isAdFreeMember && <BannerAdSlot disableSafeAreaPadding />}
     </Screen>
   );
 }
