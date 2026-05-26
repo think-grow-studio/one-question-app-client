@@ -31,6 +31,8 @@ const platformEnv =
         interstitialSwipe: process.env.EXPO_PUBLIC_ADMOB_IOS_INTERSTITIAL_SWIPE_ID,
         interstitialPastQuestion: process.env.EXPO_PUBLIC_ADMOB_IOS_INTERSTITIAL_PAST_QUESTION_ID,
         interstitialReload: process.env.EXPO_PUBLIC_ADMOB_IOS_INTERSTITIAL_RELOAD_ID,
+        interstitialPublicScroll: process.env.EXPO_PUBLIC_ADMOB_IOS_PUBLIC_DAILY_QUESTION_SCROLL_ID,
+        interstitialPublicPastAnswer: process.env.EXPO_PUBLIC_ADMOB_IOS_PUBLIC_DAILY_QUESTION_PAST_ANSWER_ID,
       }
     : {
         banner: process.env.EXPO_PUBLIC_ADMOB_ANDROID_BANNER_ID,
@@ -38,6 +40,8 @@ const platformEnv =
         interstitialSwipe: process.env.EXPO_PUBLIC_ADMOB_ANDROID_INTERSTITIAL_SWIPE_ID,
         interstitialPastQuestion: process.env.EXPO_PUBLIC_ADMOB_ANDROID_INTERSTITIAL_PAST_QUESTION_ID,
         interstitialReload: process.env.EXPO_PUBLIC_ADMOB_ANDROID_INTERSTITIAL_RELOAD_ID,
+        interstitialPublicScroll: process.env.EXPO_PUBLIC_ADMOB_ANDROID_PUBLIC_DAILY_QUESTION_SCROLL_ID,
+        interstitialPublicPastAnswer: process.env.EXPO_PUBLIC_ADMOB_ANDROID_PUBLIC_DAILY_QUESTION_PAST_ANSWER_ID,
       };
 
 const envIds = platformEnv;
@@ -49,6 +53,8 @@ export const admobUnitIds = {
   interstitialSwipe: isProduction ? (envIds.interstitialSwipe || TEST_IDS.interstitial) : TEST_IDS.interstitial,
   interstitialPastQuestion: isProduction ? (envIds.interstitialPastQuestion || TEST_IDS.interstitial) : TEST_IDS.interstitial,
   interstitialReload: isProduction ? (envIds.interstitialReload || TEST_IDS.interstitial) : TEST_IDS.interstitial,
+  interstitialPublicScroll: isProduction ? (envIds.interstitialPublicScroll || TEST_IDS.interstitial) : TEST_IDS.interstitial,
+  interstitialPublicPastAnswer: isProduction ? (envIds.interstitialPublicPastAnswer || TEST_IDS.interstitial) : TEST_IDS.interstitial,
 };
 
 export const admobRequestOptions = {

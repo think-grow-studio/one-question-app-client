@@ -33,6 +33,16 @@ import {
   toServiceDateString,
 } from '../utils/feedUtils';
 import { AnimatedView, useDateSwipePager } from '../hooks/useDateSwipePager';
+import { useInterstitialAd } from '@/features/admob/hooks/useInterstitialAd';
+import { useIsAdFreeMember } from '@/features/member/hooks/queries/useMemberQueries';
+
+// 무한 스크롤 fetch 가 이 횟수마다 전면 광고 1회.
+const SCROLL_AD_INTERVAL = 5;
+
+// 앱 실행 동안 누적되는 스크롤 fetch 카운터.
+// 모듈 스코프라 탭 이동/재진입 / 날짜 swipe 후 컴포넌트 remount 에도 유지됨.
+// 앱 재시작 시 0 으로 리셋.
+let scrollAdCounter = 0;
 
 interface CommonQuestionFeedProps {}
 
@@ -138,9 +148,16 @@ export function CommonQuestionFeed(_props: CommonQuestionFeedProps) {
     [pdqId, toggleLike],
   );
 
+  const isAdFreeMember = useIsAdFreeMember();
+  const { showAd: showScrollAd } = useInterstitialAd('interstitialPublicScroll');
+
   const handleEndReached = () => {
-    if (answersQuery.hasNextPage && !answersQuery.isFetchingNextPage) {
-      answersQuery.fetchNextPage();
+    if (!answersQuery.hasNextPage || answersQuery.isFetchingNextPage) return;
+    answersQuery.fetchNextPage();
+    if (isAdFreeMember) return;
+    scrollAdCounter += 1;
+    if (scrollAdCounter % SCROLL_AD_INTERVAL === 0) {
+      void showScrollAd();
     }
   };
 

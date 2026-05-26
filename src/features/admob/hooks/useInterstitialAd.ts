@@ -8,7 +8,12 @@ import {
 import { admobInitPromise } from '../config/adInit';
 import { logEvent, AnalyticsEvents } from '@/services/firebase';
 
-type AdUnitKey = 'interstitialSwipe' | 'interstitialPastQuestion' | 'interstitialReload';
+type AdUnitKey =
+  | 'interstitialSwipe'
+  | 'interstitialPastQuestion'
+  | 'interstitialReload'
+  | 'interstitialPublicScroll'
+  | 'interstitialPublicPastAnswer';
 
 // showAdAndWait가 호출됐는데 광고가 아직 로드 중이면 LOADED/ERROR 이벤트를
 // 잠깐 기다린다. fill이 보통 0.3~1.5초 걸리므로 1500ms면 대부분 잡히고,

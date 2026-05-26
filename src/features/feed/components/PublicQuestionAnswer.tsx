@@ -22,12 +22,15 @@ import { CloseIcon } from '@/shared/icons/CloseIcon';
 import { useAccentColors } from '@/shared/theme';
 import { useThrottledCallback } from '@/shared/hooks/useThrottledCallback';
 import { useIsAdFreeMember } from '@/features/member/hooks/queries/useMemberQueries';
+import { useInterstitialAd } from '@/features/admob/hooks/useInterstitialAd';
+import { AdBadge } from '@/shared/ui/ads/AdBadge';
 import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
 import { sp } from '@/shared/utils/responsive';
 import {
   useCreatePublicAnswer,
   useUpdatePublicAnswer,
 } from '../hooks/mutations/usePublicQuestionMutations';
+import { getServiceToday } from '../utils/feedUtils';
 
 interface PublicQuestionAnswerProps {
   mode?: 'create' | 'edit';
@@ -55,6 +58,10 @@ export function PublicQuestionAnswer({
   const { t } = useTranslation(['answer', 'question', 'common']);
   const cardStyles = useQuestionCardStyles();
   const isAdFreeMember = useIsAdFreeMember();
+  const { showAdAndWait: showPastAnswerAd } = useInterstitialAd('interstitialPublicPastAnswer');
+  // 과거 날짜 PDQ 답변 작성/수정 → API 성공 후 광고 → 성공 alert → 사용자 [확인] → modal close.
+  // 광고를 alert 전, modal close 전에 호출하여 사용자에게 "광고 → 결과 안내 → 화면 이동" 자연 흐름 제공.
+  const isPastDate = date !== getServiceToday();
 
   const inputMinHeight = (cardStyles.input?.minHeight as number) || 0;
   const resolvedInputHeight = inputMinHeight > 0 ? inputMinHeight : 320;
@@ -159,6 +166,11 @@ export function PublicQuestionAnswer({
         await createMutation.mutateAsync({ pdqId, date, content: answer.trim() });
       }
 
+      // 과거 날짜 + 비 ad-free 회원 → API 성공 후 광고 먼저, alert 은 광고 닫힌 후.
+      if (isPastDate && !isAdFreeMember) {
+        await showPastAnswerAd();
+      }
+
       setAlertConfig({
         visible: true,
         title: isEditMode ? t('answer:submitEdit') : t('answer:submit'),
@@ -166,7 +178,10 @@ export function PublicQuestionAnswer({
         buttons: [{
           label: t('common:buttons.confirm'),
           variant: 'primary',
-          onPress: () => router.back(),
+          onPress: () => {
+            setAlertConfig((p) => ({ ...p, visible: false }));
+            router.back();
+          },
         }],
       });
     } catch {
@@ -294,20 +309,24 @@ export function PublicQuestionAnswer({
               onPress={handleSubmit}
               disabled={!isSubmitEnabled || isPending}
             >
-              <Text
-                style={[
-                  cardStyles.submitButtonText,
-                  isSubmitEnabled && !isPending
-                    ? cardStyles.submitTextEnabled
-                    : cardStyles.submitTextDisabled,
-                ]}
-              >
-                {isPending
-                  ? t('common:status.loading')
-                  : isEditMode
-                    ? t('answer:submitEdit')
-                    : t('answer:submit')}
-              </Text>
+              <View style={styles.submitInner}>
+                <Text
+                  style={[
+                    cardStyles.submitButtonText,
+                    isSubmitEnabled && !isPending
+                      ? cardStyles.submitTextEnabled
+                      : cardStyles.submitTextDisabled,
+                  ]}
+                >
+                  {isPending
+                    ? t('common:status.loading')
+                    : isEditMode
+                      ? t('answer:submitEdit')
+                      : t('answer:submit')}
+                </Text>
+                {/* 과거 날짜 + 광고 회원 → 작성 완료 시 전면 광고 노출 미리 안내. */}
+                {isPastDate && !isAdFreeMember ? <AdBadge size="compact" /> : null}
+              </View>
             </Pressable>
           </View>
         </ScrollView>
@@ -343,5 +362,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: sp(20),
     paddingTop: sp(12),
     paddingBottom: sp(8),
+  },
+  submitInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: sp(8),
   },
 });
