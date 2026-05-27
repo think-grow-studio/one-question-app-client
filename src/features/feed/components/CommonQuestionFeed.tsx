@@ -52,9 +52,13 @@ export function CommonQuestionFeed(_props: CommonQuestionFeedProps) {
   const accent = useAccentColors();
   const router = useRouter();
 
-  const todayStr = useMemo(() => getServiceToday(), []);
-  const today = useMemo(() => startOfDay(new Date()), []);
-  const [selectedDate, setSelectedDate] = useState<Date>(today);
+  // today/todayStr 은 매 렌더마다 fresh 평가. useMemo([]) 로 박제하면 mount 이후
+  // 자정을 넘겨도 어제 자정 기준값이 유지돼 canGoNext 가 false 로 잠겨 사용자가
+  // "진짜 오늘"로 swipe 불가. 홈(QuestionHistoryView) 도 swipe 핸들러 안에서 매번
+  // formatLocalDate() 를 새로 호출하는 동일 lazy 평가 패턴 사용.
+  const todayStr = getServiceToday();
+  const today = startOfDay(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(() => startOfDay(new Date()));
 
   const canGoNext = !isSameDay(selectedDate, today);
 
