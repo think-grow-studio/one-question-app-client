@@ -1,9 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import { XStack, YStack, useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { Screen } from '@/shared/layout/Screen';
 import { CommonQuestionFeed } from '@/features/feed/components/CommonQuestionFeed';
+import { FeedTutorial } from '@/features/feed/components/FeedTutorial';
+import { useFeedTutorialStore } from '@/features/feed/stores/useFeedTutorialStore';
 import { InfoIcon } from '@/shared/icons/InfoIcon';
 import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
 import { useIsAdFreeMember } from '@/features/member/hooks/queries/useMemberQueries';
@@ -15,13 +17,31 @@ export default function FeedScreen() {
   const theme = useTheme();
   const isAdFreeMember = useIsAdFreeMember();
 
+  const hasSeenFeedTutorial = useFeedTutorialStore((s) => s.hasSeenFeedTutorial);
+  const [tutorialVisible, setTutorialVisible] = useState(false);
+  const [hydrated, setHydrated] = useState(() => useFeedTutorialStore.persist.hasHydrated());
+
   useEffect(() => {
     logScreenView('Feed');
   }, []);
 
-  // TODO: 튜토리얼 안내 모달 연결
+  // zustand persist는 비동기 hydration. hydration 완료 전까지 hasSeenFeedTutorial=false 라
+  // 가드 없으면 첫 진입에서 깜빡임 발생. hasHydrated()/onFinishHydration 로 게이트.
+  useEffect(() => {
+    if (hydrated) return;
+    const unsub = useFeedTutorialStore.persist.onFinishHydration(() => setHydrated(true));
+    return () => unsub();
+  }, [hydrated]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    if (!hasSeenFeedTutorial) {
+      setTutorialVisible(true);
+    }
+  }, [hydrated, hasSeenFeedTutorial]);
+
   const handleShowGuide = () => {
-    // intentionally empty — UI only for now
+    setTutorialVisible(true);
   };
 
   return (
@@ -48,6 +68,8 @@ export default function FeedScreen() {
       </YStack>
 
       {!isAdFreeMember && <BannerAdSlot disableSafeAreaPadding />}
+
+      <FeedTutorial visible={tutorialVisible} onClose={() => setTutorialVisible(false)} />
     </Screen>
   );
 }

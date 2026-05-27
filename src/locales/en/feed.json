@@ -38,5 +38,31 @@
     "helper": "When shared, others can see your answer with an anonymous nickname",
     "publicStatus": "Public",
     "privateStatus": "Private"
+  },
+  "tutorial": {
+    "skipButton": "Skip",
+    "nextButton": "Next",
+    "startButton": "Get started",
+    "intro": {
+      "title": "Everyone's Thoughts",
+      "description": "What do others think when faced with the same question?\n\nConnected anonymously, this is a space to write your honest thoughts and read each other's.",
+      "disclaimer": "Note: Profanity or inappropriate content may be blocked."
+    },
+    "step1": {
+      "title": "Date",
+      "description": "Change the date to see the question from another day."
+    },
+    "step2": {
+      "title": "Your answer",
+      "description": "Your answer is always pinned to the top and shared with others. You can edit or delete it anytime."
+    },
+    "step3": {
+      "title": "Random nickname",
+      "description": "A fresh nickname is given every time you answer, so you can share freely without worrying about anyone's gaze."
+    },
+    "step4": {
+      "title": "Anonymous feed",
+      "description": "Meet the diverse thoughts of others who answered the same question."
+    }
   }
 }
