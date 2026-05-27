@@ -186,7 +186,7 @@ export function CommonQuestionFeed(_props: CommonQuestionFeedProps) {
     setSelectedDate((d) => addDays(d, 1));
   }, [canGoNext]);
 
-  const { gesture: swipePan, slideStyle } = useDateSwipePager({
+  const { gesture: swipePan, slideStyle, isPanActiveRef } = useDateSwipePager({
     onNext: handleNext,
     onPrev: handlePrev,
     canGoNext,
@@ -266,6 +266,10 @@ export function CommonQuestionFeed(_props: CommonQuestionFeedProps) {
   const handleAnswerPress = useCallback(
     (item: FeedItemDomain) => {
       if (!pdqId) return;
+      // iOS Pressable + 부모 Pan 동시 fire quirk: 가로 swipe 중에도 onPress 가 새어나옴.
+      // useDateSwipePager 가 노출하는 isPanActiveRef 로 swipe 진행/직후 PAN_GUARD_MS
+      // 윈도우엔 navigate 억제.
+      if (isPanActiveRef.current) return;
       router.push({
         pathname: '/feed/[id]',
         params: {
@@ -275,7 +279,7 @@ export function CommonQuestionFeed(_props: CommonQuestionFeedProps) {
         },
       });
     },
-    [pdqId, dateStr, router],
+    [pdqId, dateStr, router, isPanActiveRef],
   );
 
   const renderAnswerItem = useCallback(

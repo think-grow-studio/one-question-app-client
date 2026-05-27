@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo, useRef, type MutableRefObject } from 'react';
 import { useWindowDimensions } from 'react-native';
 import { Gesture } from 'react-native-gesture-handler';
 import Animated, {
@@ -27,6 +27,15 @@ const SWIPE_THRESHOLD_RATIO = 0.25;
 const SWIPE_RESISTANCE = 0.3; // 경계 방향 swipe 시 rubber-band 저항감
 const SWIPE_OUT_DURATION = 180; // ms — 이전 콘텐츠 화면 밖으로 슬라이드
 const SWIPE_IN_DURATION = 200; // ms — 새 콘텐츠 슬라이드 인
+// Pan 종료 후 Pressable.onPress 가 trailing 으로 fire 되는 iOS quirk 를 흡수할 시간.
+// 짧게 잡으면 race window 가 좁아 onPress 가 새어 나가고, 길게 잡으면 정상 탭이 억제됨.
+//
+// TODO(gesture-composition): 이 ref + setTimeout 가드는 실용적 workaround. 진짜 best
+// practice 는 자식 Pressable 을 `Gesture.Tap()` 으로 바꾸고 부모 Pan 과
+// `Gesture.Race(pan, tap)` 으로 native 레벨에서 협의시키는 것. 그러면 타이밍 매직넘버
+// 불필요. 다만 AnswerCard / MyAnswerCard / 좋아요 nested Pressable 등 리팩토링 범위가
+// 커서 이번엔 보류. 비슷한 충돌이 다른 화면에서 또 생기면 그때 통합 정리.
+const PAN_GUARD_MS = 80;
 
 /**
  * 좌/우 스와이프로 날짜(또는 다른 페이지)를 이동시키는 gesture + 슬라이드 애니메이션.
@@ -45,15 +54,38 @@ export function useDateSwipePager({
 }: UseDateSwipePagerOptions): {
   gesture: ReturnType<typeof Gesture.Pan>;
   slideStyle: AnimatedStyle<ViewStyle>;
+  /**
+   * Pan 이 active 인 동안 true. swipe 도중 또는 직후 PAN_GUARD_MS 이내엔 자식
+   * Pressable.onPress 가 새어나오므로 호출자가 이 ref 를 체크해 navigate 등 액션을
+   * 억제할 수 있다. iOS Pressable + Pan 동시 fire quirk 회피용.
+   */
+  isPanActiveRef: MutableRefObject<boolean>;
 } {
   const { width: screenWidth } = useWindowDimensions();
   const translateX = useSharedValue(0);
+  const isPanActiveRef = useRef(false);
+
+  const markPanActive = useCallback(() => {
+    isPanActiveRef.current = true;
+  }, []);
+
+  // onEnd 직후엔 자식 Pressable.onPress 가 trailing fire 될 가능성이 있어 잠시 더
+  // active 로 유지. setTimeout 으로 guard window 종료 후 false 로 복귀.
+  const schedulePanInactive = useCallback(() => {
+    setTimeout(() => {
+      isPanActiveRef.current = false;
+    }, PAN_GUARD_MS);
+  }, []);
 
   const gesture = useMemo(
     () =>
       Gesture.Pan()
         .activeOffsetX([-15, 15])
         .failOffsetY([-12, 12])
+        .onStart(() => {
+          'worklet';
+          runOnJS(markPanActive)();
+        })
         .onUpdate((e) => {
           'worklet';
           let x = e.translationX;
@@ -89,15 +121,16 @@ export function useDateSwipePager({
           } else {
             translateX.value = withSpring(0);
           }
+          runOnJS(schedulePanInactive)();
         }),
-    [canGoNext, canGoPrev, onNext, onPrev, screenWidth, translateX],
+    [canGoNext, canGoPrev, onNext, onPrev, screenWidth, translateX, markPanActive, schedulePanInactive],
   );
 
   const slideStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
   }));
 
-  return { gesture, slideStyle };
+  return { gesture, slideStyle, isPanActiveRef };
 }
 
 // 호출부가 Animated.View 를 직접 알 필요 없도록 re-export (선택 사항).
