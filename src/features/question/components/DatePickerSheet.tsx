@@ -12,7 +12,7 @@ import Animated, {
 import { useDatePickerStore } from '../stores/useDatePickerStore';
 import { useSlideDirectionStore } from '../stores/useSlideDirectionStore';
 import { useCalendarHistory } from '../hooks/queries/useQuestionQueries';
-import { useMemberMe, useIsAdFreeMember } from '@/features/member/hooks/queries/useMemberQueries';
+import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
 import { Button } from '@/shared/ui/Button';
 import { AlertDialog } from '@/shared/ui/AlertDialog';
@@ -62,7 +62,6 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
 
   // 회원 정보 조회 (cycleStartDate 제한용)
   const { data: member } = useMemberMe();
-  const isAdFreeMember = useIsAdFreeMember();
 
   const calendarFetchBaseDate = useMemo(() => {
     if (!member?.cycleStartDate) {
@@ -676,11 +675,11 @@ export const DatePickerSheet = memo(function DatePickerSheet() {
 
         </YStack>
 
-        {!isAdFreeMember && (
-          <View style={{ paddingHorizontal: sp(20), paddingBottom: insets.bottom }}>
-            <BannerAdSlot disableSafeAreaPadding />
-          </View>
-        )}
+        {/* ad-free 회원에겐 BannerAdSlot 이 null 반환 → View 는 paddingBottom 으로
+            safe-area spacer 역할. */}
+        <View style={{ paddingHorizontal: sp(20), paddingBottom: insets.bottom }}>
+          <BannerAdSlot disableSafeAreaPadding />
+        </View>
       </Animated.View>
 
       <AlertDialog

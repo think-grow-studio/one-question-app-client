@@ -677,11 +677,9 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
         <Paragraph fontSize="$2" color="$gray9">
           {t('actions.swipeHint')}
         </Paragraph>
-        {!isAdFreeMember && (
-          <View style={{ width: '100%', paddingHorizontal: sp(24) }}>
-            <BannerAdSlot disableSafeAreaPadding />
-          </View>
-        )}
+        <View style={{ width: '100%', paddingHorizontal: sp(24) }}>
+          <BannerAdSlot disableSafeAreaPadding />
+        </View>
       </YStack>
 
       <DatePickerSheet />

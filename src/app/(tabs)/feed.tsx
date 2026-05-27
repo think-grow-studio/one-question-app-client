@@ -8,14 +8,12 @@ import { FeedTutorial } from '@/features/feed/components/FeedTutorial';
 import { useFeedTutorialStore } from '@/features/feed/stores/useFeedTutorialStore';
 import { InfoIcon } from '@/shared/icons/InfoIcon';
 import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
-import { useIsAdFreeMember } from '@/features/member/hooks/queries/useMemberQueries';
 import { cs } from '@/shared/utils/responsive';
 import { logScreenView } from '@/services/firebase';
 
 export default function FeedScreen() {
   const { t } = useTranslation('feed');
   const theme = useTheme();
-  const isAdFreeMember = useIsAdFreeMember();
 
   const hasSeenFeedTutorial = useFeedTutorialStore((s) => s.hasSeenFeedTutorial);
   const [tutorialVisible, setTutorialVisible] = useState(false);
@@ -67,7 +65,7 @@ export default function FeedScreen() {
         <CommonQuestionFeed />
       </YStack>
 
-      {!isAdFreeMember && <BannerAdSlot disableSafeAreaPadding />}
+      <BannerAdSlot disableSafeAreaPadding />
 
       <FeedTutorial visible={tutorialVisible} onClose={() => setTutorialVisible(false)} />
     </Screen>

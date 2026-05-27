@@ -24,7 +24,6 @@ import { useThrottledCallback } from '@/shared/hooks/useThrottledCallback';
 import { useAppReviewPrompt } from '../hooks/useAppReviewPrompt';
 import { useCreateAnswer, useUpdateAnswer } from '@/features/question/hooks/mutations/useQuestionMutations';
 import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
-import { useIsAdFreeMember } from '@/features/member/hooks/queries/useMemberQueries';
 import { sp } from '@/shared/utils/responsive';
 import { logScreenView, logEvent, AnalyticsEvents } from '@/services/firebase';
 
@@ -48,7 +47,6 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
   const { t } = useTranslation(['answer', 'question', 'common']);
   const cardStyles = useQuestionCardStyles();
   const { maybeRequestReview } = useAppReviewPrompt();
-  const isAdFreeMember = useIsAdFreeMember();
 
   const inputMinHeight = (cardStyles.input?.minHeight as number) || 0;
   const resolvedInputHeight = inputMinHeight > 0 ? inputMinHeight : 320;
@@ -337,11 +335,9 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
             </Pressable>
           </View>
         </ScrollView>
-        {!isAdFreeMember && (
-          <View style={{ width: '100%', paddingHorizontal: sp(20) }}>
-            <BannerAdSlot disableSafeAreaPadding />
-          </View>
-        )}
+        <View style={{ width: '100%', paddingHorizontal: sp(20) }}>
+          <BannerAdSlot disableSafeAreaPadding />
+        </View>
       </YStack>
 
       <AlertDialog

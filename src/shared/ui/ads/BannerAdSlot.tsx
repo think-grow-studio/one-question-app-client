@@ -8,6 +8,7 @@ import {
   isAdMobSupportedPlatform,
 } from '@/features/admob/config/adUnits';
 import { admobInitPromise } from '@/features/admob/config/adInit';
+import { useIsAdFreeMember } from '@/features/member/hooks/queries/useMemberQueries';
 import { logEvent, AnalyticsEvents } from '@/services/firebase';
 
 type BannerAdSlotProps = {
@@ -26,13 +27,16 @@ const RESERVED_BANNER_HEIGHT = Platform.OS === 'ios' ? 65 : 50;
 export const BannerAdSlot = memo(function BannerAdSlot({ hidden, disableSafeAreaPadding }: BannerAdSlotProps) {
   const insets = useSafeAreaInsets();
   const [sdkReady, setSdkReady] = useState(false);
+  // 회원의 ad-free 여부는 컴포넌트 내부에서 체크 → 호출자가 `!isAdFreeMember && <BannerAdSlot/>`
+  // 패턴을 반복하지 않도록 캡슐화. ad-free 회원에겐 placeholder 공간도 차지하지 않게 즉시 null.
+  const isAdFreeMember = useIsAdFreeMember();
 
   useEffect(() => {
     if (!isAdMobSupportedPlatform) return;
     admobInitPromise.then((ok) => setSdkReady(ok));
   }, []);
 
-  if (hidden || !isAdMobSupportedPlatform) {
+  if (hidden || isAdFreeMember || !isAdMobSupportedPlatform) {
     return null;
   }
 

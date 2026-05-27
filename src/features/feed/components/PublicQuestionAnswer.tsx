@@ -327,11 +327,9 @@ export function PublicQuestionAnswer({
           </View>
         </ScrollView>
 
-        {!isAdFreeMember && (
-          <View style={{ width: '100%', paddingHorizontal: sp(20) }}>
-            <BannerAdSlot disableSafeAreaPadding />
-          </View>
-        )}
+        <View style={{ width: '100%', paddingHorizontal: sp(20) }}>
+          <BannerAdSlot disableSafeAreaPadding />
+        </View>
       </YStack>
 
       <AlertDialog

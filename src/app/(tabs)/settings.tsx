@@ -8,7 +8,7 @@ import { ThemeToggle } from '@/features/settings/components/ThemeToggle';
 import { AccentColorPicker } from '@/features/settings/components/AccentColorPicker';
 import { NotificationSettings } from '@/features/settings/components/NotificationSettings';
 import { useAuthStore } from '@/shared/stores/useAuthStore';
-import { useMemberMe, useIsAdFreeMember } from '@/features/member/hooks/queries/useMemberQueries';
+import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 import { GoogleIcon } from '@/shared/icons/GoogleIcon';
 import { AppleIcon } from '@/shared/icons/AppleIcon';
 import { InfoIcon } from '@/shared/icons/InfoIcon';
@@ -32,7 +32,6 @@ export default function SettingsScreen() {
 
   const [tooltipVisible, setTooltipVisible] = useState(false);
 
-  const isAdFreeMember = useIsAdFreeMember();
   const isGoogleProvider = member?.provider === 'GOOGLE';
   const isAppleProvider = member?.provider === 'APPLE';
   const isAnonymousProvider = member?.provider === 'ANONYMOUS';
@@ -270,7 +269,7 @@ export default function SettingsScreen() {
         </YStack>
         </ScrollView>
 
-        {!isAdFreeMember && <BannerAdSlot disableSafeAreaPadding />}
+        <BannerAdSlot disableSafeAreaPadding />
 
         {/* Withdraw Confirmation Dialog */}
         <AlertDialog

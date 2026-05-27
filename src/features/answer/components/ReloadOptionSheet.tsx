@@ -14,7 +14,6 @@ import { MailIcon } from '@/shared/icons/MailIcon';
 import { PastQuestionIcon } from '@/shared/icons/PastQuestionIcon';
 import { AdBadge } from '@/shared/ui/ads/AdBadge';
 import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
-import { useIsAdFreeMember } from '@/features/member/hooks/queries/useMemberQueries';
 import { fs, sp, radius, cs, SHEET_HEIGHTS, SHEET_MAX_WIDTH } from '@/shared/utils/responsive';
 import {
   useCheckCandidateCycle,
@@ -48,7 +47,6 @@ export function ReloadOptionSheet({
   const theme = useTheme();
   const accent = useAccentColors();
   const { t } = useTranslation(['answer', 'common']);
-  const isAdFreeMember = useIsAdFreeMember();
   const { mutate: selectQuestion, isPending: isSelectPending } = useSelectQuestion();
   const { mutateAsync: checkCandidateCycle, isPending: isCycleCheckPending } = useCheckCandidateCycle();
 
@@ -484,15 +482,14 @@ export function ReloadOptionSheet({
                 {t('common:buttons.cancel')}
               </Text>
             </Pressable>
-            {isAdFreeMember && <View style={{ paddingBottom: insets.bottom }} />}
           </View>
         </View>
 
-        {!isAdFreeMember && (
-          <View style={{ paddingHorizontal: sp(16), paddingBottom: insets.bottom }}>
-            <BannerAdSlot disableSafeAreaPadding />
-          </View>
-        )}
+        {/* ad-free 회원이면 BannerAdSlot 이 null 반환하여 이 View 는 paddingBottom 만 남아
+            safe-area spacer 역할. 일반 회원은 배너 + safe-area padding. */}
+        <View style={{ paddingHorizontal: sp(16), paddingBottom: insets.bottom }}>
+          <BannerAdSlot disableSafeAreaPadding />
+        </View>
       </Animated.View>
       </>)}
     </Modal>
