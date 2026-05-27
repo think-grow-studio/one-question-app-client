@@ -263,15 +263,31 @@ export function CommonQuestionFeed(_props: CommonQuestionFeedProps) {
   const isAnswersEmpty = !isLoadingInitial && !!pdq && items.length === 0 && !myAnswerItem;
   const isEmpty = !isLoadingInitial && (isPdqMissing || isAnswersEmpty);
 
+  const handleAnswerPress = useCallback(
+    (item: FeedItemDomain) => {
+      if (!pdqId) return;
+      router.push({
+        pathname: '/feed/[id]',
+        params: {
+          id: String(item.answerPostId),
+          pdqId: String(pdqId),
+          date: dateStr,
+        },
+      });
+    },
+    [pdqId, dateStr, router],
+  );
+
   const renderAnswerItem = useCallback(
     ({ item }: { item: FeedItemDomain }) => (
       <AnswerCard
         item={item}
+        onPress={() => handleAnswerPress(item)}
         onToggleLike={handleAnswerToggleLike}
         likeDisabled={item.answerPostId === myAnswerId}
       />
     ),
-    [handleAnswerToggleLike, myAnswerId],
+    [handleAnswerPress, handleAnswerToggleLike, myAnswerId],
   );
 
   return (

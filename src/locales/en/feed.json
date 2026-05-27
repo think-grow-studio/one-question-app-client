@@ -21,7 +21,10 @@
     "likeButton": "Like",
     "likedButton": "Liked",
     "likeCount_one": "{{count}} like",
-    "likeCount_other": "{{count}} likes"
+    "likeCount_other": "{{count}} likes",
+    "notFound": "Answer not found",
+    "notFoundDesc": "It may have been deleted or is no longer available",
+    "backA11y": "Go back"
   },
   "editAnswer": {
     "button": "Edit"
