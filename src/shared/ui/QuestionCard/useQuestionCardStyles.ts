@@ -1,19 +1,39 @@
 import { useMemo } from 'react';
+import { useWindowDimensions } from 'react-native';
 import { useTheme } from 'tamagui';
 import { useAccentColors, getFontStyle } from '@/shared/theme';
 import { useThemeStore } from '@/shared/stores/useThemeStore';
-import { fs, sp, radius, cs, deviceValue, SCREEN } from '@/shared/utils/responsive';
+import { fs, sp, radius, cs, deviceValue } from '@/shared/utils/responsive';
+
+// ===== Sizing policy =====
+// 답변 카드 / 입력 영역 높이는 화면 높이에 비율을 곱해 계산. 화면 크기별로 자동 조절되며,
+// 태블릿엔 절대 상한(dp) 을 두어 과도하게 늘어나는 것을 방지한다.
+
+/** 폰: 카드 높이는 화면 높이의 75%. */
+const CARD_HEIGHT_RATIO_PHONE = 0.75;
+/** 태블릿: 카드 높이 비율 상한. 큰 태블릿일수록 이 비율 또는 절대 상한 중 작은 값 적용. */
+const CARD_HEIGHT_RATIO_TABLET_MAX = 0.7;
+/** 태블릿: 카드 높이 절대 상한 (dp). 화면이 매우 클 때 카드가 너무 길어지는 걸 방지. */
+const CARD_HEIGHT_TABLET_CAP_DP = 650;
+/** 답변 입력(TextInput) 최소 높이는 화면 높이의 42%. */
+const INPUT_MIN_HEIGHT_RATIO = 0.42;
 
 export function useQuestionCardStyles() {
   const theme = useTheme();
   const accent = useAccentColors();
   const { mode } = useThemeStore();
   const isDark = mode === 'dark';
+  // 정적 Dimensions.get('window') 대신 reactive hook 사용 — 회전/Split View/폴더블에 대응.
+  const { height: windowHeight } = useWindowDimensions();
 
   return useMemo(
     () => {
-      // Responsive card height (using static SCREEN.height)
-      const cardHeightRatio = deviceValue(0.75, Math.min(0.7, 650 / SCREEN.height));
+      const cardHeightRatio = deviceValue(
+        CARD_HEIGHT_RATIO_PHONE,
+        Math.min(CARD_HEIGHT_RATIO_TABLET_MAX, CARD_HEIGHT_TABLET_CAP_DP / windowHeight),
+      );
+      const cardHeight = windowHeight * cardHeightRatio;
+      const inputMinHeight = windowHeight * INPUT_MIN_HEIGHT_RATIO;
 
       return {
         // Card container
@@ -28,10 +48,10 @@ export function useQuestionCardStyles() {
           flexDirection: 'column' as const,
         },
         cardFull: {
-          height: SCREEN.height * cardHeightRatio,
+          height: cardHeight,
         },
         cardMinHeight: {
-          minHeight: SCREEN.height * cardHeightRatio,
+          minHeight: cardHeight,
         },
 
         // Labels
@@ -103,7 +123,7 @@ export function useQuestionCardStyles() {
           lineHeight: fs(26),
           letterSpacing: -0.3,
           color: theme.color?.val,
-          minHeight: SCREEN.height * 0.42,
+          minHeight: inputMinHeight,
           paddingBottom: sp(28),
         },
 
@@ -189,6 +209,6 @@ export function useQuestionCardStyles() {
         },
       };
     },
-    [theme, accent, isDark]
+    [theme, accent, isDark, windowHeight]
   );
 }
