@@ -61,3 +61,5 @@ design-reference/.env*
 
 google-services*.json
 GoogleService-Info.plist
+# Local Expo module Android build outputs
+modules/*/android/build/
