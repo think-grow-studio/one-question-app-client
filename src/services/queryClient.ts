@@ -78,7 +78,14 @@ const shouldRetry = (failureCount: number, error: any) => {
 };
 
 export const queryClient = new QueryClient({
-  queryCache: new QueryCache({ onError: handleApiError }),
+  queryCache: new QueryCache({
+    onError: (error, query) => {
+      // 백그라운드 prefetch 등 사용자 인터랙션 없는 조회의 실패는 dialog 생략.
+      // (해당 쿼리를 실제 화면이 다시 조회하면 그땐 meta 없이 fetch되어 정상 표시됨)
+      if (query.meta?.suppressGlobalError) return;
+      handleApiError(error);
+    },
+  }),
   mutationCache: new MutationCache({ onError: handleApiError }),
   defaultOptions: {
     queries: {

@@ -10,7 +10,6 @@ import { YStack, XStack, Paragraph, useTheme } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
-import { ScreenHeader } from '@/shared/ui/ScreenHeader';
 import { AlertDialog } from '@/shared/ui/AlertDialog';
 import { MailIcon } from '@/shared/icons/MailIcon';
 import { CalendarIcon } from '@/shared/icons/CalendarIcon';
@@ -24,7 +23,10 @@ import { AdBadge } from '@/shared/ui/ads/AdBadge';
 import { useThrottledCallback } from '@/shared/hooks/useThrottledCallback';
 import { useDatePickerStore } from '../stores/useDatePickerStore';
 import { useSlideDirectionStore } from '../stores/useSlideDirectionStore';
-import { useDailyHistory, questionQueryKeys } from '../hooks/queries/useQuestionQueries';
+import { useHomeViewStore } from '../stores/useHomeViewStore';
+import { ViewToggle } from './ViewToggle';
+import { HomeTimelineView } from './HomeTimelineView';
+import { useDailyHistory, usePrefetchTimeline, questionQueryKeys } from '../hooks/queries/useQuestionQueries';
 import { useServeDailyQuestion, useReloadQuestion } from '../hooks/mutations/useQuestionMutations';
 import { useMemberMe, useIsAdFreeMember } from '@/features/member/hooks/queries/useMemberQueries';
 import { MemberPermission, ApiErrorResponse } from '@/shared/types/api';
@@ -35,7 +37,7 @@ import { ReloadOptionSheet } from '@/features/answer/components/ReloadOptionShee
 import { getFontStyle } from '@/shared/theme/typography';
 import { useAccentColors } from '@/shared/theme';
 import { formatLocalDate } from '@/shared/utils/date';
-import { SCREEN, sp, cs } from '@/shared/utils/responsive';
+import { SCREEN, sp, cs, fs } from '@/shared/utils/responsive';
 import { canReloadQuestion, getReloadCountDisplay } from '../constants/limits';
 import { logEvent, AnalyticsEvents } from '@/services/firebase';
 import { QuestionLikeButton } from './QuestionLikeButton';
@@ -51,6 +53,10 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
   const { t } = useTranslation(['question', 'common', 'answer']);
   const { currentDate, setCurrentDate, setIsDatePickerVisible } = useDatePickerStore();
   const { direction, setDirectionForNextDay, setDirectionForPreviousDay } = useSlideDirectionStore();
+  const { view, setView } = useHomeViewStore();
+
+  // 타임라인 1페이지 백그라운드 선로딩 — 최초 토글도 스피너 없이 즉시 표시
+  usePrefetchTimeline();
   const cardStyles = useQuestionCardStyles();
   const [isAlertVisible, setIsAlertVisible] = useState(false);
   const [isReloadSheetVisible, setIsReloadSheetVisible] = useState(false);
@@ -652,35 +658,59 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
     );
   };
 
+  const isTimeline = view === 'timeline';
+
   return (
     <YStack flex={1}>
-      {/* Header - Date & Calendar */}
-      <ScreenHeader
-        title={formatDate(currentDate)}
-        rightIcon={<CalendarIcon size={28} color={accent.primary} />}
-        onRightPress={handleOpenDatePicker}
-        rightButtonStyle="plain"
-      />
-
-      {/* Swipeable Card - Animated.View는 항상 렌더링 */}
-      <View style={[styles.cardContainer, responsiveStyles.cardContainer]}>
-        <Animated.View
-          style={[styles.cardWrapper, animatedCardStyle]}
-          {...panResponder.panHandlers}
-        >
-          {renderContent()}
-        </Animated.View>
+      {/* Header - Title + ViewToggle + Calendar (양 뷰 공통) */}
+      <View
+        style={[
+          styles.header,
+          {
+            // 두 뷰 모두 화면 배경(backgroundSoft)과 동일 — 색 통일
+            backgroundColor: theme.backgroundSoft?.val,
+            borderBottomColor: theme.borderColor?.val,
+          },
+        ]}
+      >
+        <Text style={[styles.headerTitle, { color: theme.color?.val }]} numberOfLines={1}>
+          {isTimeline ? t('timeline.title') : formatDate(currentDate)}
+        </Text>
+        <XStack ai="center" gap={sp(10)}>
+          <ViewToggle view={view} onChange={setView} />
+          <Pressable onPress={handleOpenDatePicker} hitSlop={12} style={styles.calendarButton}>
+            <CalendarIcon size={24} color={accent.primary} />
+          </Pressable>
+        </XStack>
       </View>
 
-      {/* Swipe Indicator + Banner */}
-      <YStack ai="center" gap="$2" pb={isAdFreeMember ? "$2" : "$0"}>
-        <Paragraph fontSize="$2" color="$gray9">
-          {t('actions.swipeHint')}
-        </Paragraph>
-        <View style={{ width: '100%', paddingHorizontal: sp(24) }}>
-          <BannerAdSlot disableSafeAreaPadding />
-        </View>
-      </YStack>
+      {isTimeline ? (
+        <HomeTimelineView />
+      ) : (
+        <>
+          {/* Swipeable Card - Animated.View는 항상 렌더링 */}
+          <View style={[styles.cardContainer, responsiveStyles.cardContainer]}>
+            <Animated.View
+              style={[styles.cardWrapper, animatedCardStyle]}
+              {...panResponder.panHandlers}
+            >
+              {renderContent()}
+            </Animated.View>
+          </View>
+
+          {/* Swipe Indicator */}
+          <YStack ai="center" gap="$2">
+            <Paragraph fontSize="$2" color="$gray9">
+              {t('actions.swipeHint')}
+            </Paragraph>
+          </YStack>
+        </>
+      )}
+
+      {/* Banner - 양 뷰 공통 하단 고정 */}
+      <View style={[styles.bannerWrap, isAdFreeMember && styles.bannerWrapPadded]}>
+        <BannerAdSlot disableSafeAreaPadding />
+      </View>
 
       <DatePickerSheet />
 
@@ -711,6 +741,35 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
 });
 
 const styles = StyleSheet.create({
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: sp(16),
+    paddingTop: sp(12),
+    paddingBottom: sp(12),
+    borderBottomWidth: 1,
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: fs(17),
+    ...getFontStyle('600'),
+    letterSpacing: -0.3,
+    marginRight: sp(12),
+  },
+  calendarButton: {
+    width: cs(36),
+    height: cs(36),
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bannerWrap: {
+    width: '100%',
+    paddingHorizontal: sp(24),
+  },
+  bannerWrapPadded: {
+    paddingBottom: sp(8),
+  },
   cardContainer: {
     flex: 1,
     alignItems: 'center',

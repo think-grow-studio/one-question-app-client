@@ -1,6 +1,11 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import type { UseQueryResult } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import {
+  infiniteQueryOptions,
+  useInfiniteQuery,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
+import type { QueryClient, UseQueryResult } from '@tanstack/react-query';
+import { useCallback, useEffect, useMemo } from 'react';
 import { questionApi } from '../../api/questionApi';
 import type { HistoryDirection } from '../../types/api';
 import {
@@ -8,6 +13,7 @@ import {
   fromServeDailyQuestion,
   type DailyQuestionDomain,
 } from '../../domain/questionDomain';
+import { formatLocalDate } from '@/shared/utils/date';
 
 /**
  * 날짜를 달력 캐시 키의 baseDate로 변환
@@ -24,7 +30,17 @@ export const questionQueryKeys = {
   all: ['question'] as const,
   daily: (date: string) => [...questionQueryKeys.all, 'daily', date] as const,
   calendar: (baseDate: string) => ['calendar', 'month', baseDate] as const,
+  timeline: ['question', 'timeline'] as const,
 };
+
+/**
+ * 'YYYY-MM-DD' 문자열의 하루 전 날짜 문자열 반환 (로컬 기준, TZ 이슈 회피)
+ * @example prevDayString('2025-05-15') // '2025-05-14'
+ */
+function prevDayString(date: string): string {
+  const [year, month, day] = date.split('-').map(Number);
+  return formatLocalDate(new Date(year, month - 1, day - 1));
+}
 
 export function useDailyQuestion(date: string, options?: { enabled?: boolean }) {
   return useQuery({
@@ -78,6 +94,109 @@ export function useDailyHistory(
     staleTime: 1000 * 60 * 30, // 30분
     enabled: options?.enabled ?? true,
   });
+}
+
+const TIMELINE_PAGE_SIZE = 15;
+
+/**
+ * 홈 타임라인 뷰 전용 무한 스크롤 조회 훅
+ *
+ * 설계 (카드 뷰와 동일하게 "상태는 query cache에" — 컴포넌트/스토어 수동 상태 없음):
+ * - `useInfiniteQuery(timeline 키)` — 누적 페이지·커서가 캐시에 살아서 뷰 토글로
+ *   unmount돼도 유지됨. staleTime 내 재진입 시 refetch 없이 즉시 표시.
+ * - 페이지 fetch: 타임라인 전용 API(GET /questions/timelines)로 "기록 있는 날만"
+ *   최신순 {@link TIMELINE_PAGE_SIZE}개 조회 (질문 없는 날은 서버가 건너뜀 — NO_QUESTION 미포함)
+ * - 커서: baseDate 포함(inclusive) 과거 방향 → 다음 페이지 = 응답 startDate(가장 과거 기록일) - 1일
+ * - 받은 날짜 전부 daily(date)에 시딩 → 타임라인 카드 탭 시 카드 뷰 즉시 표시
+ * - 동기화: 질문/답변 mutation들이 timeline 키를 invalidate → 수정 후 재진입 시 1회 refetch로 최신화
+ *   (`useQuestionMutations.ts` 참고)
+ */
+/**
+ * useTimeline / usePrefetchTimeline이 공유하는 쿼리 옵션.
+ * initialPageParam은 호출 시점에 평가 — useMemo로 박제하면 자정 넘긴 뒤
+ * 어제로 고정됨 (CommonQuestionFeed의 todayStr lazy 평가 컨벤션과 동일)
+ */
+function timelineQueryOptions(queryClient: QueryClient) {
+  return infiniteQueryOptions({
+    queryKey: questionQueryKeys.timeline,
+    queryFn: async ({ pageParam }) => {
+      const res = await questionApi.getTimeline({
+        baseDate: pageParam,
+        size: TIMELINE_PAGE_SIZE,
+      });
+
+      // 카드 탭 즉시 표시용 daily 캐시 시딩 (useDailyHistory와 동일 패턴)
+      res.data.histories.forEach((history) => {
+        queryClient.setQueryData(
+          questionQueryKeys.daily(history.date),
+          fromHistoryItem(history)
+        );
+      });
+
+      return res.data;
+    },
+    initialPageParam: formatLocalDate(),
+    // 서버 조회가 baseDate 포함(inclusive)이므로 다음 커서는 가장 과거 기록일 - 1일.
+    // 빈 결과면 startDate가 null (OpenAPI 명세) → 종료.
+    getNextPageParam: (lastPage) =>
+      lastPage.hasPrevious && lastPage.startDate
+        ? prevDayString(lastPage.startDate)
+        : undefined,
+    staleTime: 1000 * 60 * 30, // 30분 (useDailyHistory와 통일)
+  });
+}
+
+/**
+ * 홈 진입 시 타임라인 1페이지 백그라운드 선로딩 — 최초 토글도 스피너 없이 즉시 표시.
+ * - staleTime 내 캐시가 있으면 no-op (세션당 사실상 1회)
+ * - 첫 페인트(오늘 질문 조회)와 대역폭 경쟁하지 않도록 인터랙션 완료 후 실행
+ * - 백그라운드 실패는 글로벌 에러 dialog 생략 (meta.suppressGlobalError)
+ */
+export function usePrefetchTimeline() {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    // 오늘 질문 조회(첫 페인트)에 대역폭 양보 후 발사.
+    // InteractionManager는 RN 0.83에서 deprecated → 고정 지연으로 대체.
+    const timer = setTimeout(() => {
+      void queryClient.prefetchInfiniteQuery({
+        ...timelineQueryOptions(queryClient),
+        meta: { suppressGlobalError: true },
+      });
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [queryClient]);
+}
+
+export function useTimeline() {
+  const queryClient = useQueryClient();
+
+  const query = useInfiniteQuery({
+    ...timelineQueryOptions(queryClient),
+    // 데이터 변환은 데이터 계층에서 (§5.4): 페이지 → flat → 도메인 모델
+    // → date 기준 경계 중복 방어 → 최신순 정렬. 컴포넌트는 가공된 배열만 소비.
+    // getNextPageParam은 raw 페이지에 동작하므로 select 영향 없음.
+    select: (data) => {
+      const seen = new Set<string>();
+      const items: DailyQuestionDomain[] = [];
+      for (const page of data.pages) {
+        for (const history of page.histories) {
+          if (seen.has(history.date)) continue;
+          seen.add(history.date);
+          items.push(fromHistoryItem(history));
+        }
+      }
+      items.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+      return items;
+    },
+  });
+
+  // pull-to-refresh — 누적 페이지 캐시를 비우고 첫 페이지부터 재조회 (피드 패턴 §15.2)
+  const resetPagination = useCallback(() => {
+    void queryClient.resetQueries({ queryKey: questionQueryKeys.timeline });
+  }, [queryClient]);
+
+  return Object.assign(query, { resetPagination });
 }
 
 /**

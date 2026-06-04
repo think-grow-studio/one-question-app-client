@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import type { InfiniteData, QueryClient } from '@tanstack/react-query';
 import type { ApiErrorResponse } from '@/shared/types/api';
 import { questionApi } from '../../api/questionApi';
 import { questionQueryKeys, getCalendarBaseDate } from '../queries/useQuestionQueries';
@@ -8,8 +9,54 @@ import {
 } from '../../domain/questionDomain';
 import type {
   CheckCandidateCycleResponse,
+  CreateAnswerResponse,
+  GetQuestionHistoryResponse,
   ServeDailyQuestionResponse,
+  UpdateAnswerResponse,
 } from '../../types/api';
+
+/**
+ * 답변 생성/수정 결과를 timeline 페이지 캐시에 수술적으로 반영 (refetch 없이 즉시 갱신).
+ * 해당 날짜가 로드된 페이지에 없으면(미로드 범위 등) 표준 invalidate로 폴백.
+ */
+function applyAnswerToTimeline(
+  queryClient: QueryClient,
+  date: string,
+  answer: CreateAnswerResponse | UpdateAnswerResponse
+) {
+  let patched = false;
+
+  queryClient.setQueryData<InfiniteData<GetQuestionHistoryResponse>>(
+    questionQueryKeys.timeline,
+    (prev) => {
+      if (!prev) return prev;
+
+      const pages = prev.pages.map((page) => {
+        const index = page.histories.findIndex((h) => h.date === date);
+        if (index === -1) return page;
+
+        patched = true;
+        const histories = [...page.histories];
+        histories[index] = {
+          ...histories[index],
+          status: 'ANSWERED',
+          answer: {
+            dailyAnswerId: answer.dailyAnswerId,
+            content: answer.content,
+            answeredAt: answer.answeredAt,
+          },
+        };
+        return { ...page, histories };
+      });
+
+      return { ...prev, pages };
+    }
+  );
+
+  if (!patched) {
+    queryClient.invalidateQueries({ queryKey: questionQueryKeys.timeline });
+  }
+}
 
 export function useServeDailyQuestion(options?: {
   onSuccess?: (data: ServeDailyQuestionResponse, variables: string) => void;
@@ -23,6 +70,8 @@ export function useServeDailyQuestion(options?: {
 
       const calendarBaseDate = getCalendarBaseDate(date);
       queryClient.invalidateQueries({ queryKey: questionQueryKeys.calendar(calendarBaseDate) });
+      // 새 기록이 생긴 날 → 타임라인 목록에 합류해야 함
+      queryClient.invalidateQueries({ queryKey: questionQueryKeys.timeline });
 
       options?.onSuccess?.(data, date);
     },
@@ -39,6 +88,8 @@ export function useReloadQuestion() {
 
       const calendarBaseDate = getCalendarBaseDate(date);
       queryClient.invalidateQueries({ queryKey: questionQueryKeys.calendar(calendarBaseDate) });
+      // 질문 내용 변경 → 타임라인 행 갱신
+      queryClient.invalidateQueries({ queryKey: questionQueryKeys.timeline });
     },
   });
 }
@@ -96,6 +147,8 @@ export function useSelectQuestion() {
 
       const calendarBaseDate = getCalendarBaseDate(date);
       queryClient.invalidateQueries({ queryKey: questionQueryKeys.calendar(calendarBaseDate) });
+      // 질문 선택 변경 → 타임라인 행 갱신
+      queryClient.invalidateQueries({ queryKey: questionQueryKeys.timeline });
     },
   });
 }
@@ -130,18 +183,26 @@ export function useCreateAnswer(options?: {
   };
 
   return useMutation<
-    unknown,
+    CreateAnswerResponse,
     ApiErrorResponse,
     { date: string; answer: string }
   >({
     mutationFn: ({ date, answer }) =>
       questionApi.createAnswer(date, { answer }).then((res) => res.data),
-    onSuccess: (_, { date }) => invalidateDateQueries(date),
+    onSuccess: (data, { date }) => {
+      invalidateDateQueries(date);
+      // 타임라인은 응답으로 직접 패치 (refetch 없이 즉시 반영)
+      applyAnswerToTimeline(queryClient, date, data);
+    },
     onError: (error, { date }) => {
       if (error?.code === 'QUESTION-004') {
         options?.onDuplicateAnswer?.({
           message: error.message,
-          syncQueries: () => invalidateDateQueries(date),
+          // 중복 답변 = 서버에 우리가 모르는 답변 존재 → 타임라인도 통째로 동기화
+          syncQueries: () => {
+            invalidateDateQueries(date);
+            queryClient.invalidateQueries({ queryKey: questionQueryKeys.timeline });
+          },
         });
       }
     },
@@ -154,11 +215,13 @@ export function useUpdateAnswer() {
   return useMutation({
     mutationFn: ({ date, answer }: { date: string; answer: string }) =>
       questionApi.updateAnswer(date, { answer }).then((res) => res.data),
-    onSuccess: (_, { date }) => {
+    onSuccess: (data, { date }) => {
       queryClient.invalidateQueries({ queryKey: questionQueryKeys.daily(date) });
 
       const calendarBaseDate = getCalendarBaseDate(date);
       queryClient.invalidateQueries({ queryKey: questionQueryKeys.calendar(calendarBaseDate) });
+      // 타임라인은 응답으로 직접 패치 (refetch 없이 즉시 반영)
+      applyAnswerToTimeline(queryClient, date, data);
     },
   });
 }

@@ -44,6 +44,15 @@
     }
   },
   "writtenDate": "Written on {{date}}",
+  "timeline": {
+    "title": "My Records",
+    "month": "{{month}}",
+    "empty": "No records yet"
+  },
+  "viewToggle": {
+    "card": "Card view",
+    "timeline": "Timeline view"
+  },
   "random": [
     {
       "question": "When were you the happiest?",
