@@ -2894,21 +2894,18 @@ const animatedStyle = useAnimatedStyle(() => ({
 문서 규칙이 코드 현실과 어긋나거나, 새 패턴이 코드베이스에 정착했을 때 여기에 기록한다.
 (이유 없이 규칙만 바꾸지 말 것 — 항상 "무엇을 / 왜" 한 줄 남기기.)
 
-### 2026-06-04 — 홈 타임라인 쿼리를 신규 키에서 daily(date) 키 재사용으로 변경
-- `useInfiniteQuestionHistory`(전용 `['question','timeline']` 키) → `useTimelineHistory`로 교체. 타임라인 전용 리스트 키를 제거하고, 카드 뷰(`useDailyHistory`)와 **동일한 `daily(date)` 키만** 사용:
-  - 페이지 fetch = `queryClient.fetchQuery(daily(anchor))` + `getHistories(PREVIOUS, 15)` → 응답 날짜 전부 `daily(date)`에 시딩 (fetchQuery 경유라 §15.2 글로벌 에러 처리 그대로 동작)
-  - 읽기 = `useQueries`로 로드된 `daily(date)` 키들을 `enabled:false` 구독(읽기 전용)
-  - 페이지네이션 커서(날짜 식별자 목록)는 로컬 UI state
-- **왜:** (1) 같은 데이터가 timeline 키와 daily 키에 이중 보관되면, 답변 작성/수정 mutation이 daily만 invalidate하므로 타임라인이 staleTime(30분) 동안 낡은 답변을 보여주는 동기화 버그가 생김. daily 키 단일 진실원천으로 통일하면 행이 자동 갱신됨. (2) 쿼리 키 패밀리 증식 방지.
-- **주의:** 리스트(배열)와 단일 날짜 객체는 같은 키를 공유할 수 없음(queryFn 반환값 = 캐시 값, `useCalendarHistory` 주석 참고). 위 방식은 키를 공유하되 "페이지 fetch"와 "캐시 구독"을 분리해 이 제약을 우회한 것.
-- **(후속, 같은 날)** 서버에 타임라인 전용 `GET /api/v1/questions/timelines`가 추가됨(기록 있는 날만, baseDate 포함 과거 방향, 기존 `GetQuestionHistoryResponse` 재사용)에 따라 클라이언트 페이지 fetch를 해당 API 단일 호출로 교체. 달력 윈도우 API의 공백 구간을 우회하던 catch-up 연쇄 로직(15→30→60→120 escalation) 제거. 훅명 `useTimeline`으로 확정. 다음 페이지 커서 = 응답 `startDate`(가장 과거 기록일) − 1일 (서버 조회가 inclusive이므로).
-- **(재변경, 같은 날) daily 키 재사용 설계 → `useInfiniteQuery(timeline 키)`로 복귀.** 페이지네이션 목차를 컴포넌트 state로 들고 있던 daily-키-전용 설계는 뷰 토글 unmount 때 목차가 증발해 **타임라인 재진입마다 전체 reload**가 발생했음. 카드 뷰가 "상태 없이" 동작하는 이유는 상태가 query cache에 살기 때문 → 리스트의 등가물은 `useInfiniteQuery`뿐이라 timeline 키를 복원(피드 `useInfinitePublicAnswers`와 동일 패턴). 이전에 timeline 키를 제거했던 사유(답변 수정 후 30분 stale 동기화 버그)는 질문/답변 mutation 5곳에 `invalidateQueries(timeline)` 추가로 해결. daily(date) 시딩(카드 탭 즉시 표시)은 유지.
-  - **교훈:** "쿼리 키 최소화"보다 "서버 파생 상태는 query cache에"가 우선. 리스트 키 + mutation invalidate가 표준이고, 키를 아끼려 상태를 컴포넌트로 내리면 unmount 생존성을 잃는다.
+### 2026-06-04 — 홈 타임라인 쿼리 설계 확정 (`useTimeline` = `useInfiniteQuery` + `timeline` 키)
+
+- **타임라인 전용 API 채택.** 서버 `GET /api/v1/questions/timelines` (기록 있는 날만, baseDate 포함 과거 방향, 기존 `GetQuestionHistoryResponse` 재사용). 다음 페이지 커서 = 응답 `startDate`(가장 과거 기록일) − 1일 (서버 조회가 inclusive이므로).
+- **`useTimeline` = `useInfiniteQuery(['question','timeline'])`** — 피드 `useInfinitePublicAnswers`와 동일한 표준 패턴. 누적 페이지·커서가 query cache에 살아 뷰 토글 unmount에도 유지 → staleTime(30분) 내 재진입 시 refetch 없이 즉시 표시. 응답 날짜는 전부 `daily(date)`에 시딩(카드 탭 즉시 표시).
+- **mutation 동기화:** 질문 뽑기/리로드/선택 = `invalidateQueries(timeline)`, 답변 생성/수정 = **수술적 `setQueryData`**(`applyAnswerToTimeline` — 응답으로 페이지 내 해당 날짜 item 직접 교체, 미로드 범위면 invalidate 폴백) → 답변 후 재진입 refetch 0회.
+- **`usePrefetchTimeline`:** 홈 진입 1초 후 1페이지 백그라운드 선로딩 → 최초 토글도 즉시 표시. 백그라운드 prefetch 실패가 글로벌 에러 dialog를 띄우지 않도록 `queryClient`에 `meta.suppressGlobalError` 지원 추가 (§15.2 보완).
+- **교훈 (설계 왕복 끝에 확정):** "쿼리 키 최소화"보다 "서버 파생 상태는 query cache에"가 우선. 리스트 키 + mutation invalidate가 표준이고, 키를 아끼려 페이지네이션 상태를 컴포넌트 state로 내리면 unmount 생존성을 잃어 재진입마다 reload가 발생한다. 또한 리스트(배열)와 단일 객체는 같은 키를 공유할 수 없다(queryFn 반환값 = 캐시 값 — `useCalendarHistory` 주석 참고).
 
 ### 2026-06-03 — FlashList v2 규칙 정정 + 홈 타임라인 뷰 패턴 추가
 - **§18.2 / §21 `estimatedItemSize` 규칙 정정.** 기존 문서는 v1 기준으로 `estimatedItemSize`를 "필수"로 명시했으나, 본 프로젝트는 `@shopify/flash-list` **v2.0.2**를 사용하며 v2에서 이 prop은 제거/무시된다(자동 측정). 실제 코드(`CommonQuestionFeed.tsx`)도 이미 넘기지 않고 있어, 문서를 v2 기준으로 정정했다.
   - **왜:** 문서대로 `estimatedItemSize`를 넣으면 v2에서 무의미(또는 타입/경고 이슈)하고, 코드베이스 실제 관례와 모순되어 AI/신규 개발자에게 잘못된 가이드를 준다.
-- **홈 타임라인 뷰(View Toggle) 기능 추가.** 홈(`(tabs)/index.tsx` → `QuestionHistoryView`)에 카드/타임라인 뷰 토글 추가. 신규: `features/question/components/{HomeTimelineView,ViewToggle,TimelineRow}.tsx`, `features/question/stores/useHomeViewStore.ts`(persist), `shared/icons/{CardViewIcon,TimelineViewIcon}.tsx`, `useInfiniteQuestionHistory` 훅. 기존 무한스크롤/캐시-시딩/persist 패턴을 그대로 재사용(신규 아키텍처 패턴 도입 없음 — §11 준수).
+- **홈 타임라인 뷰(View Toggle) 기능 추가.** 홈(`(tabs)/index.tsx` → `QuestionHistoryView`)에 카드/타임라인 뷰 토글 추가. 신규: `features/question/components/{HomeTimelineView,ViewToggle,TimelineRow}.tsx`, `features/question/stores/useHomeViewStore.ts`(persist), `shared/icons/{CardViewIcon,TimelineViewIcon}.tsx`, `useTimeline` 훅(쿼리 설계는 2026-06-04 항목 참고). 기존 무한스크롤/캐시-시딩/persist 패턴을 그대로 재사용(신규 아키텍처 패턴 도입 없음 — §11 준수).
 
 ---
 
