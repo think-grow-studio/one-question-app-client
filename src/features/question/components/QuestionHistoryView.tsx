@@ -56,6 +56,15 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
   const { view, setView } = useHomeViewStore();
   const screenBg = useScreenBackground();
 
+  // 타임라인 lazy keep-alive: 최초로 타임라인을 연 뒤부터는 unmount하지 않고
+  // display로만 숨김 → 카드↔타임라인 토글 시 스크롤 위치 유지
+  const [isTimelineMounted, setIsTimelineMounted] = useState(view === 'timeline');
+  useEffect(() => {
+    if (view === 'timeline') {
+      setIsTimelineMounted(true);
+    }
+  }, [view]);
+
   // 타임라인 1페이지 백그라운드 선로딩 — 최초 토글도 스피너 없이 즉시 표시
   usePrefetchTimeline();
   const cardStyles = useQuestionCardStyles();
@@ -684,28 +693,32 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
         </XStack>
       </View>
 
-      {isTimeline ? (
-        <HomeTimelineView />
-      ) : (
-        <>
-          {/* Swipeable Card - Animated.View는 항상 렌더링 */}
-          <View style={[styles.cardContainer, responsiveStyles.cardContainer]}>
-            <Animated.View
-              style={[styles.cardWrapper, animatedCardStyle]}
-              {...panResponder.panHandlers}
-            >
-              {renderContent()}
-            </Animated.View>
-          </View>
-
-          {/* Swipe Indicator */}
-          <YStack ai="center" gap="$2">
-            <Paragraph fontSize="$2" color="$gray9">
-              {t('actions.swipeHint')}
-            </Paragraph>
-          </YStack>
-        </>
+      {/* 뷰 전환은 unmount 대신 display 토글 — FlashList 스크롤 위치·카드 상태 보존.
+          타임라인은 최초 진입 시 1회만 lazy mount 후 keep-alive (display:none은 터치/레이아웃 제외) */}
+      {isTimelineMounted && (
+        <View style={[styles.viewBody, !isTimeline && styles.viewHidden]}>
+          <HomeTimelineView />
+        </View>
       )}
+
+      <View style={[styles.viewBody, isTimeline && styles.viewHidden]}>
+        {/* Swipeable Card - Animated.View는 항상 렌더링 */}
+        <View style={[styles.cardContainer, responsiveStyles.cardContainer]}>
+          <Animated.View
+            style={[styles.cardWrapper, animatedCardStyle]}
+            {...panResponder.panHandlers}
+          >
+            {renderContent()}
+          </Animated.View>
+        </View>
+
+        {/* Swipe Indicator */}
+        <YStack ai="center" gap="$2">
+          <Paragraph fontSize="$2" color="$gray9">
+            {t('actions.swipeHint')}
+          </Paragraph>
+        </YStack>
+      </View>
 
       {/* Banner - 양 뷰 공통 하단 고정 */}
       <View style={[styles.bannerWrap, isAdFreeMember && styles.bannerWrapPadded]}>
@@ -762,6 +775,12 @@ const styles = StyleSheet.create({
     height: cs(36),
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  viewBody: {
+    flex: 1,
+  },
+  viewHidden: {
+    display: 'none',
   },
   bannerWrap: {
     width: '100%',
