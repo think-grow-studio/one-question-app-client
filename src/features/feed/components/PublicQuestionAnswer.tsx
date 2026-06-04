@@ -19,7 +19,7 @@ import { useQuestionCardStyles } from '@/shared/ui/QuestionCard';
 import { ScreenHeader } from '@/shared/ui/ScreenHeader';
 import { AlertDialog, AlertDialogButton } from '@/shared/ui/AlertDialog';
 import { CloseIcon } from '@/shared/icons/CloseIcon';
-import { useAccentColors } from '@/shared/theme';
+import { useAccentColors, useScreenBackground } from '@/shared/theme';
 import { useThrottledCallback } from '@/shared/hooks/useThrottledCallback';
 import { useIsAdFreeMember } from '@/features/member/hooks/queries/useMemberQueries';
 import { useInterstitialAd } from '@/features/admob/hooks/useInterstitialAd';
@@ -55,6 +55,7 @@ export function PublicQuestionAnswer({
   const router = useRouter();
   const theme = useTheme();
   const accent = useAccentColors();
+  const screenBg = useScreenBackground();
   const { t } = useTranslation(['answer', 'question', 'common']);
   const cardStyles = useQuestionCardStyles();
   const isAdFreeMember = useIsAdFreeMember();
@@ -217,7 +218,7 @@ export function PublicQuestionAnswer({
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
-      <YStack flex={1} style={{ backgroundColor: theme.backgroundSoft?.val }}>
+      <YStack flex={1} style={{ backgroundColor: screenBg }}>
         <ScreenHeader
           title={getFormattedDate()}
           rightIcon={<CloseIcon size={16} color={accent.primary} />}

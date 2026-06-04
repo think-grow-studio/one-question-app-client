@@ -21,8 +21,7 @@ const INPUT_MIN_HEIGHT_RATIO = 0.42;
 export function useQuestionCardStyles() {
   const theme = useTheme();
   const accent = useAccentColors();
-  const { mode } = useThemeStore();
-  const isDark = mode === 'dark';
+  const isDark = useThemeStore((s) => s.mode) === 'dark';
   // 정적 Dimensions.get('window') 대신 reactive hook 사용 — 회전/Split View/폴더블에 대응.
   const { height: windowHeight } = useWindowDimensions();
 
@@ -108,13 +107,16 @@ export function useQuestionCardStyles() {
         },
 
         // Input container (for write mode)
+        // 다크: 카드 동색 + 얇은 보더(평평한 룩) / 라이트: backgroundSoft recessed(기존 룩)
         inputContainer: {
           borderRadius: radius(16),
           marginHorizontal: sp(-16),
           paddingHorizontal: sp(24),
           paddingTop: sp(16),
           paddingBottom: sp(28),
-          backgroundColor: isDark ? theme.background?.val : theme.backgroundSoft?.val,
+          backgroundColor: isDark ? theme.surface?.val : theme.backgroundSoft?.val,
+          borderWidth: isDark ? 1 : 0,
+          borderColor: theme.borderColor?.val,
         },
 
         // Input (for write mode)

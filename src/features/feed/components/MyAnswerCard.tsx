@@ -31,7 +31,8 @@ export function MyAnswerCard({ item, onEdit, onDelete }: MyAnswerCardProps) {
       style={[
         styles.card,
         {
-          backgroundColor: theme.background?.val ?? '#ffffff',
+          // 카드는 surface — 다크에서 화면 배경(#1C1C1E)과 구분되는 연한 검정(#2C2C2E)
+          backgroundColor: theme.surface?.val ?? '#ffffff',
           borderColor: accent.primary,
         },
       ]}

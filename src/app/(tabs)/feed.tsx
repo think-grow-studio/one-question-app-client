@@ -9,11 +9,13 @@ import { useFeedTutorialStore } from '@/features/feed/stores/useFeedTutorialStor
 import { InfoIcon } from '@/shared/icons/InfoIcon';
 import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
 import { cs } from '@/shared/utils/responsive';
+import { useScreenBackground } from '@/shared/theme';
 import { logScreenView } from '@/services/firebase';
 
 export default function FeedScreen() {
   const { t } = useTranslation('feed');
   const theme = useTheme();
+  const screenBg = useScreenBackground();
 
   const hasSeenFeedTutorial = useFeedTutorialStore((s) => s.hasSeenFeedTutorial);
   const [tutorialVisible, setTutorialVisible] = useState(false);
@@ -43,7 +45,7 @@ export default function FeedScreen() {
   };
 
   return (
-    <Screen edges={['top']} bgColor={theme.backgroundSoft?.val}>
+    <Screen edges={['top']} bgColor={screenBg}>
       <YStack flex={1}>
         {/* Guide trigger — top-right only */}
         <XStack style={styles.header} jc="flex-end">

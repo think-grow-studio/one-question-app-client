@@ -1,13 +1,13 @@
 import { useEffect } from 'react';
 import { useLocalSearchParams } from 'expo-router';
-import { useTheme } from 'tamagui';
 import { Screen } from '@/shared/layout/Screen';
 import { PublicAnswerDetail } from '@/features/feed/components/PublicAnswerDetail';
 import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
+import { useScreenBackground } from '@/shared/theme';
 import { logScreenView } from '@/services/firebase';
 
 export default function PublicAnswerDetailScreen() {
-  const theme = useTheme();
+  const screenBg = useScreenBackground();
   const params = useLocalSearchParams<{
     id: string;
     pdqId: string;
@@ -23,7 +23,7 @@ export default function PublicAnswerDetailScreen() {
   const date = params.date;
 
   return (
-    <Screen edges={['top']} bgColor={theme.backgroundSoft?.val}>
+    <Screen edges={['top']} bgColor={screenBg}>
       <PublicAnswerDetail
         answerPostId={answerPostId}
         pdqId={pdqId}

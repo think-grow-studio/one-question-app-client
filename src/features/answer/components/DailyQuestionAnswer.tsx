@@ -19,7 +19,7 @@ import { useQuestionCardStyles } from '@/shared/ui/QuestionCard';
 import { ScreenHeader } from '@/shared/ui/ScreenHeader';
 import { AlertDialog, AlertDialogButton } from '@/shared/ui/AlertDialog';
 import { CloseIcon } from '@/shared/icons/CloseIcon';
-import { useAccentColors } from '@/shared/theme';
+import { useAccentColors, useScreenBackground } from '@/shared/theme';
 import { useThrottledCallback } from '@/shared/hooks/useThrottledCallback';
 import { useAppReviewPrompt } from '../hooks/useAppReviewPrompt';
 import { useCreateAnswer, useUpdateAnswer } from '@/features/question/hooks/mutations/useQuestionMutations';
@@ -44,6 +44,7 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
   const router = useRouter();
   const theme = useTheme();
   const accent = useAccentColors();
+  const screenBg = useScreenBackground();
   const { t } = useTranslation(['answer', 'question', 'common']);
   const cardStyles = useQuestionCardStyles();
   const { maybeRequestReview } = useAppReviewPrompt();
@@ -227,7 +228,7 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
-      <YStack flex={1} style={{ backgroundColor: theme.backgroundSoft?.val }}>
+      <YStack flex={1} style={{ backgroundColor: screenBg }}>
         {/* Header - Date & Close Button */}
         <ScreenHeader
           title={getFormattedDate()}

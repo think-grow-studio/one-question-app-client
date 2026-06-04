@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
-import { useTheme } from 'tamagui';
 import { Screen } from '@/shared/layout/Screen';
 import { QuestionHistoryView } from '@/features/question/components/QuestionHistoryView';
+import { useScreenBackground } from '@/shared/theme';
 import { logScreenView } from '@/services/firebase';
 
 export default function HomeScreen() {
-  const theme = useTheme();
+  const screenBg = useScreenBackground();
 
   // Analytics: 화면 조회
   useEffect(() => {
@@ -13,7 +13,7 @@ export default function HomeScreen() {
   }, []);
 
   return (
-    <Screen edges={['top']} bgColor={theme.backgroundSoft?.val}>
+    <Screen edges={['top']} bgColor={screenBg}>
       <QuestionHistoryView />
     </Screen>
   );

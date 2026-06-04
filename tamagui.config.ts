@@ -108,6 +108,7 @@ const config = createTamagui({
       backgroundStrong: '#000000',
 
       // Card/Surface - elevated surfaces (cards, modals, etc.)
+      // 다크 스킴: 진한 배경(background #1C1C1E) 위에 연한 카드(#2C2C2E)
       surface: '#2C2C2E',
       surfaceHover: '#3C3C3E',
 

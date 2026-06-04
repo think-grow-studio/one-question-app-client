@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
-import { useAccentColors, getFontStyle } from '@/shared/theme';
+import { useAccentColors, getFontStyle, useScreenBackground } from '@/shared/theme';
 import { fs, sp, cs, radius } from '@/shared/utils/responsive';
 import type { DailyQuestionDomain } from '../domain/questionDomain';
 
@@ -30,6 +30,7 @@ export const TimelineRow = memo(function TimelineRow({ item, onPress }: Timeline
   const theme = useTheme();
   const accent = useAccentColors();
   const { t } = useTranslation('question');
+  const screenBg = useScreenBackground();
 
   const [year, month, day] = item.date.split('-').map(Number);
   const showYear = year !== CURRENT_YEAR;
@@ -53,8 +54,8 @@ export const TimelineRow = memo(function TimelineRow({ item, onPress }: Timeline
         <View
           style={[
             styles.dot,
-            // 점 안쪽은 화면 배경색(backgroundSoft)으로 — 세로선을 가려 도넛 모양이 됨
-            { backgroundColor: theme.backgroundSoft?.val, borderColor: accent.primary },
+            // 점 안쪽은 화면 배경색으로 — 세로선을 가려 도넛 모양이 됨
+            { backgroundColor: screenBg, borderColor: accent.primary },
           ]}
         />
       </View>

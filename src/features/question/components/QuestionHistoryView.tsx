@@ -35,7 +35,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { DatePickerSheet } from './DatePickerSheet';
 import { ReloadOptionSheet } from '@/features/answer/components/ReloadOptionSheet';
 import { getFontStyle } from '@/shared/theme/typography';
-import { useAccentColors } from '@/shared/theme';
+import { useAccentColors, useScreenBackground } from '@/shared/theme';
 import { formatLocalDate } from '@/shared/utils/date';
 import { SCREEN, sp, cs, fs } from '@/shared/utils/responsive';
 import { canReloadQuestion, getReloadCountDisplay } from '../constants/limits';
@@ -54,6 +54,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
   const { currentDate, setCurrentDate, setIsDatePickerVisible } = useDatePickerStore();
   const { direction, setDirectionForNextDay, setDirectionForPreviousDay } = useSlideDirectionStore();
   const { view, setView } = useHomeViewStore();
+  const screenBg = useScreenBackground();
 
   // 타임라인 1페이지 백그라운드 선로딩 — 최초 토글도 스피너 없이 즉시 표시
   usePrefetchTimeline();
@@ -92,7 +93,6 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
   const {
     data: currentHistory,
     isLoading: isHistoryLoading,
-    refetch: refetchHistory,
     isError: isHistoryError,
     isFetching: isHistoryFetching,
     error: historyError,
@@ -667,8 +667,8 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
         style={[
           styles.header,
           {
-            // 두 뷰 모두 화면 배경(backgroundSoft)과 동일 — 색 통일
-            backgroundColor: theme.backgroundSoft?.val,
+            // 화면 배경과 동일 — useScreenBackground로 Screen bgColor와 일치 보장
+            backgroundColor: screenBg,
             borderBottomColor: theme.borderColor?.val,
           },
         ]}
