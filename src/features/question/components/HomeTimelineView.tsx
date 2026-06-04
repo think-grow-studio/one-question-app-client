@@ -9,6 +9,7 @@ import { fs, sp } from '@/shared/utils/responsive';
 import { useTimeline } from '../hooks/queries/useQuestionQueries';
 import type { DailyQuestionDomain } from '../domain/questionDomain';
 import { useDatePickerStore } from '../stores/useDatePickerStore';
+import { useSlideDirectionStore } from '../stores/useSlideDirectionStore';
 import { useHomeViewStore } from '../stores/useHomeViewStore';
 import { TimelineRow } from './TimelineRow';
 
@@ -18,6 +19,7 @@ export function HomeTimelineView() {
   const accent = useAccentColors();
   const { t } = useTranslation('question');
   const setCurrentDate = useDatePickerStore((s) => s.setCurrentDate);
+  const setDirectionForCalendar = useSlideDirectionStore((s) => s.setDirectionForCalendar);
   const setView = useHomeViewStore((s) => s.setView);
 
   // 누적 페이지·커서는 timeline 쿼리 캐시에 보존 — 뷰 토글로 unmount돼도
@@ -37,7 +39,9 @@ export function HomeTimelineView() {
   }, [query]);
 
   // 카드 탭 → 해당 날짜로 currentDate 설정 후 카드 뷰 전환 (daily 캐시 시딩되어 즉시 표시)
+  // 타임라인 탭은 달력 점프와 같은 "임의 날짜 점프" → 캐시 만료 시 양방향(BOTH) 선캐싱
   const handleCardPress = useThrottledCallback((date: string) => {
+    setDirectionForCalendar();
     setCurrentDate(date);
     setView('card');
   }, 500);
