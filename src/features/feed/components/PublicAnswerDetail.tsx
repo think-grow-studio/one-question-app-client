@@ -14,7 +14,7 @@ import { Text } from '@/shared/ui/Text';
 import { BackIcon } from '@/shared/icons/BackIcon';
 import { HeartIcon } from '@/shared/icons/HeartIcon';
 import { useQuestionCardStyles } from '@/shared/ui/QuestionCard';
-import { useAccentColors } from '@/shared/theme';
+import { useAccentColors, useScreenBackground } from '@/shared/theme';
 import { getFontStyle } from '@/shared/theme/typography';
 import { cs, fs, radius, sp } from '@/shared/utils/responsive';
 import { pickNicknameCharacter } from '@/shared/utils/nicknameCharacter';
@@ -36,6 +36,7 @@ export function PublicAnswerDetail({ answerPostId, pdqId, date }: PublicAnswerDe
   const { t } = useTranslation('feed');
   const theme = useTheme();
   const accent = useAccentColors();
+  const screenBg = useScreenBackground();
   const cardStyles = useQuestionCardStyles();
 
   const dailyQuery = useDailyPublicQuestion(date);
@@ -68,7 +69,7 @@ export function PublicAnswerDetail({ answerPostId, pdqId, date }: PublicAnswerDe
   const isNotFound = !isLoading && (!dailyQuery.data || !answer);
 
   return (
-    <YStack flex={1} style={{ backgroundColor: theme.backgroundSoft?.val }}>
+    <YStack flex={1} style={{ backgroundColor: screenBg }}>
       {/* Header — back button only. ScreenHeader 가 title+right 구조라 detail 용 inline 사용. */}
       <XStack style={styles.header} ai="center">
         <Pressable
