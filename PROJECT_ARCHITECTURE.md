@@ -2902,6 +2902,13 @@ const animatedStyle = useAnimatedStyle(() => ({
 - **`usePrefetchTimeline`:** 홈 진입 1초 후 1페이지 백그라운드 선로딩 → 최초 토글도 즉시 표시. 백그라운드 prefetch 실패가 글로벌 에러 dialog를 띄우지 않도록 `queryClient`에 `meta.suppressGlobalError` 지원 추가 (§15.2 보완).
 - **교훈 (설계 왕복 끝에 확정):** "쿼리 키 최소화"보다 "서버 파생 상태는 query cache에"가 우선. 리스트 키 + mutation invalidate가 표준이고, 키를 아끼려 페이지네이션 상태를 컴포넌트 state로 내리면 unmount 생존성을 잃어 재진입마다 reload가 발생한다. 또한 리스트(배열)와 단일 객체는 같은 키를 공유할 수 없다(queryFn 반환값 = 캐시 값 — `useCalendarHistory` 주석 참고).
 
+### 2026-06-04 — 화면/카드 색 토큰 규칙 확정 (다크모드 통일)
+- **규칙 (전 화면 공통):**
+  - **화면(스크린) 배경** → `useScreenBackground()` (`shared/theme/`) — 다크 `background`(#1C1C1E) / 라이트 `backgroundSoft`(#F7F9FB) 분기를 캡슐화. Screen `bgColor`, 헤더, 타임라인 점(도넛 안쪽) 등 "화면 배경과 같은 색"이 필요한 모든 곳에 사용.
+  - **카드/시트/다이얼로그** → `theme.surface` 직접 사용 — 토큰 자체가 모드별 값(라이트 #FFF / 다크 #2C2C2E)을 가지므로 분기 불필요.
+- **왜:** 두 모드 모두 "카드가 배경 위에 떠 보이는" 대비를 보장하려면, 다크는 배경이 카드보다 어둡고(#1C1C1E < #2C2C2E) 라이트는 배경이 카드보다 짙어야(#F7F9FB > #FFF) 함 — 한 토큰으로 표현 불가라 화면 배경만 훅으로 분기. 카드가 `background`(화면용 토큰)를 빌려 쓰면 다크에서 화면 배경과 동색이 되어 묻힘(피드 `AnswerCard`/`MyAnswerCard`에서 실제 발생, `surface`로 교정).
+- **하지 말 것:** ❌ 카드 배경에 `theme.background` 사용 ❌ 화면 배경에 `backgroundSoft`/`background`를 직접 하드코딩(훅 우회) ❌ 컴포넌트에 hex 색 하드코딩(토큰만 사용).
+
 ### 2026-06-03 — FlashList v2 규칙 정정 + 홈 타임라인 뷰 패턴 추가
 - **§18.2 / §21 `estimatedItemSize` 규칙 정정.** 기존 문서는 v1 기준으로 `estimatedItemSize`를 "필수"로 명시했으나, 본 프로젝트는 `@shopify/flash-list` **v2.0.2**를 사용하며 v2에서 이 prop은 제거/무시된다(자동 측정). 실제 코드(`CommonQuestionFeed.tsx`)도 이미 넘기지 않고 있어, 문서를 v2 기준으로 정정했다.
   - **왜:** 문서대로 `estimatedItemSize`를 넣으면 v2에서 무의미(또는 타입/경고 이슈)하고, 코드베이스 실제 관례와 모순되어 AI/신규 개발자에게 잘못된 가이드를 준다.
