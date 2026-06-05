@@ -11,6 +11,7 @@ import { logEvent, AnalyticsEvents } from '@/services/firebase';
 type AdUnitKey =
   | 'interstitialSwipe'
   | 'interstitialPastQuestion'
+  | 'interstitialPastQuestionTimeline'
   | 'interstitialReload'
   | 'interstitialPublicScroll'
   | 'interstitialPublicPastAnswer';

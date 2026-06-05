@@ -5,6 +5,8 @@ import { YStack, useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { useAccentColors } from '@/shared/theme';
 import { useThrottledCallback } from '@/shared/hooks/useThrottledCallback';
+import { useInterstitialAd } from '@/features/admob/hooks/useInterstitialAd';
+import { useIsAdFreeMember } from '@/features/member/hooks/queries/useMemberQueries';
 import { fs, sp } from '@/shared/utils/responsive';
 import { useTimeline } from '../hooks/queries/useQuestionQueries';
 import type { DailyQuestionDomain } from '../domain/questionDomain';
@@ -12,6 +14,13 @@ import { useDatePickerStore } from '../stores/useDatePickerStore';
 import { useSlideDirectionStore } from '../stores/useSlideDirectionStore';
 import { useHomeViewStore } from '../stores/useHomeViewStore';
 import { TimelineRow } from './TimelineRow';
+
+/** 추가 페이지 로드(fetchNextPage) N회마다 전면 광고 표시 (피드 SCROLL_AD_INTERVAL 패턴) */
+const TIMELINE_AD_INTERVAL = 4;
+
+// 모듈 레벨 카운터 — 뷰 토글로 unmount돼도 세션 동안 누적 유지 (CommonQuestionFeed 패턴).
+// 첫 페이지 로드·pull-to-refresh는 카운트하지 않음 (스크롤로 인한 추가 로드만).
+let timelineAdCounter = 0;
 
 /** 홈 타임라인 뷰 — 지난 질문/답변 기록을 최신순 세로 리스트로 표시 */
 export function HomeTimelineView() {
@@ -28,11 +37,24 @@ export function HomeTimelineView() {
   const { data, isLoading, hasNextPage, isFetchingNextPage, fetchNextPage, isRefetching } = query;
   const items = data ?? [];
 
+  const isAdFreeMember = useIsAdFreeMember();
+  const { showAd: showTimelineAd } = useInterstitialAd('interstitialPastQuestionTimeline');
+
   const handleEndReached = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage) {
-      void fetchNextPage();
+    if (__DEV__) {
+      console.log(
+        `[TimelineAd] endReached: hasNextPage=${hasNextPage} isFetching=${isFetchingNextPage} adFree=${isAdFreeMember} counter=${timelineAdCounter}`
+      );
     }
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+    if (!hasNextPage || isFetchingNextPage) return;
+    void fetchNextPage();
+    if (isAdFreeMember) return;
+    timelineAdCounter += 1;
+    if (timelineAdCounter % TIMELINE_AD_INTERVAL === 0) {
+      if (__DEV__) console.log(`[TimelineAd] interval hit (${timelineAdCounter}) → showAd`);
+      void showTimelineAd();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage, isAdFreeMember, showTimelineAd]);
 
   const handleRefresh = useCallback(() => {
     query.resetPagination();
