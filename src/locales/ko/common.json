@@ -70,5 +70,11 @@
     },
     "updateNow": "지금 업데이트",
     "skip": "나중에"
+  },
+  "exitApp": {
+    "title": "앱 종료",
+    "message": "앱을 종료하시겠습니까?",
+    "cancel": "아니요",
+    "confirm": "예"
   }
 }

@@ -70,5 +70,11 @@
     },
     "updateNow": "Update Now",
     "skip": "Skip"
+  },
+  "exitApp": {
+    "title": "Exit App",
+    "message": "Are you sure you want to exit the app?",
+    "cancel": "No",
+    "confirm": "Yes"
   }
 }
