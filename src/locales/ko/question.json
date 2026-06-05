@@ -45,9 +45,9 @@
   },
   "writtenDate": "작성 날짜 {{date}}",
   "timeline": {
-    "title": "나의 기록",
+    "title": "나의 생각",
     "month": "{{month}}월",
-    "empty": "아직 기록이 없어요"
+    "empty": "아직 받은 질문이 없어요"
   },
   "viewToggle": {
     "card": "카드 보기",

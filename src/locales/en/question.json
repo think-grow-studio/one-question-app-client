@@ -45,9 +45,9 @@
   },
   "writtenDate": "Written on {{date}}",
   "timeline": {
-    "title": "My Records",
+    "title": "My Thoughts",
     "month": "{{month}}",
-    "empty": "No records yet"
+    "empty": "No questions received yet"
   },
   "viewToggle": {
     "card": "Card view",
