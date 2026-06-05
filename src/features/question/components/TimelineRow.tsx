@@ -77,7 +77,8 @@ export const TimelineRow = memo(function TimelineRow({ item, onPress }: Timeline
         {/* 미답변이면 답변 영역은 비워둠 (질문만 표시). 답변은 최대 7줄 후 말줄임 */}
         {item.answer?.content ? (
           <Text
-            style={[styles.answerText, { color: theme.colorMuted?.val }]}
+            // 답변은 타임라인의 주 콘텐츠 — 질문과 동일한 기본 텍스트 색 사용 (muted는 흐릿함)
+            style={[styles.answerText, { color: theme.color?.val }]}
             numberOfLines={ANSWER_PREVIEW_LINES}
           >
             {item.answer.content}
