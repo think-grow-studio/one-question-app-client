@@ -206,13 +206,24 @@ function RootLayoutNav() {
     checkAppVersion();
   }, []);
 
-  // 알림 클릭 시 홈으로 이동 (인증된 경우만)
+  // 알림 클릭 시 이동 (인증된 경우만)
+  // - 분석 완료(ANALYSIS_DONE) 푸시면 해당 결과 화면으로 딥링크
+  // - 그 외에는 홈으로 이동
   useEffect(() => {
     const subscription = Notifications.addNotificationResponseReceivedListener(
-      () => {
-        if (isAuthenticated) {
-          router.replace('/(tabs)');
+      (response) => {
+        if (!isAuthenticated) return;
+
+        const data = response.notification.request.content.data as
+          | { type?: string; analysisId?: string }
+          | undefined;
+
+        if (data?.type === 'ANALYSIS_DONE' && data.analysisId) {
+          router.replace(`/(tabs)/analysis/${data.analysisId}`);
+          return;
         }
+
+        router.replace('/(tabs)');
       }
     );
 

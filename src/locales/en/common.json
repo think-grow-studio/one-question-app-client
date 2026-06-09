@@ -23,6 +23,7 @@
   "tabs": {
     "home": "Home",
     "feed": "Thoughts",
+    "analysis": "Meet",
     "settings": "Settings"
   },
   "error": {

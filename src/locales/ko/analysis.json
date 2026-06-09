@@ -1,0 +1,83 @@
+{
+  "title": "나를 만나는 시간",
+  "landing": {
+    "heroTitle": "쌓아온 답변 속에서\n나를 발견해보세요",
+    "chooseTitle": "어떤 이야기를 들어볼까요?",
+    "historyTitle": "지난 만남",
+    "historyCount": "지난 만남 {{count}}개",
+    "historyEmpty": "아직 만남이 없어요.\n첫 분석을 시작해보세요."
+  },
+  "status": {
+    "locked": {
+      "title": "조금만 더 쌓아볼까요",
+      "message": "답변 {{required}}개가 모이면 분석을 시작할 수 있어요.",
+      "progress": "{{current}} / {{required}}"
+    },
+    "cooldown": {
+      "title": "이번 주의 만남은 끝났어요",
+      "message": "다음 분석까지 {{days}}일 남았어요.",
+      "hint": "그동안 답변을 더 쌓아두면 더 깊은 이야기를 들을 수 있어요."
+    },
+    "processing": {
+      "title": "당신의 마음을 읽는 중…",
+      "message": "분석이 끝나면 알림으로 알려드릴게요.",
+      "view": "진행 상황 보기"
+    },
+    "failed": {
+      "title": "분석에 실패했어요",
+      "message": "잠시 후 다시 시도해주세요.",
+      "retry": "다시 시도"
+    }
+  },
+  "types": {
+    "thinkingPattern": {
+      "name": "사고 패턴 분석",
+      "tagline": "반복되는 생각의 결을 들여다봐요",
+      "description": "당신의 답변에서 반복되는 생각의 결, 자주 머무는 감정, 무의식적인 습관을 찾아드려요.",
+      "highlightsTitle": "이런 걸 알 수 있어요",
+      "highlights": [
+        "반복되는 사고 패턴",
+        "감정의 흐름",
+        "나도 몰랐던 관점"
+      ]
+    },
+    "warmComfort": {
+      "name": "따듯한 위로",
+      "tagline": "오늘의 당신에게 건네는 편지",
+      "description": "지난 답변들을 가만히 읽고, 지친 마음을 다독이는 따듯한 편지를 건네드려요.",
+      "highlightsTitle": "이런 걸 받을 수 있어요",
+      "highlights": [
+        "공감이 담긴 편지",
+        "스스로를 안아주는 한마디",
+        "차분한 응원"
+      ]
+    },
+    "duration": "분석에는 몇 분 정도 걸려요",
+    "start": "이 분석으로 시작하기",
+    "cardCta": "시작"
+  },
+  "select": {
+    "title": "분석할 답변 고르기",
+    "guide": "최근 답변을 골랐어요. 빼고 싶은 답변은 눌러서 제외하세요.",
+    "counter": "{{count}}개 선택됨",
+    "range": "최소 {{min}} · 최대 {{max}}",
+    "tooMany": "최대 {{max}}개까지 고를 수 있어요.",
+    "submit": "분석 요청하기",
+    "empty": "분석할 답변이 아직 부족해요."
+  },
+  "result": {
+    "answerCount": "답변 {{count}}개",
+    "summaryTitle": "한눈에",
+    "comfortHeading": "당신에게",
+    "feedbackTitle": "이 분석이 어땠나요?",
+    "feedbackThanks": "소중한 의견 고마워요.",
+    "processingTitle": "아직 분석 중이에요",
+    "processingMessage": "끝나면 알림으로 알려드릴게요."
+  },
+  "feedback": {
+    "good": "좋았어요",
+    "okay": "그저 그래요",
+    "bad": "아쉬워요"
+  },
+  "tab": "만남"
+}

@@ -9,6 +9,7 @@ import koAnswer from './ko/answer.json';
 import koSettings from './ko/settings.json';
 import koAuth from './ko/auth.json';
 import koFeed from './ko/feed.json';
+import koAnalysis from './ko/analysis.json';
 
 // Import English translations
 import enCommon from './en/common.json';
@@ -17,6 +18,7 @@ import enAnswer from './en/answer.json';
 import enSettings from './en/settings.json';
 import enAuth from './en/auth.json';
 import enFeed from './en/feed.json';
+import enAnalysis from './en/analysis.json';
 
 const resources = {
   ko: {
@@ -26,6 +28,7 @@ const resources = {
     settings: koSettings,
     auth: koAuth,
     feed: koFeed,
+    analysis: koAnalysis,
   },
   en: {
     common: enCommon,
@@ -34,6 +37,7 @@ const resources = {
     settings: enSettings,
     auth: enAuth,
     feed: enFeed,
+    analysis: enAnalysis,
   },
 };
 

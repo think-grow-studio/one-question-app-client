@@ -1,0 +1,83 @@
+{
+  "title": "Time to Meet Yourself",
+  "landing": {
+    "heroTitle": "Discover yourself\nin the answers you've gathered",
+    "chooseTitle": "What would you like to hear?",
+    "historyTitle": "Past meetings",
+    "historyCount": "Past meetings · {{count}}",
+    "historyEmpty": "No meetings yet.\nStart your first analysis."
+  },
+  "status": {
+    "locked": {
+      "title": "Let's gather a little more",
+      "message": "You can start once you have {{required}} answers.",
+      "progress": "{{current}} / {{required}}"
+    },
+    "cooldown": {
+      "title": "This week's meeting is done",
+      "message": "{{days}} days until your next analysis.",
+      "hint": "Gather more answers in the meantime for a deeper read."
+    },
+    "processing": {
+      "title": "Reading your heart…",
+      "message": "We'll notify you when it's ready.",
+      "view": "View progress"
+    },
+    "failed": {
+      "title": "Analysis failed",
+      "message": "Please try again in a moment.",
+      "retry": "Try again"
+    }
+  },
+  "types": {
+    "thinkingPattern": {
+      "name": "Thinking Patterns",
+      "tagline": "See the grain of your recurring thoughts",
+      "description": "We find the recurring threads in your thoughts, the emotions you linger on, and habits you may not notice.",
+      "highlightsTitle": "What you'll learn",
+      "highlights": [
+        "Recurring thought patterns",
+        "The flow of your emotions",
+        "A perspective you hadn't seen"
+      ]
+    },
+    "warmComfort": {
+      "name": "A Warm Word",
+      "tagline": "A letter for you today",
+      "description": "We gently read your past answers and write you a warm letter to soothe a tired heart.",
+      "highlightsTitle": "What you'll receive",
+      "highlights": [
+        "A heartfelt letter",
+        "A word to hold yourself with",
+        "Quiet encouragement"
+      ]
+    },
+    "duration": "Analysis takes a few minutes",
+    "start": "Start with this analysis",
+    "cardCta": "Start"
+  },
+  "select": {
+    "title": "Choose answers to analyze",
+    "guide": "We picked your recent answers. Tap to remove any you'd like to exclude.",
+    "counter": "{{count}} selected",
+    "range": "Min {{min}} · Max {{max}}",
+    "tooMany": "You can pick up to {{max}}.",
+    "submit": "Request analysis",
+    "empty": "Not enough answers to analyze yet."
+  },
+  "result": {
+    "answerCount": "{{count}} answers",
+    "summaryTitle": "At a glance",
+    "comfortHeading": "To you",
+    "feedbackTitle": "How was this analysis?",
+    "feedbackThanks": "Thanks for your feedback.",
+    "processingTitle": "Still analyzing",
+    "processingMessage": "We'll notify you when it's done."
+  },
+  "feedback": {
+    "good": "Loved it",
+    "okay": "It's okay",
+    "bad": "Not for me"
+  },
+  "tab": "Meet"
+}
