@@ -13,7 +13,7 @@ import Animated, {
   FadeOut,
 } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
-import { useAccentColors } from '@/shared/theme';
+import { useTheme } from 'tamagui';
 import { getFontStyle } from '@/shared/theme/typography';
 import { sp, radius, fs } from '@/shared/utils/responsive';
 import { LIKE_POP_MIN_COUNT } from '../constants/limits';
@@ -42,7 +42,8 @@ export const QuestionLikePopLabel = memo(function QuestionLikePopLabel({
   onAnimationEnd,
 }: QuestionLikePopLabelProps) {
   const { t } = useTranslation('question');
-  const accent = useAccentColors();
+  const theme = useTheme();
+  const chipColor = theme.color?.val ?? '#000';
   const onEndRef = useRef(onAnimationEnd);
   useEffect(() => { onEndRef.current = onAnimationEnd; }, [onAnimationEnd]);
 
@@ -110,14 +111,14 @@ export const QuestionLikePopLabel = memo(function QuestionLikePopLabel({
     <Animated.View
       entering={FadeIn.duration(180)}
       exiting={FadeOut.duration(150)}
-      style={[styles.chip, { backgroundColor: `${accent.like}12` }]}
+      style={[styles.chip, { backgroundColor: `${chipColor}12` }]}
     >
-      <Text style={[styles.label, { color: accent.like }]}>
+      <Text style={[styles.label, { color: chipColor }]}>
         {t('likePopLabel')}
       </Text>
-      <Animated.View style={[styles.dot, { backgroundColor: accent.like }, s0]} />
-      <Animated.View style={[styles.dot, { backgroundColor: accent.like }, s1]} />
-      <Animated.View style={[styles.dot, { backgroundColor: accent.like }, s2]} />
+      <Animated.View style={[styles.dot, { backgroundColor: chipColor }, s0]} />
+      <Animated.View style={[styles.dot, { backgroundColor: chipColor }, s1]} />
+      <Animated.View style={[styles.dot, { backgroundColor: chipColor }, s2]} />
     </Animated.View>
   );
 });
