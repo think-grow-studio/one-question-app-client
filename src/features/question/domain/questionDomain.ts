@@ -13,6 +13,7 @@ export interface QuestionCandidateDomain {
   description: string | null;
   receivedOrder: number;
   selected: boolean;
+  likeCount?: number;
 }
 
 export interface QuestionDomain {
@@ -23,6 +24,7 @@ export interface QuestionDomain {
   questionCycle: number;
   changeCount: number;
   liked: boolean;
+  likeCount?: number;
   candidates: QuestionCandidateDomain[];
 }
 
@@ -50,6 +52,7 @@ function toCandidateDomain(candidates: QuestionCandidateDto[] | null | undefined
     description: candidate.description,
     receivedOrder: candidate.receivedOrder,
     selected: candidate.selected,
+    likeCount: candidate.likeCount,
   }));
 }
 
@@ -66,6 +69,7 @@ export function fromHistoryItem(item: QuestionHistoryItemDto): DailyQuestionDoma
           questionCycle: item.question.questionCycle,
           changeCount: item.question.changeCount,
           liked: item.question.liked,
+          likeCount: item.question.likeCount,
           candidates: toCandidateDomain(item.candidates),
         }
       : null,
@@ -94,6 +98,7 @@ export function fromServeDailyQuestion(
       questionCycle: response.questionCycle,
       changeCount: response.changeCount,
       liked: response.liked,
+      likeCount: response.likeCount,
       candidates: toCandidateDomain(response.candidates),
     },
     answer: null,

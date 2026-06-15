@@ -4,6 +4,7 @@ export interface QuestionCandidateDto {
   description: string | null;
   receivedOrder: number;
   selected: boolean;
+  likeCount?: number;
 }
 
 export interface SelectQuestionRequest {
@@ -27,6 +28,7 @@ export interface ServeDailyQuestionResponse {
   questionCycle: number;
   changeCount: number;
   liked: boolean;
+  likeCount?: number;
   candidates: QuestionCandidateDto[];
 }
 
@@ -61,6 +63,7 @@ export interface QuestionHistoryQuestionDto {
   questionCycle: number;
   changeCount: number;
   liked: boolean;
+  likeCount?: number;
 }
 
 export interface QuestionHistoryAnswerDto {

@@ -43,6 +43,7 @@
       "beforeCycleMessage": "가입일 이전 날짜로는 이동할 수 없습니다."
     }
   },
+  "likePopLabel": "인기 있는 질문이에요!",
   "writtenDate": "작성 날짜 {{date}}",
   "timeline": {
     "title": "나의 생각",

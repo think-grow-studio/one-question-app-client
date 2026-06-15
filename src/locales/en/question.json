@@ -43,6 +43,7 @@
       "beforeCycleMessage": "You can't open dates before your start date."
     }
   },
+  "likePopLabel": "Popular question!",
   "writtenDate": "Written on {{date}}",
   "timeline": {
     "title": "My Thoughts",

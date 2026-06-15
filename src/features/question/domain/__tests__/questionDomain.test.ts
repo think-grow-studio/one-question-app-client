@@ -18,6 +18,7 @@ describe('questionDomain', () => {
           questionCycle: 1,
           changeCount: 1,
           liked: false,
+          likeCount: 0,
         },
         answer: null,
         candidates: [
@@ -27,6 +28,7 @@ describe('questionDomain', () => {
             description: null,
             receivedOrder: 1,
             selected: false,
+            likeCount: 0,
           },
           {
             questionId: 3,
@@ -34,6 +36,7 @@ describe('questionDomain', () => {
             description: null,
             receivedOrder: 2,
             selected: true,
+            likeCount: 5,
           },
         ],
       });
@@ -45,6 +48,7 @@ describe('questionDomain', () => {
           description: null,
           receivedOrder: 1,
           selected: false,
+          likeCount: 0,
         },
         {
           questionId: 3,
@@ -52,6 +56,7 @@ describe('questionDomain', () => {
           description: null,
           receivedOrder: 2,
           selected: true,
+          likeCount: 5,
         },
       ]);
     });
@@ -69,6 +74,7 @@ describe('questionDomain', () => {
         questionCycle: 1,
         changeCount: 0,
         liked: false,
+        likeCount: 0,
         candidates: [],
       },
       answer: null,
