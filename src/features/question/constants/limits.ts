@@ -1,5 +1,7 @@
 import { MemberPermission } from '@/shared/types/api';
 
+export const LIKE_POP_MIN_COUNT = 1;
+
 /**
  * 멤버십 등급별 질문 reload 제한
  *

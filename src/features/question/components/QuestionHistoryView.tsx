@@ -38,9 +38,10 @@ import { getFontStyle } from '@/shared/theme/typography';
 import { useAccentColors, useScreenBackground } from '@/shared/theme';
 import { formatLocalDate } from '@/shared/utils/date';
 import { SCREEN, sp, cs, fs } from '@/shared/utils/responsive';
-import { canReloadQuestion, getReloadCountDisplay } from '../constants/limits';
+import { canReloadQuestion, getReloadCountDisplay, LIKE_POP_MIN_COUNT } from '../constants/limits';
 import { logEvent, AnalyticsEvents } from '@/services/firebase';
 import { QuestionLikeButton } from './QuestionLikeButton';
+import { QuestionLikePopLabel } from './QuestionLikePopLabel';
 
 const SWIPE_THRESHOLD = SCREEN.width * 0.2; // 20% - 더 쉽게 넘어가도록 조정 (이전: 0.3)
 
@@ -70,6 +71,12 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
   const cardStyles = useQuestionCardStyles();
   const [isAlertVisible, setIsAlertVisible] = useState(false);
   const [isReloadSheetVisible, setIsReloadSheetVisible] = useState(false);
+  const [likeAnimTrigger, setLikeAnimTrigger] = useState(false);
+
+  const triggerLikeAnimation = useCallback((likeCount?: number) => {
+    if (likeCount && likeCount >= LIKE_POP_MIN_COUNT) setLikeAnimTrigger(true);
+  }, []);
+  const handleLikeAnimEnd = useCallback(() => setLikeAnimTrigger(false), []);
   const queryClient = useQueryClient();
 
   const responsiveStyles = useMemo(
@@ -108,6 +115,11 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
   } = useDailyHistory(currentDate, direction, {
     enabled: Boolean(currentDate),
   });
+
+  useEffect(() => {
+    const likeCount = currentHistory?.question?.likeCount;
+    if (likeCount && likeCount >= LIKE_POP_MIN_COUNT) setLikeAnimTrigger(true);
+  }, [currentHistory?.question?.questionId]);
 
   // Mutations
   const serveDailyQuestionMutation = useServeDailyQuestion();
@@ -434,7 +446,9 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
         if (!allowed) {
           return;
         }
-        serveDailyQuestionMutation.mutate(currentDate);
+        serveDailyQuestionMutation.mutate(currentDate, {
+          onSuccess: (data) => triggerLikeAnimation(data.likeCount),
+        });
       })
       .catch((error) => {
         console.warn('[QuestionHistoryView] Rewarded action failed', error);
@@ -473,7 +487,8 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
         }
 
         reloadMutation.mutate(currentDate, {
-          onSuccess: () => {
+          onSuccess: (data) => {
+            triggerLikeAnimation(data.likeCount);
             setIsReloadSheetVisible(false);
           },
         });
@@ -545,11 +560,20 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
           <View style={[cardStyles.card, cardStyles.cardFull]}>
             <View style={styles.questionSection}>
               <XStack ai="center" jc="space-between" mb="$2" style={styles.questionHeader}>
-                <QuestionLikeButton
-                  questionId={currentHistory!.question!.questionId}
-                  date={currentHistory!.date}
-                  initialLiked={currentHistory!.question!.liked}
-                />
+                <XStack ai="center" gap="$2">
+                  <QuestionLikeButton
+                    questionId={currentHistory!.question!.questionId}
+                    date={currentHistory!.date}
+                    initialLiked={currentHistory!.question!.liked}
+                  />
+                  {(currentHistory!.question!.likeCount ?? 0) >= LIKE_POP_MIN_COUNT && (
+                    <QuestionLikePopLabel
+                      likeCount={currentHistory!.question!.likeCount}
+                      triggerAnimation={likeAnimTrigger}
+                      onAnimationEnd={handleLikeAnimEnd}
+                    />
+                  )}
+                </XStack>
                 {/* 답변이 없을 때만 reload 버튼 표시 */}
                 {!currentItem.answer && (
                   <XStack ai="center" gap="$2">
@@ -735,6 +759,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
         randomRequiresAd={shouldGateReloadQuestion}
         candidates={candidates}
         date={currentDate}
+        onSelectSuccess={triggerLikeAnimation}
       />
 
       <AlertDialog

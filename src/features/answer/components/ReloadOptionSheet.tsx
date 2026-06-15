@@ -32,6 +32,7 @@ type ReloadOptionSheetProps = {
   randomRequiresAd?: boolean;
   candidates: QuestionCandidateDomain[];
   date: string;
+  onSelectSuccess?: (likeCount?: number) => void;
 };
 
 export function ReloadOptionSheet({
@@ -42,6 +43,7 @@ export function ReloadOptionSheet({
   randomRequiresAd = false,
   candidates,
   date,
+  onSelectSuccess,
 }: ReloadOptionSheetProps) {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
@@ -192,6 +194,9 @@ export function ReloadOptionSheet({
         selectQuestion(
           { date, questionId: candidate.questionId },
           {
+            onSuccess: (data) => {
+              onSelectSuccess?.(data.likeCount);
+            },
             onError: () => {
               alert.show({
                 title: t('common:error.title'),

@@ -125,6 +125,8 @@ export function useSelectQuestion() {
             questionId: selectedCandidate.questionId,
             content: selectedCandidate.content,
             description: selectedCandidate.description,
+            liked: false,
+            likeCount: selectedCandidate.likeCount,
             candidates: prev.question.candidates.map((candidate) => ({
               ...candidate,
               selected: candidate.questionId === questionId,
