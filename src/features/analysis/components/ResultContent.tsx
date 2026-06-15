@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { XStack, YStack, useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
@@ -31,8 +31,8 @@ export function ResultContent({ detail }: { detail: AnalysisDetailDto }) {
       {/* 헤더 */}
       <YStack gap="$1">
         <XStack ai="center" gap="$2">
-          <Text style={styles.emoji}>{meta.emoji}</Text>
-          <Text variant="heading">{t(`types.${meta.i18nKey}.name`)}</Text>
+          <Image source={meta.image} style={styles.character} resizeMode="contain" />
+          <Text variant="heading" flex={1}>{t(`types.${meta.i18nKey}.name`)}</Text>
         </XStack>
         <Text variant="caption">
           {formatDate(detail.createdAt)} · {t('result.answerCount', { count: detail.answerCount })}
@@ -108,8 +108,9 @@ export function ResultContent({ detail }: { detail: AnalysisDetailDto }) {
 }
 
 const styles = StyleSheet.create({
-  emoji: {
-    fontSize: fs(24),
+  character: {
+    width: 40,
+    height: 40,
   },
   summaryCard: {
     borderRadius: radius(18),

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { Modal, Pressable, StyleSheet, View, BackHandler, Platform } from 'react-native';
+import { Image, Modal, Pressable, StyleSheet, View, BackHandler, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { YStack, XStack, useTheme } from 'tamagui';
 import Animated, {
@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
 import { Button } from '@/shared/ui/Button';
 import { useAccentColors } from '@/shared/theme';
-import { sp, radius, fs, SHEET_MAX_WIDTH } from '@/shared/utils/responsive';
+import { sp, radius, SHEET_MAX_WIDTH } from '@/shared/utils/responsive';
 import type { AnalysisTypeMeta } from '../constants/analysisTypes';
 
 interface AnalysisTypeSheetProps {
@@ -87,8 +87,8 @@ export function AnalysisTypeSheet({ meta, onClose, onStart }: AnalysisTypeSheetP
 
             <YStack gap="$3" px="$5" pt="$3" flex={1}>
               <XStack ai="center" gap="$2">
-                <Text style={styles.emoji}>{shown.emoji}</Text>
-                <Text variant="subheading">{t(`types.${shown.i18nKey}.name`)}</Text>
+                <Image source={shown.image} style={styles.character} resizeMode="contain" />
+                <Text variant="subheading" flex={1}>{t(`types.${shown.i18nKey}.name`)}</Text>
               </XStack>
 
               <Text variant="body" muted>
@@ -146,8 +146,9 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginTop: sp(12),
   },
-  emoji: {
-    fontSize: fs(26),
+  character: {
+    width: 40,
+    height: 40,
   },
   dot: {
     width: 6,

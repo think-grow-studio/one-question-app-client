@@ -1,5 +1,4 @@
-import { Pressable, StyleSheet, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { YStack, XStack, useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
@@ -29,20 +28,18 @@ export function AnalysisBigCard({ meta, onPress, disabled = false }: AnalysisBig
         { opacity: disabled ? 0.5 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] },
       ]}
     >
-      <LinearGradient
-        colors={palette.gradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.card}
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: theme.surface?.val, borderColor: theme.borderColor?.val },
+        ]}
       >
         <YStack flex={1} jc="space-between">
-          {/* 이모지 배지 */}
-          <View style={[styles.badge, { backgroundColor: palette.badgeBg }]}>
-            <Text style={styles.emoji}>{meta.emoji}</Text>
-          </View>
+          {/* 캐릭터 이미지 */}
+          <Image source={meta.image} style={styles.character} resizeMode="contain" />
 
           {/* 이름 + 태그라인 */}
-          <YStack gap="$1" mt="$3">
+          <YStack gap="$1" mt="$2">
             <Text variant="subheading" style={{ color: theme.color?.val }}>
               {t(`types.${meta.i18nKey}.name`)}
             </Text>
@@ -52,7 +49,7 @@ export function AnalysisBigCard({ meta, onPress, disabled = false }: AnalysisBig
           </YStack>
 
           {/* 시작 필 (우하단) */}
-          <XStack jc="flex-end" mt="$3">
+          <XStack jc="flex-end" mt="$2">
             <View style={[styles.pill, { backgroundColor: palette.pill }]}>
               <Text style={[styles.pillText, { color: palette.pillText }]}>
                 {t('types.cardCta')}  →
@@ -60,7 +57,7 @@ export function AnalysisBigCard({ meta, onPress, disabled = false }: AnalysisBig
             </View>
           </XStack>
         </YStack>
-      </LinearGradient>
+      </View>
     </Pressable>
   );
 }
@@ -76,19 +73,15 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   card: {
-    minHeight: 196,
-    borderRadius: radius(24),
-    padding: sp(20),
+    minHeight: 116,
+    borderRadius: radius(22),
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingVertical: sp(14),
+    paddingHorizontal: sp(16),
   },
-  badge: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emoji: {
-    fontSize: fs(26),
+  character: {
+    width: 56,
+    height: 56,
   },
   pill: {
     paddingHorizontal: sp(16),

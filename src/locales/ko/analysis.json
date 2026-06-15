@@ -31,8 +31,8 @@
   },
   "types": {
     "thinkingPattern": {
-      "name": "사고 패턴 분석",
-      "tagline": "반복되는 생각의 결을 들여다봐요",
+      "name": "꼼꼼한 여우의 생각 관찰 일지",
+      "tagline": "나도 몰랐던 사고의 흐름 과정을 들여다봐요",
       "description": "당신의 답변에서 반복되는 생각의 결, 자주 머무는 감정, 무의식적인 습관을 찾아드려요.",
       "highlightsTitle": "이런 걸 알 수 있어요",
       "highlights": [
@@ -42,7 +42,7 @@
       ]
     },
     "warmComfort": {
-      "name": "따듯한 위로",
+      "name": "따뜻한 다람쥐의 편지",
       "tagline": "오늘의 당신에게 건네는 편지",
       "description": "지난 답변들을 가만히 읽고, 지친 마음을 다독이는 따듯한 편지를 건네드려요.",
       "highlightsTitle": "이런 걸 받을 수 있어요",
