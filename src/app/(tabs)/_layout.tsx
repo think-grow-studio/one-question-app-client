@@ -5,7 +5,7 @@ import { useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { HomeIcon } from '@/shared/icons/HomeIcon';
 import { FeedIcon } from '@/shared/icons/FeedIcon';
-import { SparkleIcon } from '@/shared/icons/SparkleIcon';
+import { ReportIcon } from '@/shared/icons/ReportIcon';
 import { SettingsIcon } from '@/shared/icons/SettingsIcon';
 import { useAccentColors, getFontStyle } from '@/shared/theme';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
@@ -76,7 +76,7 @@ export default function TabLayout() {
         options={{
           title: t('tabs.analysis'),
           tabBarIcon: ({ color, focused }) => (
-            <SparkleIcon size={24} color={color} active={focused} />
+            <ReportIcon size={24} color={color} active={focused} />
           ),
           tabBarLabel: ({ color, focused }) => (
             <Text style={{ color, fontSize: 10, ...getFontStyle(focused ? '700' : '400') }}>

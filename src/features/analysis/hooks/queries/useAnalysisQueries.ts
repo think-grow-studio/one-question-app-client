@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { analysisApi } from '../../api/analysisApi';
 import type { AnalysisDetailDto } from '../../types/api';
 
@@ -45,11 +45,17 @@ export function useAnalysisDetail(
   });
 }
 
-/** 지난 분석 전체 히스토리 */
+/**
+ * 지난 분석(리포트) 히스토리 — 커서 기반 무한 스크롤.
+ * select 로 페이지를 평탄화해 컴포넌트는 가공된 배열(data)만 소비한다.
+ */
 export function useAnalysisHistory() {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: analysisKeys.history(),
-    queryFn: () => analysisApi.getHistory(),
+    queryFn: ({ pageParam }) => analysisApi.getHistory(pageParam),
+    initialPageParam: null as number | null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     staleTime: 1000 * 60 * 5,
+    select: (data) => data.pages.flatMap((page) => page.items),
   });
 }

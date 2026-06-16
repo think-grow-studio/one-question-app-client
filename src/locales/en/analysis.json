@@ -3,7 +3,7 @@
   "landing": {
     "heroTitle": "Discover yourself\nin the answers you've gathered",
     "chooseTitle": "What would you like to hear?",
-    "historyTitle": "Past meetings",
+    "historyTitle": "Reports",
     "historyCount": "Past meetings · {{count}}",
     "historyEmpty": "No meetings yet.\nStart your first analysis.",
     "disclaimer": "This reading is written by AI from your answers.\nIt's one perspective, not the truth — take it lightly."
