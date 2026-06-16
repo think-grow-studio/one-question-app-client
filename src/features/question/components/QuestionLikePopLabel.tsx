@@ -13,7 +13,7 @@ import Animated, {
   FadeOut,
 } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from 'tamagui';
+import { useAccentColors } from '@/shared/theme';
 import { getFontStyle } from '@/shared/theme/typography';
 import { sp, radius, fs } from '@/shared/utils/responsive';
 import { LIKE_POP_MIN_COUNT } from '../constants/limits';
@@ -42,8 +42,7 @@ export const QuestionLikePopLabel = memo(function QuestionLikePopLabel({
   onAnimationEnd,
 }: QuestionLikePopLabelProps) {
   const { t } = useTranslation('question');
-  const theme = useTheme();
-  const chipColor = theme.color?.val ?? '#000';
+  const { primary: chipColor } = useAccentColors();
   const onEndRef = useRef(onAnimationEnd);
   useEffect(() => { onEndRef.current = onAnimationEnd; }, [onAnimationEnd]);
 
