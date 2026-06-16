@@ -5,7 +5,8 @@
     "chooseTitle": "어떤 이야기를 들어볼까요?",
     "historyTitle": "지난 만남",
     "historyCount": "지난 만남 {{count}}개",
-    "historyEmpty": "아직 만남이 없어요.\n첫 분석을 시작해보세요."
+    "historyEmpty": "아직 만남이 없어요.\n첫 분석을 시작해보세요.",
+    "disclaimer": "이 분석은 AI가 당신의 답변을 읽고 쓴 거예요.\n정답이 아닌 하나의 관점이니 가볍게 참고해 주세요."
   },
   "status": {
     "locked": {

@@ -21,7 +21,7 @@ interface AnalysisTypeSheetProps {
   onStart: (meta: AnalysisTypeMeta) => void;
 }
 
-const SHEET_HEIGHT = 460;
+const SHEET_HEIGHT = 500;
 
 export function AnalysisTypeSheet({ meta, onClose, onStart }: AnalysisTypeSheetProps) {
   const insets = useSafeAreaInsets();
@@ -111,7 +111,11 @@ export function AnalysisTypeSheet({ meta, onClose, onStart }: AnalysisTypeSheetP
                 ⏱  {t('types.duration')}
               </Text>
 
-              <YStack flex={1} jc="flex-end">
+              <YStack flex={1} jc="flex-end" gap="$3">
+                {/* AI 분석 안내 — 맹신 방지 */}
+                <Text variant="caption" center style={styles.disclaimer}>
+                  {t('landing.disclaimer')}
+                </Text>
                 <Button label={t('types.start')} onPress={() => onStart(shown)} />
               </YStack>
             </YStack>
@@ -149,6 +153,10 @@ const styles = StyleSheet.create({
   character: {
     width: 40,
     height: 40,
+  },
+  disclaimer: {
+    lineHeight: 18,
+    opacity: 0.8,
   },
   dot: {
     width: 6,

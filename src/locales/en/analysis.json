@@ -5,7 +5,8 @@
     "chooseTitle": "What would you like to hear?",
     "historyTitle": "Past meetings",
     "historyCount": "Past meetings · {{count}}",
-    "historyEmpty": "No meetings yet.\nStart your first analysis."
+    "historyEmpty": "No meetings yet.\nStart your first analysis.",
+    "disclaimer": "This reading is written by AI from your answers.\nIt's one perspective, not the truth — take it lightly."
   },
   "status": {
     "locked": {
