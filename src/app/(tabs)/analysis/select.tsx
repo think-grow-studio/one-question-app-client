@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { XStack, YStack, useTheme } from 'tamagui';
@@ -9,7 +9,7 @@ import { Screen } from '@/shared/layout/Screen';
 import { Text } from '@/shared/ui/Text';
 import { Button } from '@/shared/ui/Button';
 import { BackIcon } from '@/shared/icons/BackIcon';
-import { useScreenBackground } from '@/shared/theme';
+import { useScreenBackground, useAccentColors } from '@/shared/theme';
 import { sp } from '@/shared/utils/responsive';
 import { AnswerSelectRow } from '@/features/analysis/components/AnswerSelectRow';
 import {
@@ -27,11 +27,24 @@ export default function AnalysisSelectScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const theme = useTheme();
+  const accent = useAccentColors();
   const screenBg = useScreenBackground();
   const { t } = useTranslation('analysis');
   const { type } = useLocalSearchParams<{ type: AnalysisType }>();
 
-  const { items, selectedIds, count, toggle, capHint, isCountValid, min, max } = useAnswerSelection();
+  const {
+    items,
+    selectedIds,
+    count,
+    toggle,
+    capHint,
+    isCountValid,
+    min,
+    max,
+    isLoading,
+    loadMore,
+    isLoadingMore,
+  } = useAnswerSelection();
   const { mutate: createAnalysis, isPending } = useCreateAnalysis();
 
   const canSubmit = isCountValid && !isPending && type != null;
@@ -67,26 +80,41 @@ export default function AnalysisSelectScreen() {
         <Text variant="subheading">{t('select.title')}</Text>
       </XStack>
 
-      <View style={styles.listWrap}>
-        <FlashList<SelectableAnswer>
-          data={items}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.date}
-          contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
-          ItemSeparatorComponent={Separator}
-          ListHeaderComponent={
-            <Text variant="bodySmall" muted style={styles.guide}>
-              {t('select.guide')}
-            </Text>
-          }
-          ListEmptyComponent={
-            <Text variant="bodySmall" muted style={styles.guide}>
-              {t('select.empty')}
-            </Text>
-          }
-        />
-      </View>
+      {/* 안내 문구 (항상 표시) */}
+      <Text variant="bodySmall" muted style={styles.guide}>
+        {t('select.guide')}
+      </Text>
+
+      {/* 로딩 / 빈 상태 / 리스트 — FlashList 바깥에서 분기 (HomeTimelineView 패턴) */}
+      {isLoading ? (
+        <YStack flex={1} ai="center" jc="center">
+          <ActivityIndicator color={accent.primary} />
+        </YStack>
+      ) : items.length === 0 ? (
+        <YStack flex={1} ai="center" jc="center" px="$5">
+          <Text variant="bodySmall" muted center>
+            {t('select.empty')}
+          </Text>
+        </YStack>
+      ) : (
+        <View style={styles.listWrap}>
+          <FlashList<SelectableAnswer>
+            data={items}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.date}
+            contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
+            ItemSeparatorComponent={Separator}
+            onEndReached={loadMore}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={
+              isLoadingMore ? (
+                <ActivityIndicator style={styles.footerLoader} color={accent.primary} />
+              ) : null
+            }
+          />
+        </View>
+      )}
 
       {/* 하단 고정 바 */}
       <YStack
@@ -126,7 +154,11 @@ const styles = StyleSheet.create({
     height: sp(10),
   },
   guide: {
+    paddingHorizontal: sp(20),
     marginBottom: sp(8),
+  },
+  footerLoader: {
+    paddingVertical: sp(16),
   },
   footer: {
     paddingHorizontal: sp(20),

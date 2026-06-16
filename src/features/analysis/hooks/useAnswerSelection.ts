@@ -24,6 +24,14 @@ export interface AnswerSelection {
   isCountValid: boolean;
   min: number;
   max: number;
+  /** 첫 페이지 로딩 중인지 (초기 스피너용) */
+  isLoading: boolean;
+  /** 무한 스크롤: 다음 페이지 로드 (가능할 때만 동작) */
+  loadMore: () => void;
+  /** 더 불러올 페이지가 있는지 */
+  hasMore: boolean;
+  /** 다음 페이지 로딩 중인지 (푸터 스피너용) */
+  isLoadingMore: boolean;
 }
 
 /**
@@ -35,7 +43,7 @@ export interface AnswerSelection {
  * 라우팅 레이어(app/)에 비즈니스 로직을 두지 않기 위해 분리 (PROJECT_ARCHITECTURE §4).
  */
 export function useAnswerSelection(): AnswerSelection {
-  const { data: days = [], hasNextPage, fetchNextPage, isFetchingNextPage } = useTimeline();
+  const { data: days = [], hasNextPage, fetchNextPage, isFetchingNextPage, isLoading } = useTimeline();
 
   const items = useMemo<SelectableAnswer[]>(
     () =>
@@ -86,6 +94,11 @@ export function useAnswerSelection(): AnswerSelection {
   const resolved = selectedIds ?? new Set<number>();
   const count = resolved.size;
 
+  // 무한 스크롤: 화면에서 onEndReached 로 호출 (중복/불필요 호출 방지)
+  const loadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
   return {
     items,
     selectedIds: resolved,
@@ -95,5 +108,9 @@ export function useAnswerSelection(): AnswerSelection {
     isCountValid: count >= MIN_ANSWERS && count <= MAX_ANSWERS,
     min: MIN_ANSWERS,
     max: MAX_ANSWERS,
+    isLoading,
+    loadMore,
+    hasMore: !!hasNextPage,
+    isLoadingMore: !!isFetchingNextPage,
   };
 }

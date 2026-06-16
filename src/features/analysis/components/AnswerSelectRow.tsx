@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { XStack, YStack, useTheme } from 'tamagui';
+import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
 import { useAccentColors } from '@/shared/theme';
 import { sp, radius } from '@/shared/utils/responsive';
@@ -13,14 +14,21 @@ interface AnswerSelectRowProps {
   onToggle: () => void;
 }
 
-function formatShort(date: string): string {
-  const [, m, d] = date.split('-');
-  return `${Number(m)}/${Number(d)}`;
-}
-
+/**
+ * 분석할 답변 선택 카드 — "날짜 헤더 + 우상단 체크 배지" 형태.
+ * 타임라인(좌측 날짜레일 + 커넥터선)과 의도적으로 다른 시각 언어를 쓴다.
+ */
 function AnswerSelectRowBase({ date, question, answer, selected, onToggle }: AnswerSelectRowProps) {
   const theme = useTheme();
   const accent = useAccentColors();
+  const { t } = useTranslation('analysis');
+
+  // 날짜 헤더 — 로케일별 포맷은 i18n 키로 (다른 해면 연도 포함)
+  const [year, month, day] = date.split('-').map(Number);
+  const dateLabel =
+    year !== new Date().getFullYear()
+      ? t('select.dateHeaderWithYear', { year, month, day })
+      : t('select.dateHeader', { month, day });
 
   return (
     <Pressable
@@ -28,7 +36,7 @@ function AnswerSelectRowBase({ date, question, answer, selected, onToggle }: Ans
       accessibilityRole="checkbox"
       accessibilityState={{ checked: selected }}
       style={({ pressed }) => [
-        styles.row,
+        styles.card,
         {
           backgroundColor: selected ? `${accent.primary}14` : theme.surface?.val,
           borderColor: selected ? accent.primary : theme.borderColor?.val,
@@ -36,27 +44,36 @@ function AnswerSelectRowBase({ date, question, answer, selected, onToggle }: Ans
         },
       ]}
     >
-      <View
-        style={[
-          styles.check,
-          selected
-            ? { backgroundColor: accent.primary, borderColor: accent.primary }
-            : { borderColor: theme.borderColor?.val },
-        ]}
-      >
-        {selected && <Text style={[styles.checkMark, { color: accent.textOnPrimary }]}>✓</Text>}
-      </View>
-
-      <YStack flex={1} gap="$1">
-        <XStack ai="center" gap="$2">
-          <Text variant="caption" style={{ color: accent.primary }}>
-            {formatShort(date)}
+      <YStack gap="$2">
+        {/* 상단: 날짜 헤더 + 체크 배지 */}
+        <XStack ai="center" jc="space-between">
+          <Text variant="label" style={{ color: selected ? accent.primary : theme.color?.val }}>
+            {dateLabel}
           </Text>
-          <Text variant="caption" numberOfLines={1} style={styles.question}>
+          <View
+            style={[
+              styles.badge,
+              selected
+                ? { backgroundColor: accent.primary, borderColor: accent.primary }
+                : { borderColor: theme.borderColor?.val },
+            ]}
+          >
+            {selected && <Text style={[styles.badgeMark, { color: accent.textOnPrimary }]}>✓</Text>}
+          </View>
+        </XStack>
+
+        {/* 질문 */}
+        <XStack gap="$2" ai="flex-start">
+          <Text variant="caption" style={{ color: accent.primary }}>
+            {t('select.questionLabel')}
+          </Text>
+          <Text variant="caption" numberOfLines={2} style={styles.question}>
             {question}
           </Text>
         </XStack>
-        <Text variant="bodySmall" numberOfLines={2} muted={!selected}>
+
+        {/* 답변 */}
+        <Text variant="bodySmall" numberOfLines={3} muted={!selected}>
           {answer}
         </Text>
       </YStack>
@@ -67,28 +84,24 @@ function AnswerSelectRowBase({ date, question, answer, selected, onToggle }: Ans
 export const AnswerSelectRow = memo(AnswerSelectRowBase);
 
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: sp(12),
-    padding: sp(14),
-    borderRadius: radius(16),
-    borderWidth: 1,
+  card: {
+    padding: sp(16),
+    borderRadius: radius(18),
+    borderWidth: 1.5,
   },
-  check: {
-    width: 22,
-    height: 22,
-    borderRadius: 6,
+  badge: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 2,
   },
-  checkMark: {
+  badgeMark: {
     fontSize: 13,
     fontWeight: '700',
   },
   question: {
-    flexShrink: 1,
+    flex: 1,
   },
 });

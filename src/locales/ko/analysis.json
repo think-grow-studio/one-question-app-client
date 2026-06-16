@@ -64,7 +64,10 @@
     "range": "최소 {{min}} · 최대 {{max}}",
     "tooMany": "최대 {{max}}개까지 고를 수 있어요.",
     "submit": "분석 요청하기",
-    "empty": "분석할 답변이 아직 부족해요."
+    "empty": "분석할 답변이 아직 부족해요.",
+    "dateHeader": "{{month}}월 {{day}}일",
+    "dateHeaderWithYear": "{{year}}.{{month}}.{{day}}",
+    "questionLabel": "Q."
   },
   "result": {
     "answerCount": "답변 {{count}}개",

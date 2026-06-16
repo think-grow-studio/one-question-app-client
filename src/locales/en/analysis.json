@@ -64,7 +64,10 @@
     "range": "Min {{min}} · Max {{max}}",
     "tooMany": "You can pick up to {{max}}.",
     "submit": "Request analysis",
-    "empty": "Not enough answers to analyze yet."
+    "empty": "Not enough answers to analyze yet.",
+    "dateHeader": "{{month}}/{{day}}",
+    "dateHeaderWithYear": "{{year}}.{{month}}.{{day}}",
+    "questionLabel": "Q."
   },
   "result": {
     "answerCount": "{{count}} answers",
