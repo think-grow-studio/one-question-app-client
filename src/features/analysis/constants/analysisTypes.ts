@@ -29,7 +29,7 @@ export const ANALYSIS_TYPES: AnalysisTypeMeta[] = [
   {
     type: 'WARM_COMFORT',
     emoji: '💌',
-    image: require('@/assets/images/nickname-character/squirrel.png'),
+    image: require('@/assets/images/nickname-character/koala.png'),
     i18nKey: 'warmComfort',
   },
 ];
