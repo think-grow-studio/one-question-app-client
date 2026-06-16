@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { XStack, YStack, useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
+import { CheckIcon } from '@/shared/icons/CheckIcon';
 import { useAccentColors } from '@/shared/theme';
 import { sp, radius } from '@/shared/utils/responsive';
 
@@ -58,7 +59,7 @@ function AnswerSelectRowBase({ date, question, answer, selected, onToggle }: Ans
                 : { borderColor: theme.borderColor?.val },
             ]}
           >
-            {selected && <Text style={[styles.badgeMark, { color: accent.textOnPrimary }]}>✓</Text>}
+            {selected && <CheckIcon size={16} color={accent.textOnPrimary} />}
           </View>
         </XStack>
 
@@ -96,10 +97,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  badgeMark: {
-    fontSize: 13,
-    fontWeight: '700',
   },
   question: {
     flex: 1,
