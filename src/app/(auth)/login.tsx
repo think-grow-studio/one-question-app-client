@@ -16,7 +16,7 @@ import { getFontStyle } from '@/shared/theme/typography';
 import { sp, cs, radius, fs } from '@/shared/utils/responsive';
 import { useThemeStore } from '@/shared/stores/useThemeStore';
 import * as WebBrowser from 'expo-web-browser';
-import { logScreenView, logEvent, AnalyticsEvents } from '@/services/firebase';
+import { logScreenView } from '@/services/firebase';
 
 const logoLight = require('@/assets/images/one-question-light.png');
 const logoDark = require('@/assets/images/one-question-dark.png');
@@ -72,17 +72,10 @@ export default function LoginScreen() {
   }, []);
 
   const handleGoogleLogin = () => {
-    // Analytics: 로그인 시도
-    logEvent(AnalyticsEvents.LOGIN, {
-      method: 'google',
-    });
     googleLogin();
   };
 
   const handleAppleLogin = () => {
-    logEvent(AnalyticsEvents.LOGIN, {
-      method: 'apple',
-    });
     appleLogin();
   };
 
@@ -99,7 +92,6 @@ export default function LoginScreen() {
           label: t('guestDialogConfirm'),
           variant: 'primary',
           onPress: () => {
-            logEvent(AnalyticsEvents.GUEST_LOGIN);
             anonymousLogin();
           },
         },

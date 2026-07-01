@@ -32,10 +32,11 @@ export async function setUserId(userId: string | null) {
 // 주요 이벤트들
 export const AnalyticsEvents = {
   // 인증 (User Lifecycle)
-  LOGIN: 'login',
+  LOGIN_START: 'login_start',
+  LOGIN: 'login', // 로그인 성공 시에만 기록 (GA4 권장 이벤트 규격에 맞춤)
+  LOGIN_FAIL: 'login_fail',
   LOGOUT: 'logout',
   ACCOUNT_DELETE: 'account_delete',
-  GUEST_LOGIN: 'guest_login',
   LINK_GOOGLE_START: 'link_google_start',
   LINK_GOOGLE_SUCCESS: 'link_google_success',
   LINK_GOOGLE_FAIL: 'link_google_fail',

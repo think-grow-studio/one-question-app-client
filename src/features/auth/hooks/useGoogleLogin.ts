@@ -10,6 +10,7 @@ import Constants from 'expo-constants';
 import { authApi } from '@/features/auth/api/authApi';
 import { useAuthStore } from '@/shared/stores/useAuthStore';
 import { GoogleAuthRequest } from '@/shared/types/api';
+import { logEvent, AnalyticsEvents } from '@/services/firebase';
 
 // Google Sign-In 설정
 let isGoogleSignInConfigured = false;
@@ -51,7 +52,11 @@ export function useGoogleLogin() {
       return data;
     },
     onSuccess: async (data) => {
+      logEvent(AnalyticsEvents.LOGIN, { method: 'google' });
       await login(data.accessToken, data.refreshToken);
+    },
+    onError: () => {
+      logEvent(AnalyticsEvents.LOGIN_FAIL, { method: 'google', reason: 'server_error' });
     },
   });
 
@@ -60,6 +65,8 @@ export function useGoogleLogin() {
       console.warn('[GoogleSignIn] Not configured, cannot sign in');
       return;
     }
+
+    logEvent(AnalyticsEvents.LOGIN_START, { method: 'google' });
 
     try {
       // Google Play Services 확인 (Android)
@@ -90,22 +97,25 @@ export function useGoogleLogin() {
       if (isErrorWithCode(error)) {
         switch (error.code) {
           case statusCodes.IN_PROGRESS:
-            // 이미 로그인 진행 중
+            // 이미 로그인 진행 중 — 중복 탭이라 실패로 집계하지 않음
             console.log('Sign in is in progress');
             break;
           case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
-            // Google Play Services 사용 불가
             console.log('Play services not available');
+            logEvent(AnalyticsEvents.LOGIN_FAIL, { method: 'google', reason: 'play_services_unavailable' });
             break;
           case statusCodes.SIGN_IN_CANCELLED:
-            // 사용자가 취소
+            // 사용자가 취소 — 실제 이탈 지점이라 퍼널 분석을 위해 기록
             console.log('Sign in cancelled');
+            logEvent(AnalyticsEvents.LOGIN_FAIL, { method: 'google', reason: 'cancelled' });
             break;
           default:
             console.log('Google Sign-In error:', error.code, error.message);
+            logEvent(AnalyticsEvents.LOGIN_FAIL, { method: 'google', reason: 'google_signin_error' });
         }
       } else {
         console.log('Unknown error during Google Sign-In:', error);
+        logEvent(AnalyticsEvents.LOGIN_FAIL, { method: 'google', reason: 'unknown_error' });
       }
     }
   };
