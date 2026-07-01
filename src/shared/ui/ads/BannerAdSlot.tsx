@@ -60,12 +60,14 @@ export const BannerAdSlot = memo(function BannerAdSlot({ hidden, disableSafeArea
           requestOptions={admobRequestOptions}
           onAdLoaded={() => {
             if (__DEV__) console.log('[BannerAd] Loaded');
-            // Analytics: 배너 광고 노출
+          }}
+          onAdFailedToLoad={(error) => { if (__DEV__) console.warn('[BannerAd] Failed:', error); }}
+          onAdImpression={() => {
+            // Analytics: 배너 광고 실제 노출 (로드 완료가 아닌 실제 impression 시점)
             logEvent(AnalyticsEvents.AD_IMPRESSION, {
               ad_type: 'banner',
             });
           }}
-          onAdFailedToLoad={(error) => { if (__DEV__) console.warn('[BannerAd] Failed:', error); }}
         />
       )}
     </View>
