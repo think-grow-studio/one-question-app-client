@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { View, Pressable, StyleSheet, ScrollView, Linking, Platform } from 'react-native';
 import { YStack, XStack, useTheme } from 'tamagui';
+import { useFocusEffect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Screen } from '@/shared/layout/Screen';
 import { Text } from '@/shared/ui/Text';
@@ -51,10 +52,12 @@ export default function SettingsScreen() {
     return t('account.cycleStartDateFormat', { year, month, day, monthName });
   }, [member?.cycleStartDate, t]);
 
-  // Analytics: 화면 조회
-  useEffect(() => {
-    logScreenView('Settings');
-  }, []);
+  // Analytics: 화면 조회 — 탭은 focus/blur만 하고 unmount되지 않으므로 focus 시마다 로깅
+  useFocusEffect(
+    useCallback(() => {
+      logScreenView('Settings');
+    }, [])
+  );
 
   const handleLogout = async () => {
     // Analytics: 로그아웃
