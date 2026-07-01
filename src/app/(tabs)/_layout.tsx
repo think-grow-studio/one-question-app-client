@@ -11,6 +11,7 @@ import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 import { useDatePickerStore } from '@/features/question/stores/useDatePickerStore';
 import { formatLocalDate } from '@/shared/utils/date';
 import { useFCMReconciliation } from '@/features/settings/hooks/useFCMReconciliation';
+import { setUserId } from '@/services/firebase';
 
 export default function TabLayout() {
   const theme = useTheme();
@@ -18,9 +19,16 @@ export default function TabLayout() {
   const { t } = useTranslation();
 
   // member 데이터 prefetch (하위 화면에서 캐시된 데이터 사용)
-  useMemberMe();
+  const { data: member } = useMemberMe();
 
   useFCMReconciliation();
+
+  // Analytics: 유저 단위 여정 추적을 위해 publicId를 GA4 user_id로 연결
+  useEffect(() => {
+    if (member?.publicId) {
+      setUserId(member.publicId);
+    }
+  }, [member?.publicId]);
 
   // tabs 마운트 시 오늘 날짜로 동기화 (앱 시작 시점과 로그인 완료 시점의 날짜가 다를 수 있음)
   useEffect(() => {

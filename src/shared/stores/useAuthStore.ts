@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { storage } from '@/services/storage';
 import { queryClient } from '@/services/queryClient';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import { setCrashlyticsUserId, signOutFirebase, isFirebaseAnonymousUser } from '@/services/firebase';
+import { setCrashlyticsUserId, setUserId, signOutFirebase, isFirebaseAnonymousUser } from '@/services/firebase';
 import { notificationApi } from '@/features/settings/api/notificationApi';
 import { useNotificationStore } from '@/features/settings/stores/useNotificationStore';
 
@@ -67,6 +67,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     }
 
     setCrashlyticsUserId(null);
+    setUserId(null);
     set({ isAuthenticated: false });
   },
 
