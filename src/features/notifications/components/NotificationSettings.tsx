@@ -202,15 +202,15 @@ export function NotificationSettings() {
             </XStack>
           </XStack>
         </Pressable>
+      </YStack>
 
-        {/* AI 분석 리포트 알림 토글 */}
-        <View
-          style={{
-            height: 1,
-            backgroundColor: theme.borderColor?.val,
-            marginHorizontal: 16,
-          }}
-        />
+      {/* AI 분석 리포트 알림 — 별도 카테고리 카드 (하위 설정 경계를 카드로 구분) */}
+      <YStack
+        bg="$backgroundSoft"
+        borderRadius={12}
+        overflow="hidden"
+        mt="$3"
+      >
         <XStack
           ai="center"
           jc="space-between"
