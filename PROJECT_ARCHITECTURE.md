@@ -24,7 +24,7 @@ This document is written to guide **AI-assisted frontend implementation**.
 **🔴 Large Project (20+ features, 5+ devs)**
 - Full architecture with slices and comprehensive testing (Section 22.3)
 
-**This project's estimated scale: 🟢 Small (7 features, ~6 screens, ~125 files)**
+**This project's estimated scale: 🟢 Small (9 features, ~11 screens, ~190 files)**
 
 **Required Setup:**
 - New Architecture enabled (see Section 1.8)
@@ -532,8 +532,10 @@ services/
 
 **Feature-level services (business logic):**
 ```
-features/settings/services/
-└─ notifications.ts       # Notification scheduling & permissions
+features/notifications/services/
+├─ notifications.ts       # 권한 요청/확인, Android 채널 관리
+├─ pushToken.ts           # FCM 토큰 서버 등록 보장 (설정 토글과 무관한 transactional 푸시용)
+└─ authCleanup.ts         # 로그아웃/탈퇴 시 FCM 정리를 registerAuthCleanup으로 등록
 ```
 
 Responsibilities:
@@ -571,8 +573,8 @@ shared/stores/
 features/answer/stores/
 └─ useAppReviewStore.ts    # App review prompt flow
 
-features/settings/stores/
-└─ useNotificationStore.ts # Notification settings
+features/notifications/stores/
+└─ useNotificationStore.ts # FCM 토큰 + 분석 리포트 알림 로컬 fallback
 
 features/question/stores/
 ├─ useDatePickerStore.ts   # Date picker state
@@ -586,6 +588,8 @@ Rules:
 - Keep stores small and focused
 - **Single-consumer store** → `features/*/stores/`
 - **Cross-cutting store** (used by services, shared, or 3+ features) → `shared/stores/`
+- **서버 미지원 기간의 로컬 fallback 진실원은 예외적으로 허용** — 서버 응답에 필드가 생기면 서버 값 우선. 반드시 store에 주석으로 명시 (예: `useNotificationStore.analysisReportEnabled`)
+- **shared 스토어는 feature 모듈을 임포트하지 않는다** — feature 측 정리/후속 작업이 필요하면 콜백 등록으로 역전 (예: `useAuthStore.registerAuthCleanup` ← `features/notifications/services/authCleanup.ts`가 앱 부트스트랩에서 등록)
 
 ---
 
@@ -615,8 +619,10 @@ shared/
 ├─ icons/        # Icon components (SVG-based)
 ├─ layout/       # Layout components
 │  └─ Screen.tsx
-├─ hooks/        # Cross-feature reusable hooks
-│  └─ useThrottledCallback.ts
+├─ hooks/        # Cross-feature reusable hooks + 앱 부트스트랩 훅 (§9)
+│  ├─ useThrottledCallback.ts
+│  ├─ useAppBootstrap.ts      # 마이그레이션/Firebase 초기화/OTA 체크
+│  └─ useVersionCheck.ts      # 버전 정책 + VersionCheckDialog 상태
 ├─ theme/        # Theme configuration
 │  └─ useAccentColors.ts
 └─ error/        # Error handling
@@ -629,6 +635,7 @@ Rules:
 - Shared components must be platform-agnostic
 - Feature-specific UI belongs in `features/*/components`
 - Only add to `shared/` when used by 2+ features — not preemptively
+- **shared는 features를 임포트하지 않는다** (의존 방향: app → features → shared → services). 유일한 명시적 예외: `AppErrorBoundary` → `features/admob/BannerAdSlot` (크래시 화면 배너는 제품 결정, 앱 루트 전용 컴포넌트 — 코드 주석 참고)
 
 ---
 
@@ -637,12 +644,14 @@ Rules:
 Purpose:
 
 - Cross-feature reusable logic (lives inside `shared/`)
+- **앱 부트스트랩 훅** — `_layout.tsx` 비대화를 막기 위한 app-level 단일 소비자 훅 (예: `useAppBootstrap`, `useVersionCheck`)
 
 Rules:
 
 - No domain-specific logic
-- No direct API calls
+- No direct API calls (예외: 부트스트랩 훅은 `services/`를 통한 호출 허용 — 도메인 API는 여전히 금지)
 - Feature-specific hooks belong in `features/*/hooks/`
+- 부트스트랩 훅이라도 특정 feature 도메인에 속하면 그 feature로 (예: `useNotificationDeepLink` → `features/notifications/hooks/`)
 
 ---
 
@@ -1609,16 +1618,17 @@ import { useQuestions, QuestionCard } from '@/features/question'
 
 ```
 src/
-├─ app/                      # Routing (~6 screens)
-│  ├─ _layout.tsx
+├─ app/                      # Routing (~11 screens)
+│  ├─ _layout.tsx            # 조립 전용 (부트스트랩은 훅으로 추출 — §9)
 │  ├─ (auth)/login.tsx
 │  ├─ (tabs)/
 │  │  ├─ index.tsx           # Home (Today)
 │  │  ├─ feed.tsx            # Public feed
-│  │  └─ settings.tsx
+│  │  ├─ settings.tsx
+│  │  └─ analysis/           # AI 분석 (index/select/[id]/history)
 │  ├─ answer/index.tsx
 │  └─ feed/[id].tsx
-├─ features/                 # 7 features
+├─ features/                 # 9 features
 │  ├─ question/              # 질문 도메인 (largest feature)
 │  │  ├─ api/
 │  │  │  └─ questionApi.ts
@@ -1634,25 +1644,38 @@ src/
 │  │  ├─ api/
 │  │  ├─ hooks/
 │  │  ├─ components/
+│  │  ├─ stores/
 │  │  ├─ types/
 │  │  └─ utils/
+│  ├─ analysis/              # AI 분석 도메인
+│  │  ├─ api/                # analysisApi + mockAnalysis (서버 연동 전 스왑)
+│  │  ├─ hooks/              # queries/mutations + useAnalysisPushPrompt
+│  │  ├─ components/
+│  │  ├─ constants/
+│  │  └─ types/
+│  ├─ notifications/         # 알림 도메인 (푸시 인프라 + 설정 UI)
+│  │  ├─ api/                # FCM 토큰 등록/삭제, 알림 설정 upsert
+│  │  ├─ hooks/              # FCM 라이프사이클/reconciliation/딥링크/설정/권한
+│  │  ├─ components/         # NotificationSettings, TimePickerSheet
+│  │  ├─ stores/             # useNotificationStore
+│  │  └─ services/           # notifications, pushToken, authCleanup
 │  ├─ answer/                # 답변 도메인
 │  │  ├─ components/
 │  │  ├─ hooks/
 │  │  └─ stores/             # Feature-local store
-│  ├─ settings/              # 설정 도메인
+│  ├─ settings/              # 설정 도메인 (화면 전용 UI: 테마/언어 등)
+│  │  └─ components/
+│  ├─ auth/                  # 인증
+│  │  ├─ api/
 │  │  ├─ components/
 │  │  ├─ hooks/
-│  │  ├─ stores/             # Feature-local store
-│  │  └─ services/           # Feature-local service (notifications)
-│  ├─ auth/                  # 인증 (minimal)
-│  │  ├─ api/
-│  │  └─ hooks/
+│  │  └─ utils/
 │  ├─ member/                # 회원
 │  │  ├─ api/
 │  │  ├─ hooks/
 │  │  └─ constants/
 │  └─ admob/                 # 광고
+│     ├─ components/         # BannerAdSlot (admob config + member 훅 의존)
 │     ├─ config/
 │     └─ hooks/
 ├─ services/                 # Infrastructure only
@@ -2893,6 +2916,14 @@ const animatedStyle = useAnimatedStyle(() => ({
 
 문서 규칙이 코드 현실과 어긋나거나, 새 패턴이 코드베이스에 정착했을 때 여기에 기록한다.
 (이유 없이 규칙만 바꾸지 말 것 — 항상 "무엇을 / 왜" 한 줄 남기기.)
+
+### 2026-07-02 — notifications feature 분리 + 의존 방향 규칙 명문화
+
+- **`features/notifications` 신설.** 알림 도메인 전체(FCM 토큰/라이프사이클/reconciliation/채널/설정 UI)가 `features/settings`에서 이사. settings는 화면 전용 UI(테마/언어)만 남음. **왜:** settings가 전역 푸시 인프라를 떠안아 폴더 이름과 실제 역할이 어긋났고(§12 "predictable folder structure" 위반), AI 분석 완료 푸시 도입으로 알림이 독립 도메인 규모가 됨. `features/analysis`(AI 분석)도 이번에 문서에 반영 — 9 features.
+- **§8 의존 방향 규칙 명문화:** shared → features 임포트 금지 (예외 1건: `AppErrorBoundary` → BannerAdSlot, 코드 주석 참고). BannerAdSlot은 admob config·member 훅에 의존하므로 `features/admob/components`로 이동.
+- **§7 스토어 규칙 2건 추가:** (1) shared 스토어의 feature 의존은 콜백 등록으로 역전(`registerAuthCleanup` 패턴 — apiClient가 401 시 logout을 호출하므로 오케스트레이션 자체는 스토어에 남김). (2) 서버 미지원 기간의 로컬 fallback 진실원(`analysisReportEnabled`)은 주석 명시 조건부로 허용 — 서버 필드가 생기면 서버 우선.
+- **§9 부트스트랩 훅 자리 정의:** `_layout.tsx`(367줄→134줄)의 마이그레이션/버전체크/OTA를 `useAppBootstrap`/`useVersionCheck`(shared/hooks)로, 알림 딥링크는 도메인 소속이라 `useNotificationDeepLink`(features/notifications)로 추출. **왜:** 라우트 파일은 조립 전용(§4)이지만 app-level 훅의 자리가 문서에 없어 애매했음.
+- **코드 교정 2건 (규칙은 유지):** 분석 요청 pre-prompt 오케스트레이션을 라우트에서 `useAnalysisPushPrompt` 훅으로 추출(§4 준수), Android 알림 채널명 하드코딩 → i18n(§1.7 — 채널명은 시스템 설정 노출 user-facing 문자열).
 
 ### 2026-06-04 — 홈 타임라인 쿼리 설계 확정 (`useTimeline` = `useInfiniteQuery` + `timeline` 키)
 
