@@ -18,7 +18,7 @@ import { ReloadIcon } from '@/shared/icons/ReloadIcon';
 import { CloudOffIcon } from '@/shared/icons/CloudOffIcon';
 import { useQuestionCardStyles } from '@/shared/ui/QuestionCard';
 import { LoadingOverlay } from '@/shared/ui/LoadingOverlay';
-import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
+import { BannerAdSlot } from '@/features/admob/components/BannerAdSlot';
 import { AdBadge } from '@/shared/ui/ads/AdBadge';
 import { useThrottledCallback } from '@/shared/hooks/useThrottledCallback';
 import { useDatePickerStore } from '../stores/useDatePickerStore';

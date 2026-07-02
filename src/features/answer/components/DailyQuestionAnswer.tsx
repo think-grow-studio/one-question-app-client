@@ -23,7 +23,7 @@ import { useAccentColors, useScreenBackground } from '@/shared/theme';
 import { useThrottledCallback } from '@/shared/hooks/useThrottledCallback';
 import { useAppReviewPrompt } from '../hooks/useAppReviewPrompt';
 import { useCreateAnswer, useUpdateAnswer } from '@/features/question/hooks/mutations/useQuestionMutations';
-import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
+import { BannerAdSlot } from '@/features/admob/components/BannerAdSlot';
 import { sp } from '@/shared/utils/responsive';
 import { logScreenView, logEvent, AnalyticsEvents } from '@/services/firebase';
 

@@ -13,7 +13,7 @@ import { useAccentColors, getFontStyle } from '@/shared/theme';
 import { MailIcon } from '@/shared/icons/MailIcon';
 import { PastQuestionIcon } from '@/shared/icons/PastQuestionIcon';
 import { AdBadge } from '@/shared/ui/ads/AdBadge';
-import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
+import { BannerAdSlot } from '@/features/admob/components/BannerAdSlot';
 import { fs, sp, radius, cs, SHEET_HEIGHTS, SHEET_MAX_WIDTH } from '@/shared/utils/responsive';
 import {
   useCheckCandidateCycle,

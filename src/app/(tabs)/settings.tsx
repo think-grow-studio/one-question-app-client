@@ -20,7 +20,7 @@ import { LinkGoogleButton } from '@/features/auth/components/LinkGoogleButton';
 import { LinkAppleButton } from '@/features/auth/components/LinkAppleButton';
 import { logScreenView, logEvent, AnalyticsEvents } from '@/services/firebase';
 import { getFontStyle } from '@/shared/theme/typography';
-import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
+import { BannerAdSlot } from '@/features/admob/components/BannerAdSlot';
 
 export default function SettingsScreen() {
   const theme = useTheme();

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import { Screen } from '@/shared/layout/Screen';
 import { PublicAnswerDetail } from '@/features/feed/components/PublicAnswerDetail';
-import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
+import { BannerAdSlot } from '@/features/admob/components/BannerAdSlot';
 import { useScreenBackground } from '@/shared/theme';
 import { logScreenView } from '@/services/firebase';
 

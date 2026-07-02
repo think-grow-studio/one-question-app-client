@@ -41,7 +41,11 @@ import {
 } from '@/services/firebase'; // Firebase 초기화
 import { storage } from '@/services/storage';
 import { useFCMLifecycle } from '@/features/notifications/hooks/useFCMLifecycle';
+import { registerNotificationAuthCleanup } from '@/features/notifications/services/authCleanup';
 import * as Updates from 'expo-updates';
+
+// 로그아웃/탈퇴 시 FCM 토큰 정리를 auth 스토어에 연결 (모듈 로드 시 1회)
+registerNotificationAuthCleanup();
 
 async function migrateTokensToSecureStore() {
   const migrated = await AsyncStorage.getItem('secure_token_migrated');

@@ -24,7 +24,7 @@ import { useThrottledCallback } from '@/shared/hooks/useThrottledCallback';
 import { useIsAdFreeMember } from '@/features/member/hooks/queries/useMemberQueries';
 import { useInterstitialAd } from '@/features/admob/hooks/useInterstitialAd';
 import { AdBadge } from '@/shared/ui/ads/AdBadge';
-import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
+import { BannerAdSlot } from '@/features/admob/components/BannerAdSlot';
 import { sp } from '@/shared/utils/responsive';
 import {
   useCreatePublicAnswer,

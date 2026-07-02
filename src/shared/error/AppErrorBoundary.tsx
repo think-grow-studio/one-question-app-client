@@ -7,7 +7,9 @@ import { useAuthStore } from '@/shared/stores/useAuthStore';
 import { useThemeStore } from '@/shared/stores/useThemeStore';
 import { recordError } from '@/services/firebase';
 import { getFontStyle } from '@/shared/theme/typography';
-import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
+// shared→features 예외: 크래시 화면에도 배너를 노출하는 제품 결정.
+// 이 컴포넌트는 앱 루트(_layout)에서만 마운트되는 사실상 app 레벨 UI라 허용.
+import { BannerAdSlot } from '@/features/admob/components/BannerAdSlot';
 
 interface Props {
   children: ReactNode;

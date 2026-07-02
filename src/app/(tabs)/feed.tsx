@@ -7,7 +7,7 @@ import { CommonQuestionFeed } from '@/features/feed/components/CommonQuestionFee
 import { FeedTutorial } from '@/features/feed/components/FeedTutorial';
 import { useFeedTutorialStore } from '@/features/feed/stores/useFeedTutorialStore';
 import { InfoIcon } from '@/shared/icons/InfoIcon';
-import { BannerAdSlot } from '@/shared/ui/ads/BannerAdSlot';
+import { BannerAdSlot } from '@/features/admob/components/BannerAdSlot';
 import { cs } from '@/shared/utils/responsive';
 import { useScreenBackground } from '@/shared/theme';
 import { logScreenView } from '@/services/firebase';

@@ -3,8 +3,24 @@ import { storage } from '@/services/storage';
 import { queryClient } from '@/services/queryClient';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { setCrashlyticsUserId, signOutFirebase, isFirebaseAnonymousUser } from '@/services/firebase';
-import { notificationApi } from '@/features/notifications/api/notificationApi';
-import { useNotificationStore } from '@/features/notifications/stores/useNotificationStore';
+
+/**
+ * 세션 종료 시 실행할 feature 측 정리 작업 (의존 역전).
+ * shared 스토어가 feature 모듈을 임포트하지 않도록, feature가
+ * 앱 부트스트랩(_layout) 시점에 자신의 정리 작업을 등록한다.
+ */
+export interface AuthCleanupTasks {
+  /** logout() 전용 — 액세스 토큰 만료 전 서버 정리 (회원 탈퇴 경로에선 실행 안 됨) */
+  beforeServerLogout?: () => Promise<void>;
+  /** 모든 세션 종료 경로(로그아웃·탈퇴) 공통 로컬 상태 정리 */
+  onLocalCleanup?: () => void;
+}
+
+const authCleanupTasks: AuthCleanupTasks[] = [];
+
+export function registerAuthCleanup(tasks: AuthCleanupTasks): void {
+  authCleanupTasks.push(tasks);
+}
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -41,12 +57,14 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
   /**
    * 로컬 인증/세션 클린업 (네트워크 호출 없음).
-   * - 일반 로그아웃: logout()이 deleteFcmToken 후에 호출
+   * - 일반 로그아웃: logout()이 beforeServerLogout(FCM 토큰 삭제 등) 후에 호출
    * - 회원 탈퇴: useWithdrawMutation이 직접 호출 (서버가 fcm_token row를 이미
-   *   cascade로 정리하므로 deleteFcmToken을 호출하면 "회원을 찾을 수 없다" 에러 발생)
+   *   cascade로 정리하므로 서버 삭제를 호출하면 "회원을 찾을 수 없다" 에러 발생)
    */
   cleanupLocalAuth: async () => {
-    useNotificationStore.getState().setFcmToken(null);
+    for (const tasks of authCleanupTasks) {
+      tasks.onLocalCleanup?.();
+    }
     await storage.clearTokens();
     queryClient.clear(); // 모든 캐시 데이터 삭제
 
@@ -76,10 +94,11 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
     isLoggingOut = true;
     try {
-      // FCM 토큰 삭제 (best effort, 액세스 토큰 만료 전에 호출)
-      const { fcmToken } = useNotificationStore.getState();
-      if (fcmToken) {
-        try { await notificationApi.deleteFcmToken(fcmToken); } catch {}
+      // feature 측 서버 정리 (best effort, 액세스 토큰 만료 전에 호출)
+      for (const tasks of authCleanupTasks) {
+        if (tasks.beforeServerLogout) {
+          try { await tasks.beforeServerLogout(); } catch {}
+        }
       }
 
       await get().cleanupLocalAuth();
