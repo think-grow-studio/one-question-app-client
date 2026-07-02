@@ -57,6 +57,12 @@
     "start": "Start with this analysis",
     "cardCta": "Start"
   },
+  "push": {
+    "title": "Want to know when it's ready?",
+    "message": "Analysis takes a few minutes.\nTurn on notifications and we'll let you know the moment your report is ready.",
+    "accept": "Notify me",
+    "decline": "No thanks"
+  },
   "select": {
     "title": "Choose answers to analyze",
     "guide": "We picked your recent answers. Tap to remove any you'd like to exclude.",

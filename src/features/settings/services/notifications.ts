@@ -15,10 +15,22 @@ Notifications.setNotificationHandler({
   }),
 });
 
+// 서버 FCM 발송 시 android.notification.channel_id에 동일한 값을 사용해야 함
+export const NOTIFICATION_CHANNEL_IDS = {
+  dailyReminder: 'daily-reminder',
+  analysisReport: 'analysis-report',
+} as const;
+
 export async function ensureAndroidNotificationChannel(): Promise<void> {
   if (Platform.OS !== 'android') return;
-  await Notifications.setNotificationChannelAsync('daily-reminder', {
+  await Notifications.setNotificationChannelAsync(NOTIFICATION_CHANNEL_IDS.dailyReminder, {
     name: '일일 알림',
+    importance: Notifications.AndroidImportance.HIGH,
+    vibrationPattern: [0, 250, 250, 250],
+    lightColor: '#FF231F7C',
+  });
+  await Notifications.setNotificationChannelAsync(NOTIFICATION_CHANNEL_IDS.analysisReport, {
+    name: '분석 리포트',
     importance: Notifications.AndroidImportance.HIGH,
     vibrationPattern: [0, 250, 250, 250],
     lightColor: '#FF231F7C',

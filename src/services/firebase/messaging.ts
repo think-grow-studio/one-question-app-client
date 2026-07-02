@@ -65,3 +65,23 @@ export function onFCMTokenRefresh(callback: (token: string) => void): () => void
 export function onFCMMessage(callback: (message: RemoteMessage) => void): () => void {
   return messaging().onMessage(callback);
 }
+
+/**
+ * Background 상태에서 FCM 알림 탭으로 앱이 열렸을 때.
+ * FCM SDK가 직접 표시한 알림은 expo-notifications response listener에 잡히지 않으므로
+ * RNFirebase 경로를 별도로 구독해야 한다.
+ * @returns unsubscribe 함수
+ */
+export function onFCMNotificationOpened(
+  callback: (message: RemoteMessage) => void,
+): () => void {
+  return messaging().onNotificationOpenedApp(callback);
+}
+
+/**
+ * 종료(quit) 상태에서 FCM 알림 탭으로 앱이 시작됐을 때의 메시지.
+ * 앱 시작 후 1회만 값이 있고, 이후 호출은 null.
+ */
+export function getInitialFCMNotification(): Promise<RemoteMessage | null> {
+  return messaging().getInitialNotification();
+}

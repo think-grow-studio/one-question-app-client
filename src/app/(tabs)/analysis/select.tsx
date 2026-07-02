@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { Screen } from '@/shared/layout/Screen';
 import { Text } from '@/shared/ui/Text';
 import { Button } from '@/shared/ui/Button';
+import { AlertDialog, useAlertDialog } from '@/shared/ui/AlertDialog';
 import { BackIcon } from '@/shared/icons/BackIcon';
 import { useScreenBackground, useAccentColors } from '@/shared/theme';
 import { sp } from '@/shared/utils/responsive';
@@ -18,6 +19,11 @@ import {
 } from '@/features/analysis/hooks/useAnswerSelection';
 import { useCreateAnalysis } from '@/features/analysis/hooks/mutations/useAnalysisMutations';
 import type { AnalysisType } from '@/features/analysis/types/api';
+import {
+  getNotificationPermissionStatus,
+  requestNotificationPermission,
+} from '@/features/settings/services/notifications';
+import { ensurePushTokenRegistered } from '@/features/settings/services/pushToken';
 
 function Separator() {
   return <View style={styles.separator} />;
@@ -46,15 +52,46 @@ export default function AnalysisSelectScreen() {
     isLoadingMore,
   } = useAnswerSelection();
   const { mutate: createAnalysis, isPending } = useCreateAnalysis();
+  const pushPrompt = useAlertDialog();
 
   const canSubmit = isCountValid && !isPending && type != null;
 
-  const handleSubmit = () => {
-    if (!canSubmit) return;
+  const submitAnalysis = () => {
+    if (type == null) return;
     createAnalysis(
       { type, dailyAnswerIds: [...selectedIds] },
       { onSuccess: () => router.replace('/(tabs)/analysis') },
     );
+  };
+
+  // 분석 완료 FCM을 받으려면 권한 + 서버 토큰 등록이 필요.
+  // 단, 알림은 보조 채널일 뿐이므로 거부/실패와 무관하게 분석 요청은 항상 진행한다.
+  const handleSubmit = async () => {
+    if (!canSubmit) return;
+
+    const granted = await getNotificationPermissionStatus();
+    if (granted) {
+      void ensurePushTokenRegistered();
+      submitAnalysis();
+      return;
+    }
+
+    pushPrompt.show({
+      title: t('push.title'),
+      message: t('push.message'),
+      buttons: [
+        { label: t('push.decline'), variant: 'default', onPress: submitAnalysis },
+        {
+          label: t('push.accept'),
+          variant: 'primary',
+          onPress: async () => {
+            const ok = await requestNotificationPermission();
+            if (ok) await ensurePushTokenRegistered();
+            submitAnalysis();
+          },
+        },
+      ],
+    });
   };
 
   const renderItem = useCallback(
@@ -138,6 +175,16 @@ export default function AnalysisSelectScreen() {
         </XStack>
         <Button label={t('select.submit')} enabled={canSubmit} onPress={handleSubmit} />
       </YStack>
+
+      {/* 알림 권한 pre-prompt — 어떤 선택이든 분석 요청은 진행됨 */}
+      <AlertDialog
+        visible={pushPrompt.visible}
+        title={pushPrompt.config.title}
+        message={pushPrompt.config.message}
+        buttons={pushPrompt.config.buttons}
+        onClose={pushPrompt.hide}
+        dismissible={false}
+      />
     </Screen>
   );
 }

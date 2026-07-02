@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar, Linking, Platform, BackHandler, Text as RNText } from 'react-native';
 import { fontFamily } from '@/shared/theme/typography';
@@ -33,7 +33,12 @@ import { formatLocalDate } from '@/shared/utils/date';
 import { config } from '@/constants/config';
 import { APP_STORE_URLS } from '@/constants/appStoreUrls';
 import '@/features/admob/config/adInit'; // AdMob SDK 초기화
-import { initializeFirebase, enableCrashlytics } from '@/services/firebase'; // Firebase 초기화
+import {
+  initializeFirebase,
+  enableCrashlytics,
+  onFCMNotificationOpened,
+  getInitialFCMNotification,
+} from '@/services/firebase'; // Firebase 초기화
 import { storage } from '@/services/storage';
 import { useFCMLifecycle } from '@/features/settings/hooks/useFCMLifecycle';
 import * as Updates from 'expo-updates';
@@ -209,26 +214,54 @@ function RootLayoutNav() {
   // 알림 클릭 시 이동 (인증된 경우만)
   // - 분석 완료(ANALYSIS_DONE) 푸시면 해당 결과 화면으로 딥링크
   // - 그 외에는 홈으로 이동
+  // 세 경로 공용: expo 로컬 알림 탭 / FCM 백그라운드 탭 / FCM 종료 상태 시작
+  const routeFromNotificationData = useCallback(
+    (data: { type?: unknown; analysisId?: unknown } | undefined) => {
+      if (!isAuthenticated) return;
+
+      if (data?.type === 'ANALYSIS_DONE' && typeof data.analysisId === 'string' && data.analysisId) {
+        router.replace(`/(tabs)/analysis/${data.analysisId}`);
+        return;
+      }
+
+      router.replace('/(tabs)');
+    },
+    [router, isAuthenticated]
+  );
+
   useEffect(() => {
+    // 포그라운드에서 expo local notification으로 표시된 알림 탭 (Android 브릿지 포함)
     const subscription = Notifications.addNotificationResponseReceivedListener(
       (response) => {
-        if (!isAuthenticated) return;
-
-        const data = response.notification.request.content.data as
-          | { type?: string; analysisId?: string }
-          | undefined;
-
-        if (data?.type === 'ANALYSIS_DONE' && data.analysisId) {
-          router.replace(`/(tabs)/analysis/${data.analysisId}`);
-          return;
-        }
-
-        router.replace('/(tabs)');
+        routeFromNotificationData(
+          response.notification.request.content.data as
+            | { type?: string; analysisId?: string }
+            | undefined
+        );
       }
     );
 
-    return () => subscription.remove();
-  }, [router, isAuthenticated]);
+    // 백그라운드에서 FCM SDK가 직접 표시한 알림 탭
+    const unsubscribeOpened = onFCMNotificationOpened((message) => {
+      routeFromNotificationData(message.data);
+    });
+
+    return () => {
+      subscription.remove();
+      unsubscribeOpened();
+    };
+  }, [routeFromNotificationData]);
+
+  // 종료(quit) 상태에서 알림 탭으로 시작된 경우 — 인증·스플래시 완료 후 1회만 처리
+  const initialNotificationHandled = useRef(false);
+  useEffect(() => {
+    if (!isAuthenticated || !splashDone || initialNotificationHandled.current) return;
+    initialNotificationHandled.current = true;
+
+    getInitialFCMNotification().then((message) => {
+      if (message) routeFromNotificationData(message.data);
+    });
+  }, [isAuthenticated, splashDone, routeFromNotificationData]);
 
   useFCMLifecycle();
 
