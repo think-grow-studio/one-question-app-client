@@ -83,7 +83,7 @@ export function FloatingActionButton({
       ]}
     >
       {isPill ? (
-        <Text style={[styles.label, { fontSize: fs(15) }]}>{label}</Text>
+        <Text style={[styles.label, { fontSize: fs(15), color: accent.textOnPrimary }]}>{label}</Text>
       ) : (
         children
       )}
@@ -98,7 +98,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   label: {
-    color: '#ffffff',
     fontWeight: '700',
     letterSpacing: 0.3,
   },
