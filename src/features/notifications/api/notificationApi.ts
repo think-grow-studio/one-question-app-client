@@ -5,6 +5,8 @@ interface UpsertSettingRequest {
   alarmTime: string;
   timezone: string;
   enabled: boolean;
+  // 서버가 아직 이 필드를 모르면 무시됨 (forward-compatible)
+  analysisReportEnabled: boolean;
 }
 
 export const notificationApi = {

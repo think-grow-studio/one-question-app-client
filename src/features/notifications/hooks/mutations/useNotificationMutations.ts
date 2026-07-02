@@ -4,22 +4,35 @@ import { memberQueryKeys } from '@/features/member/hooks/queries/useMemberQuerie
 import { useNotificationStore } from '@/features/notifications/stores/useNotificationStore';
 import { GetMemberResponse, NotificationSetting } from '@/shared/types/api';
 
+// upsertSetting은 전체 교체(PUT)라 모든 입력에 analysisReportEnabled를 실어
+// 다른 토글 조작이 분석 리포트 설정을 지우지 않도록 한다.
+
 interface UpdateTimeInput {
   token: string;
   alarmTime: string;
   timezone: string;
   enabled: boolean;
+  analysisReportEnabled: boolean;
 }
 
 interface EnableInput {
   token: string;
   alarmTime: string;
   timezone: string;
+  analysisReportEnabled: boolean;
 }
 
 interface DisableInput {
   alarmTime: string;
   timezone: string;
+  analysisReportEnabled: boolean;
+}
+
+interface AnalysisReportInput {
+  alarmTime: string;
+  timezone: string;
+  enabled: boolean;
+  analysisReportEnabled: boolean;
 }
 
 function patchMemberSetting(
@@ -47,6 +60,7 @@ export function useUpdateNotificationTimeMutation() {
         alarmTime: input.alarmTime,
         timezone: input.timezone,
         enabled: input.enabled,
+        analysisReportEnabled: input.analysisReportEnabled,
       });
     },
 
@@ -61,6 +75,7 @@ export function useUpdateNotificationTimeMutation() {
           alarmTime: input.alarmTime,
           timezone: input.timezone,
           enabled: old.notificationSetting?.enabled ?? input.enabled,
+          analysisReportEnabled: input.analysisReportEnabled,
         };
         return { ...old, notificationSetting: nextSetting };
       });
@@ -102,6 +117,7 @@ export function useEnableNotificationMutation() {
         alarmTime: input.alarmTime,
         timezone: input.timezone,
         enabled: true,
+        analysisReportEnabled: input.analysisReportEnabled,
       });
     },
 
@@ -114,6 +130,7 @@ export function useEnableNotificationMutation() {
         alarmTime: input.alarmTime,
         timezone: input.timezone,
         enabled: true,
+        analysisReportEnabled: input.analysisReportEnabled,
       });
 
       // race 방어: useFCMReconciliation이 optimistic enabled flip을 감지해 reconcile()을
@@ -151,6 +168,7 @@ export function useDisableNotificationMutation() {
         alarmTime: input.alarmTime,
         timezone: input.timezone,
         enabled: false,
+        analysisReportEnabled: input.analysisReportEnabled,
       }),
 
     onMutate: async (input) => {
@@ -161,6 +179,7 @@ export function useDisableNotificationMutation() {
         alarmTime: input.alarmTime,
         timezone: input.timezone,
         enabled: false,
+        analysisReportEnabled: input.analysisReportEnabled,
       });
 
       return { previous };
@@ -169,6 +188,59 @@ export function useDisableNotificationMutation() {
     onError: (_err, _input, context) => {
       if (context?.previous) {
         queryClient.setQueryData(memberQueryKeys.me(), context.previous);
+      }
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: memberQueryKeys.me() });
+    },
+  });
+}
+
+/**
+ * AI 분석 리포트 알림 토글 — 낙관적 업데이트.
+ * 서버 캐시와 로컬 store(fallback 진실원)를 함께 갱신하고, 실패 시 둘 다 롤백.
+ * 서버가 필드를 아직 지원하지 않아 응답에 없더라도 로컬 store가 UI를 지탱한다.
+ * ON 전환의 권한·토큰 선결 조건은 호출자(useNotificationSettings) 책임.
+ */
+export function useUpdateAnalysisReportMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: AnalysisReportInput) =>
+      notificationApi.upsertSetting({
+        alarmTime: input.alarmTime,
+        timezone: input.timezone,
+        enabled: input.enabled,
+        analysisReportEnabled: input.analysisReportEnabled,
+      }),
+
+    onMutate: async (input) => {
+      await queryClient.cancelQueries({ queryKey: memberQueryKeys.me() });
+      const previous = queryClient.getQueryData<GetMemberResponse>(memberQueryKeys.me());
+      const previousLocal = useNotificationStore.getState().analysisReportEnabled;
+
+      queryClient.setQueryData<GetMemberResponse>(memberQueryKeys.me(), (old) => {
+        if (!old?.notificationSetting) return old;
+        return {
+          ...old,
+          notificationSetting: {
+            ...old.notificationSetting,
+            analysisReportEnabled: input.analysisReportEnabled,
+          },
+        };
+      });
+      useNotificationStore.getState().setAnalysisReportEnabled(input.analysisReportEnabled);
+
+      return { previous, previousLocal };
+    },
+
+    onError: (_err, _input, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(memberQueryKeys.me(), context.previous);
+      }
+      if (context) {
+        useNotificationStore.getState().setAnalysisReportEnabled(context.previousLocal ?? true);
       }
     },
 

@@ -24,6 +24,7 @@ import {
   requestNotificationPermission,
 } from '@/features/notifications/services/notifications';
 import { ensurePushTokenRegistered } from '@/features/notifications/services/pushToken';
+import { useAnalysisReportEnabled } from '@/features/notifications/hooks/useNotificationSettings';
 
 function Separator() {
   return <View style={styles.separator} />;
@@ -53,6 +54,7 @@ export default function AnalysisSelectScreen() {
   } = useAnswerSelection();
   const { mutate: createAnalysis, isPending } = useCreateAnalysis();
   const pushPrompt = useAlertDialog();
+  const analysisReportEnabled = useAnalysisReportEnabled();
 
   const canSubmit = isCountValid && !isPending && type != null;
 
@@ -68,6 +70,12 @@ export default function AnalysisSelectScreen() {
   // 단, 알림은 보조 채널일 뿐이므로 거부/실패와 무관하게 분석 요청은 항상 진행한다.
   const handleSubmit = async () => {
     if (!canSubmit) return;
+
+    // 설정에서 분석 리포트 알림을 명시적으로 꺼둔 유저에겐 다시 묻지 않는다
+    if (!analysisReportEnabled) {
+      submitAnalysis();
+      return;
+    }
 
     const granted = await getNotificationPermissionStatus();
     if (granted) {

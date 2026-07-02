@@ -12,10 +12,19 @@
     "lightModeDescription": "Improve readability with light background"
   },
   "notification": {
-    "title": "Notifications",
+    "title": "Daily Question Reminder",
     "sectionTitle": "Notification Settings",
     "description": "Get reminded at your preferred time daily",
     "time": "Notification Time",
+    "analysisReport": {
+      "title": "Analysis Report",
+      "description": "Get notified when your report is ready"
+    },
+    "permissionOff": {
+      "title": "Device notifications are off",
+      "message": "Allow notifications in device settings to receive them",
+      "action": "Open Settings"
+    },
     "done": "Done",
     "am": "AM",
     "pm": "PM",

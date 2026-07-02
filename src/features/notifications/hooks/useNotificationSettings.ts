@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNotificationStore } from '@/features/notifications/stores/useNotificationStore';
 import { requestNotificationPermission } from '@/features/notifications/services/notifications';
+import { ensurePushTokenRegistered } from '@/features/notifications/services/pushToken';
 import { getFCMToken } from '@/services/firebase';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 import {
   useUpdateNotificationTimeMutation,
   useEnableNotificationMutation,
   useDisableNotificationMutation,
+  useUpdateAnalysisReportMutation,
 } from './mutations/useNotificationMutations';
 
 const DEFAULT_ALARM_TIME = '21:00';
@@ -27,12 +29,26 @@ function parseAlarmTime(alarmTime: string): [number, number] {
   return [h, m];
 }
 
+/**
+ * AI 분석 리포트 알림의 유효 값.
+ * 서버가 필드를 지원하면 서버 truth, 아니면 로컬 persist 값 (기본 ON).
+ */
+export function useAnalysisReportEnabled(): boolean {
+  const local = useNotificationStore((s) => s.analysisReportEnabled);
+  const { data: memberData } = useMemberMe();
+  return memberData?.notificationSetting?.analysisReportEnabled ?? local;
+}
+
 export function useNotificationSettings() {
   const fcmToken = useNotificationStore((s) => s.fcmToken);
   const { data: memberData } = useMemberMe();
+  const analysisReportEnabled = useAnalysisReportEnabled();
   const updateTimeMutation = useUpdateNotificationTimeMutation();
   const enableMutation = useEnableNotificationMutation();
   const disableMutation = useDisableNotificationMutation();
+  const analysisReportMutation = useUpdateAnalysisReportMutation();
+  // 리마인드 토글과 동일한 이유의 로컬 pending (권한·토큰 단계 spinner 끊김 방지)
+  const [isPreparingAnalysisEnable, setIsPreparingAnalysisEnable] = useState(false);
   const isToggleLockedRef = useRef(false);
   const toggleLockTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [isToggleLocked, setIsToggleLocked] = useState(false);
@@ -88,16 +104,49 @@ export function useNotificationSettings() {
         const token = await getFCMToken();
         if (!token) return { success: false, reason: 'token' };
 
-        enableMutation.mutate({ token, alarmTime, timezone });
+        enableMutation.mutate({ token, alarmTime, timezone, analysisReportEnabled });
         return { success: true };
       } finally {
         setIsPreparingEnable(false);
       }
     } else {
-      disableMutation.mutate({ alarmTime, timezone });
+      disableMutation.mutate({ alarmTime, timezone, analysisReportEnabled });
       return { success: true };
     }
-  }, [isEnabled, alarmTime, timezone, enableMutation, disableMutation]);
+  }, [isEnabled, alarmTime, timezone, analysisReportEnabled, enableMutation, disableMutation]);
+
+  const toggleAnalysisReport = useCallback(async (): Promise<NotificationActionResult> => {
+    if (!analysisReportEnabled) {
+      // ON 전환 — 리마인드 토글과 동일하게 권한·토큰이 선결 조건.
+      // 권한 거부 시 requestNotificationPermission 내부의 Alert이 안내를 담당한다.
+      setIsPreparingAnalysisEnable(true);
+      try {
+        const hasPermission = await requestNotificationPermission();
+        if (!hasPermission) return { success: false, reason: 'permission' };
+
+        const registered = await ensurePushTokenRegistered();
+        if (!registered) return { success: false, reason: 'token' };
+
+        analysisReportMutation.mutate({
+          alarmTime,
+          timezone,
+          enabled: isEnabled,
+          analysisReportEnabled: true,
+        });
+        return { success: true };
+      } finally {
+        setIsPreparingAnalysisEnable(false);
+      }
+    } else {
+      analysisReportMutation.mutate({
+        alarmTime,
+        timezone,
+        enabled: isEnabled,
+        analysisReportEnabled: false,
+      });
+      return { success: true };
+    }
+  }, [analysisReportEnabled, isEnabled, alarmTime, timezone, analysisReportMutation]);
 
   const updateNotificationTime = useCallback(
     async (newHour: number, newMinute: number): Promise<NotificationActionResult> => {
@@ -109,11 +158,17 @@ export function useNotificationSettings() {
         alarmTime: newAlarmTime,
         timezone,
         enabled: isEnabled,
+        analysisReportEnabled,
       });
       return { success: true };
     },
-    [isEnabled, timezone, updateTimeMutation]
+    [isEnabled, timezone, analysisReportEnabled, updateTimeMutation]
   );
+
+  const isTogglingAnalysisReport =
+    isPreparingAnalysisEnable || analysisReportMutation.isPending;
+  // 리마인드 토글과 동일한 optimistic 표시 규칙 (onMutate에서 로컬 store가 즉시 flip됨)
+  const displayedAnalysisReportEnabled = analysisReportEnabled || isPreparingAnalysisEnable;
 
   return {
     isEnabled,
@@ -126,5 +181,9 @@ export function useNotificationSettings() {
     isUpdatingTime: updateTimeMutation.isPending,
     isTogglingNotification,
     isToggleInteractionDisabled: isToggleLocked || isTogglingNotification,
+    analysisReportEnabled,
+    displayedAnalysisReportEnabled,
+    toggleAnalysisReport,
+    isTogglingAnalysisReport,
   };
 }

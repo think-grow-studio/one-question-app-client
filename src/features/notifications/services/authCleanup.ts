@@ -15,6 +15,8 @@ export function registerNotificationAuthCleanup(): void {
     },
     onLocalCleanup: () => {
       useNotificationStore.getState().setFcmToken(null);
+      // 계정별 설정이므로 다음 계정이 이전 계정의 로컬 값을 물려받지 않도록 기본값 복원
+      useNotificationStore.getState().setAnalysisReportEnabled(true);
     },
   });
 }

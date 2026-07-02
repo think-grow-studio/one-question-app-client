@@ -43,10 +43,15 @@ export function useFCMReconciliation() {
       try {
         const permissionGranted = await getNotificationPermissionStatus();
         if (!permissionGranted) {
+          // 리마인드만 OFF 동기화. 분석 리포트 설정은 사용자 의사로 남겨둔다
+          // (권한 재허용 시 pre-prompt/토글 경로가 다시 살림) — PUT 전체 교체라 값 유지 목적의 pass-through.
           await notificationApi.upsertSetting({
             alarmTime: setting.alarmTime,
             timezone: setting.timezone,
             enabled: false,
+            analysisReportEnabled:
+              setting.analysisReportEnabled ??
+              useNotificationStore.getState().analysisReportEnabled,
           });
           await queryClient.invalidateQueries({ queryKey: ['member', 'me'] });
           return;
