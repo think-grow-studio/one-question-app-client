@@ -22,8 +22,8 @@ import type { AnalysisType } from '@/features/analysis/types/api';
 import {
   getNotificationPermissionStatus,
   requestNotificationPermission,
-} from '@/features/settings/services/notifications';
-import { ensurePushTokenRegistered } from '@/features/settings/services/pushToken';
+} from '@/features/notifications/services/notifications';
+import { ensurePushTokenRegistered } from '@/features/notifications/services/pushToken';
 
 function Separator() {
   return <View style={styles.separator} />;

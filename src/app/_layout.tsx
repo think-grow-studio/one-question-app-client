@@ -40,7 +40,7 @@ import {
   getInitialFCMNotification,
 } from '@/services/firebase'; // Firebase 초기화
 import { storage } from '@/services/storage';
-import { useFCMLifecycle } from '@/features/settings/hooks/useFCMLifecycle';
+import { useFCMLifecycle } from '@/features/notifications/hooks/useFCMLifecycle';
 import * as Updates from 'expo-updates';
 
 async function migrateTokensToSecureStore() {

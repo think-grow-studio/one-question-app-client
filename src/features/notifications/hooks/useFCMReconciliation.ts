@@ -4,9 +4,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import { getFCMToken } from '@/services/firebase';
 import { recordError } from '@/services/firebase/crashlytics';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
-import { useNotificationStore } from '@/features/settings/stores/useNotificationStore';
-import { notificationApi } from '@/features/settings/api/notificationApi';
-import { getNotificationPermissionStatus } from '@/features/settings/services/notifications';
+import { useNotificationStore } from '@/features/notifications/stores/useNotificationStore';
+import { notificationApi } from '@/features/notifications/api/notificationApi';
+import { getNotificationPermissionStatus } from '@/features/notifications/services/notifications';
 
 /**
  * FCM 토큰 / OS 권한 / 서버 설정의 정합성을 앱 진입·포그라운드 복귀 시 맞춘다.

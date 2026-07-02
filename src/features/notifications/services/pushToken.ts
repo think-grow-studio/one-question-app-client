@@ -1,6 +1,6 @@
 import { getFCMToken } from '@/services/firebase';
-import { notificationApi } from '@/features/settings/api/notificationApi';
-import { useNotificationStore } from '@/features/settings/stores/useNotificationStore';
+import { notificationApi } from '@/features/notifications/api/notificationApi';
+import { useNotificationStore } from '@/features/notifications/stores/useNotificationStore';
 
 /**
  * FCM 토큰이 서버에 등록되어 있음을 보장한다.

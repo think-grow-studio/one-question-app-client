@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient, QueryClient } from '@tanstack/react-query';
-import { notificationApi } from '@/features/settings/api/notificationApi';
+import { notificationApi } from '@/features/notifications/api/notificationApi';
 import { memberQueryKeys } from '@/features/member/hooks/queries/useMemberQueries';
-import { useNotificationStore } from '@/features/settings/stores/useNotificationStore';
+import { useNotificationStore } from '@/features/notifications/stores/useNotificationStore';
 import { GetMemberResponse, NotificationSetting } from '@/shared/types/api';
 
 interface UpdateTimeInput {

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNotificationStore } from '@/features/settings/stores/useNotificationStore';
-import { requestNotificationPermission } from '@/features/settings/services/notifications';
+import { useNotificationStore } from '@/features/notifications/stores/useNotificationStore';
+import { requestNotificationPermission } from '@/features/notifications/services/notifications';
 import { getFCMToken } from '@/services/firebase';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 import {

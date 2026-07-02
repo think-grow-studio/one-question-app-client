@@ -4,12 +4,12 @@ import * as Notifications from 'expo-notifications';
 import { onFCMMessage, onFCMTokenRefresh } from '@/services/firebase';
 import { queryClient } from '@/services/queryClient';
 import { analysisKeys } from '@/features/analysis/hooks/queries/useAnalysisQueries';
-import { useNotificationStore } from '@/features/settings/stores/useNotificationStore';
-import { notificationApi } from '@/features/settings/api/notificationApi';
+import { useNotificationStore } from '@/features/notifications/stores/useNotificationStore';
+import { notificationApi } from '@/features/notifications/api/notificationApi';
 import {
   ensureAndroidNotificationChannel,
   NOTIFICATION_CHANNEL_IDS,
-} from '@/features/settings/services/notifications';
+} from '@/features/notifications/services/notifications';
 
 /**
  * FCM 앱 라이프사이클 리스너

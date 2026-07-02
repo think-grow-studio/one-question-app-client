@@ -11,7 +11,7 @@ import { useAccentColors, getFontStyle } from '@/shared/theme';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 import { useDatePickerStore } from '@/features/question/stores/useDatePickerStore';
 import { formatLocalDate } from '@/shared/utils/date';
-import { useFCMReconciliation } from '@/features/settings/hooks/useFCMReconciliation';
+import { useFCMReconciliation } from '@/features/notifications/hooks/useFCMReconciliation';
 
 export default function TabLayout() {
   const theme = useTheme();
