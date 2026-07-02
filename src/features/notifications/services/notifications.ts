@@ -23,14 +23,16 @@ export const NOTIFICATION_CHANNEL_IDS = {
 
 export async function ensureAndroidNotificationChannel(): Promise<void> {
   if (Platform.OS !== 'android') return;
+  // 채널명은 Android 시스템 설정에 노출되는 user-facing 문자열 — i18n 필수.
+  // setNotificationChannelAsync는 기존 채널의 name도 갱신하므로 언어 변경이 반영됨.
   await Notifications.setNotificationChannelAsync(NOTIFICATION_CHANNEL_IDS.dailyReminder, {
-    name: '일일 알림',
+    name: i18n.t('notification.channels.dailyReminder', { ns: 'settings' }),
     importance: Notifications.AndroidImportance.HIGH,
     vibrationPattern: [0, 250, 250, 250],
     lightColor: '#FF231F7C',
   });
   await Notifications.setNotificationChannelAsync(NOTIFICATION_CHANNEL_IDS.analysisReport, {
-    name: '분석 리포트',
+    name: i18n.t('notification.channels.analysisReport', { ns: 'settings' }),
     importance: Notifications.AndroidImportance.HIGH,
     vibrationPattern: [0, 250, 250, 250],
     lightColor: '#FF231F7C',

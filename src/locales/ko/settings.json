@@ -20,6 +20,10 @@
       "title": "분석 리포트 알림",
       "description": "나를 만나는 시간 리포트가 준비되면 알려드려요"
     },
+    "channels": {
+      "dailyReminder": "일일 알림",
+      "analysisReport": "분석 리포트"
+    },
     "permissionOff": {
       "title": "기기 알림이 꺼져 있어요",
       "message": "알림을 받으려면 기기 설정에서 허용해 주세요",

@@ -20,6 +20,10 @@
       "title": "Analysis Report",
       "description": "Get notified when your report is ready"
     },
+    "channels": {
+      "dailyReminder": "Daily Reminder",
+      "analysisReport": "Analysis Report"
+    },
     "permissionOff": {
       "title": "Device notifications are off",
       "message": "Allow notifications in device settings to receive them",
