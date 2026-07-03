@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { storage } from '@/services/storage';
 import { queryClient } from '@/services/queryClient';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import { setCrashlyticsUserId, signOutFirebase, isFirebaseAnonymousUser } from '@/services/firebase';
+import { setCrashlyticsUserId, setUserId, signOutFirebase, isFirebaseAnonymousUser } from '@/services/firebase';
 
 /**
  * 세션 종료 시 실행할 feature 측 정리 작업 (의존 역전).
@@ -85,6 +85,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     }
 
     setCrashlyticsUserId(null);
+    setUserId(null);
     set({ isAuthenticated: false });
   },
 

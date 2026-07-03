@@ -200,8 +200,11 @@ export function useQuestionCardStyles() {
         submitButtonEnabled: {
           backgroundColor: accent.primary,
         },
+        // 다크모드에서 backgroundSoft가 카드(surface)와 동색이라 테두리 없인 버튼이 묻혀 안 보임 — inputContainer와 동일한 처리
         submitButtonDisabled: {
           backgroundColor: theme.backgroundSoft?.val,
+          borderWidth: isDark ? 1 : 0,
+          borderColor: theme.borderColor?.val,
         },
         submitTextEnabled: {
           color: accent.textOnPrimary,

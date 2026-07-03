@@ -143,19 +143,19 @@ export function DailyQuestionAnswer({ mode = 'create', data }: DailyQuestionAnsw
 
     try {
       if (isEditMode) {
-        // Analytics: 답변 수정
+        await updateAnswerMutation.mutateAsync({ date: data.date, answer: answer.trim() });
+        // Analytics: 답변 수정 성공 시에만 기록
         logEvent(AnalyticsEvents.ANSWER_EDIT, {
           date: data.date,
           answer_length: answer.trim().length,
         });
-        await updateAnswerMutation.mutateAsync({ date: data.date, answer: answer.trim() });
       } else {
-        // Analytics: 답변 제출
+        await createAnswerMutation.mutateAsync({ date: data.date, answer: answer.trim() });
+        // Analytics: 답변 제출 성공 시에만 기록
         logEvent(AnalyticsEvents.ANSWER_SUBMIT, {
           date: data.date,
           answer_length: answer.trim().length,
         });
-        await createAnswerMutation.mutateAsync({ date: data.date, answer: answer.trim() });
       }
 
       // 성공 메시지 표시

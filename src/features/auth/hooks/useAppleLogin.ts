@@ -5,6 +5,7 @@ import { authApi } from '@/features/auth/api/authApi';
 import { useAuthStore } from '@/shared/stores/useAuthStore';
 import { AppleAuthRequest } from '@/shared/types/api';
 import { createAppleNonce } from '@/features/auth/utils/appleNonce';
+import { logEvent, AnalyticsEvents } from '@/services/firebase';
 
 export function useAppleLogin() {
   const { login } = useAuthStore();
@@ -15,7 +16,11 @@ export function useAppleLogin() {
       return data;
     },
     onSuccess: async (data) => {
+      logEvent(AnalyticsEvents.LOGIN, { method: 'apple' });
       await login(data.accessToken, data.refreshToken);
+    },
+    onError: () => {
+      logEvent(AnalyticsEvents.LOGIN_FAIL, { method: 'apple', reason: 'server_error' });
     },
   });
 
@@ -25,10 +30,13 @@ export function useAppleLogin() {
       return;
     }
 
+    logEvent(AnalyticsEvents.LOGIN_START, { method: 'apple' });
+
     try {
       const isAvailable = await AppleAuthentication.isAvailableAsync();
       if (!isAvailable) {
         console.warn('[AppleSignIn] Not available on this device (requires iOS 13+)');
+        logEvent(AnalyticsEvents.LOGIN_FAIL, { method: 'apple', reason: 'not_available' });
         return;
       }
 
@@ -44,6 +52,7 @@ export function useAppleLogin() {
 
       if (!credential.identityToken) {
         console.warn('[AppleSignIn] No identityToken in credential');
+        logEvent(AnalyticsEvents.LOGIN_FAIL, { method: 'apple', reason: 'no_identity_token' });
         return;
       }
 
@@ -63,10 +72,12 @@ export function useAppleLogin() {
     } catch (error: unknown) {
       const code = (error as { code?: string })?.code;
       if (code === 'ERR_REQUEST_CANCELED') {
-        // 사용자 취소
+        // 사용자 취소 — 실제 이탈 지점이라 퍼널 분석을 위해 기록
+        logEvent(AnalyticsEvents.LOGIN_FAIL, { method: 'apple', reason: 'cancelled' });
         return;
       }
       console.log('Apple Sign-In error:', error);
+      logEvent(AnalyticsEvents.LOGIN_FAIL, { method: 'apple', reason: 'apple_signin_error' });
     }
   };
 

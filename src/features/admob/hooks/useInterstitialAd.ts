@@ -78,6 +78,10 @@ export function useInterstitialAd(adUnitKey: AdUnitKey) {
           // 표시 시도 중 ERROR가 나면 대기 중인 showAdAndWait도 풀어줘야 함
           settlePending({ success: false });
         }),
+        ad.addAdEventListener(AdEventType.OPENED, () => {
+          // Analytics: 실제로 화면에 표시된 시점 (show() 호출 시점이 아님)
+          logEvent(AnalyticsEvents.INTERSTITIAL_AD_SHOW, { placement: adUnitKey });
+        }),
         ad.addAdEventListener(AdEventType.CLOSED, () => {
           isLoadedRef.current = false;
           logEvent(AnalyticsEvents.INTERSTITIAL_AD_CLOSE, { placement: adUnitKey });
@@ -110,7 +114,6 @@ export function useInterstitialAd(adUnitKey: AdUnitKey) {
       return;
     }
 
-    logEvent(AnalyticsEvents.INTERSTITIAL_AD_SHOW, { placement: adUnitKey });
     try {
       await ad.show();
     } catch {
@@ -154,8 +157,6 @@ export function useInterstitialAd(adUnitKey: AdUnitKey) {
 
     // 이미 표시 중이면 통과 처리 (중첩 호출 방지)
     if (pendingResolveRef.current) return { success: true };
-
-    logEvent(AnalyticsEvents.INTERSTITIAL_AD_SHOW, { placement: adUnitKey });
 
     return new Promise((resolve) => {
       pendingResolveRef.current = resolve;

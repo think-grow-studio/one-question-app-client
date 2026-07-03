@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { signInAnonymously } from '@/services/firebase';
+import { signInAnonymously, logEvent, AnalyticsEvents } from '@/services/firebase';
 import { authApi } from '@/features/auth/api/authApi';
 import { useAuthStore } from '@/shared/stores/useAuthStore';
 
@@ -8,12 +8,17 @@ export function useAnonymousLogin() {
 
   const mutation = useMutation({
     mutationFn: async () => {
+      logEvent(AnalyticsEvents.LOGIN_START, { method: 'guest' });
       const idToken = await signInAnonymously();
       const { data } = await authApi.anonymousLogin({ idToken });
       return data;
     },
     onSuccess: async (data) => {
+      logEvent(AnalyticsEvents.LOGIN, { method: 'guest' });
       await login(data.accessToken, data.refreshToken);
+    },
+    onError: () => {
+      logEvent(AnalyticsEvents.LOGIN_FAIL, { method: 'guest', reason: 'error' });
     },
   });
 

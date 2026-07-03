@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { BackHandler, Platform } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -14,10 +14,12 @@ export default function HomeScreen() {
   const exitDialog = useAlertDialog();
   const showExitDialog = exitDialog.show;
 
-  // Analytics: 화면 조회
-  useEffect(() => {
-    logScreenView('Today');
-  }, []);
+  // Analytics: 화면 조회 — 탭은 focus/blur만 하고 unmount되지 않으므로 focus 시마다 로깅
+  useFocusEffect(
+    useCallback(() => {
+      logScreenView('Today');
+    }, [])
+  );
 
   // Android 하드웨어 뒤로가기 — 홈(루트)에서는 즉시 종료 대신 확인 다이얼로그.
   // useFocusEffect: 홈 탭 포커스일 때만 가로채고, 다른 탭에선 backBehavior(initialRoute)가

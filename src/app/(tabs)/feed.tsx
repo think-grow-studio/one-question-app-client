@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import { XStack, YStack, useTheme } from 'tamagui';
+import { useFocusEffect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Screen } from '@/shared/layout/Screen';
 import { CommonQuestionFeed } from '@/features/feed/components/CommonQuestionFeed';
@@ -21,9 +22,12 @@ export default function FeedScreen() {
   const [tutorialVisible, setTutorialVisible] = useState(false);
   const [hydrated, setHydrated] = useState(() => useFeedTutorialStore.persist.hasHydrated());
 
-  useEffect(() => {
-    logScreenView('Feed');
-  }, []);
+  // Analytics: 화면 조회 — 탭은 focus/blur만 하고 unmount되지 않으므로 focus 시마다 로깅
+  useFocusEffect(
+    useCallback(() => {
+      logScreenView('Feed');
+    }, [])
+  );
 
   // zustand persist는 비동기 hydration. hydration 완료 전까지 hasSeenFeedTutorial=false 라
   // 가드 없으면 첫 진입에서 깜빡임 발생. hasHydrated()/onFinishHydration 로 게이트.
