@@ -40,7 +40,7 @@ export interface AnswerSelection {
  * - 충분한 양(최대 {@link MAX_ANSWERS})을 모을 때까지 다음 페이지 자동 로드
  * - 최초 1회 최근 N개 자동 선택, 이후 토글로 가감 (최대 개수 cap)
  *
- * 라우팅 레이어(app/)에 비즈니스 로직을 두지 않기 위해 분리 (PROJECT_ARCHITECTURE §4).
+ * 라우팅 레이어(app/)에 비즈니스 로직을 두지 않기 위해 분리 (README §3 — app/은 조립 전용).
  */
 export function useAnswerSelection(): AnswerSelection {
   const { data: days = [], hasNextPage, fetchNextPage, isFetchingNextPage, isLoading } = useTimeline();

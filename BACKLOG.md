@@ -2,7 +2,7 @@
 
 ## 공통 가이드라인 (모든 작업)
 
-- PROJECT_ARCHITECTURE.md 기반으로
+- README.md(아키텍처 문서) 기반으로
 - 오버엔지니어링은 없지만 best practice대로 구현
 - 카카오/당근/토스와 같이 깔끔하고 직관적인 UI로
 - 반응형으로 구현
