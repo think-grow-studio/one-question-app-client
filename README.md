@@ -6,13 +6,13 @@
 
 **문서 체계:**
 
-| 문서 | 내용 |
-|---|---|
-| `README.md` (이 파일) | 기술 스택, 폴더 구조·책임, 네비게이션, 상태관리, API 계층, 빌드/실행 |
-| `CLAUDE.md` / `AGENTS.md` | AI 에이전트 진입점 (핵심 규칙 요약) |
-| `docs/decisions/` | ADR — 번복하면 안 되는 구조적 결정 기록 |
-| `docs/ENV_FLOW.md` | 환경변수가 빌드/OTA에 흘러가는 전체 경로 |
-| 폴더별 `CLAUDE.md` | 해당 폴더의 코드만 봐서는 알 수 없는 불변식·함정 |
+| 문서                      | 내용                                                                 |
+| ------------------------- | -------------------------------------------------------------------- |
+| `README.md` (이 파일)     | 기술 스택, 폴더 구조·책임, 네비게이션, 상태관리, API 계층, 빌드/실행 |
+| `CLAUDE.md` / `AGENTS.md` | AI 에이전트 진입점 (핵심 규칙 요약)                                  |
+| `docs/decisions/`         | ADR — 번복하면 안 되는 구조적 결정 기록                              |
+| `docs/ENV_FLOW.md`        | 환경변수가 빌드/OTA에 흘러가는 전체 경로                             |
+| 폴더별 `CLAUDE.md`        | 해당 폴더의 코드만 봐서는 알 수 없는 불변식·함정                     |
 
 ---
 
@@ -132,17 +132,17 @@ app/
 
 - 단일 Axios 인스턴스, timeout 5초. 모든 요청에 자동 주입: `Authorization`(SecureStore 토큰), `Accept-Language`(사용자 선택 언어 우선), `Timezone`(기기 타임존 — **서버의 "오늘" 판정이 이 헤더 기준**).
 - 401 → `tokenRefreshService.refresh()`(mutex — 동시 401에도 갱신 1회) 후 원 요청 재시도. refresh 실패 시 조용히 로그아웃.
-- 응답 에러는 `ApiErrorResponse`(traceId/status/code/message)로 **정규화만** 하고 reject — 사용자 표시는 하지 않는다.
+- 응답 에러는 `ApiErrorResponse`(requestId/status/code/message)로 **정규화만** 하고 reject — 사용자 표시는 하지 않는다.
 
 ### 에러 표시 계층 (역할 분리)
 
-| 계층 | 책임 |
-|---|---|
-| interceptor | 401 refresh + 정규화 + Crashlytics(5xx/네트워크만). **showError 호출 금지** |
-| `QueryCache`/`MutationCache.onError` (`queryClient.ts`) | default 표시. `SILENT_ERROR_CODES` Set(한 곳)에 있으면 생략 |
-| mutation hook `onError` | 도메인 후속 처리만 (캐시 무효화, 호출자 callback closure 전달). 표시 ❌ |
-| `GlobalErrorHandler` (`shared/error/`) | `useApiErrorStore` 상태로 AlertDialog 1개 렌더, pathname 변경 시 자동 reset |
-| 컴포넌트 | mutation hook에 callback만 전달 — `queryClient`/query keys 직접 의존 ❌ |
+| 계층                                                    | 책임                                                                        |
+| ------------------------------------------------------- | --------------------------------------------------------------------------- |
+| interceptor                                             | 401 refresh + 정규화 + Crashlytics(5xx/네트워크만). **showError 호출 금지** |
+| `QueryCache`/`MutationCache.onError` (`queryClient.ts`) | default 표시. `SILENT_ERROR_CODES` Set(한 곳)에 있으면 생략                 |
+| mutation hook `onError`                                 | 도메인 후속 처리만 (캐시 무효화, 호출자 callback closure 전달). 표시 ❌     |
+| `GlobalErrorHandler` (`shared/error/`)                  | `useApiErrorStore` 상태로 AlertDialog 1개 렌더, pathname 변경 시 자동 reset |
+| 컴포넌트                                                | mutation hook에 callback만 전달 — `queryClient`/query keys 직접 의존 ❌     |
 
 **Dialog 위치 판단**: confirm이 "닫기만" → 글로벌 `useApiErrorStore.showError()` · confirm 후 화면별 액션(refetch/navigation) 필요 → 컴포넌트 로컬 `<AlertDialog>` + useState. 글로벌 store에 callback을 넣지 않는다.
 
