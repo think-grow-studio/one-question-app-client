@@ -3,19 +3,19 @@ import { create } from 'zustand';
 interface ApiErrorState {
   isVisible: boolean;
   message: string | null;
-  traceId: string | null; // 🆕 traceId 추가
-  showError: (message: string, traceId?: string) => void;
+  requestId: string | null; // 🆕 requestId 추가
+  showError: (message: string, requestId?: string) => void;
   hideError: () => void;
 }
 
 export const useApiErrorStore = create<ApiErrorState>((set) => ({
   isVisible: false,
   message: null,
-  traceId: null,
+  requestId: null,
 
-  showError: (message: string, traceId?: string) =>
-    set({ isVisible: true, message, traceId: traceId || null }),
+  showError: (message: string, requestId?: string) =>
+    set({ isVisible: true, message, requestId: requestId || null }),
 
   hideError: () =>
-    set({ isVisible: false, message: null, traceId: null }),
+    set({ isVisible: false, message: null, requestId: null }),
 }));

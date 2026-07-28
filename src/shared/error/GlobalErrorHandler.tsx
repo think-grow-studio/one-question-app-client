@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 
 export function GlobalErrorHandler() {
   const { t } = useTranslation('common');
-  const { isVisible, message, traceId, hideError } = useApiErrorStore();
+  const { isVisible, message, requestId, hideError } = useApiErrorStore();
   const pathname = usePathname();
   const isFirstRenderRef = useRef(true);
 
@@ -20,9 +20,9 @@ export function GlobalErrorHandler() {
     if (isVisible) hideError();
   }, [pathname]);
 
-  // 메시지에 traceId 추가 (__DEV__ 모드에서만)
-  const displayMessage = __DEV__ && traceId
-    ? `${message || t('error.unknown', '알 수 없는 오류가 발생했습니다.')}\n\nTrace ID: ${traceId}`
+  // 메시지에 requestId 추가 (__DEV__ 모드에서만)
+  const displayMessage = __DEV__ && requestId
+    ? `${message || t('error.unknown', '알 수 없는 오류가 발생했습니다.')}\n\nRequest ID: ${requestId}`
     : message || t('error.unknown', '알 수 없는 오류가 발생했습니다.');
 
   return (

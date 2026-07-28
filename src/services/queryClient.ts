@@ -21,7 +21,7 @@ const handleApiError = (error: unknown) => {
   const apiError = error as ApiErrorResponse;
   if (!apiError?.code) return;
   if (SILENT_ERROR_CODES.has(apiError.code)) return;
-  useApiErrorStore.getState().showError(apiError.message, apiError.traceId);
+  useApiErrorStore.getState().showError(apiError.message, apiError.requestId);
 };
 
 /**

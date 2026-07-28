@@ -111,7 +111,7 @@ apiClient.interceptors.response.use(
     // 표시는 queryClient의 QueryCache/MutationCache.onError가 담당
     // 에러 정규화 후 reject
     const normalizedError: ApiErrorResponse = {
-      traceId: error.response?.data?.traceId || '',
+      requestId: error.response?.data?.requestId || '',
       status: error.response?.status || 0,
       code: error.response?.data?.code || 'UNKNOWN_ERROR',
       message: errorMessage,
