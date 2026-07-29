@@ -1,9 +1,10 @@
 import { useCallback, useState } from 'react';
-import { Switch, View, Pressable, ActivityIndicator, Linking } from 'react-native';
+import { View, Pressable, ActivityIndicator, Linking } from 'react-native';
 import { XStack, YStack, useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
 import { AlertDialog, useAlertDialog } from '@/shared/ui/AlertDialog';
+import { AppSwitch } from '@/shared/ui/AppSwitch';
 import {
   useNotificationSettings,
   type NotificationActionFailureReason,
@@ -140,16 +141,10 @@ export function NotificationSettings() {
             {isTogglingNotification && (
               <ActivityIndicator size="small" color={theme.colorMuted?.val} />
             )}
-            <Switch
+            <AppSwitch
               value={displayedIsEnabled}
               onValueChange={handleToggle}
               disabled={isToggleInteractionDisabled}
-              trackColor={{
-                false: theme.borderColor?.val,
-                true: accent.primary,
-              }}
-              thumbColor="#FFFFFF"
-              ios_backgroundColor={theme.borderColor?.val}
             />
           </XStack>
         </XStack>
@@ -229,16 +224,10 @@ export function NotificationSettings() {
             {isTogglingAnalysisReport && (
               <ActivityIndicator size="small" color={theme.colorMuted?.val} />
             )}
-            <Switch
+            <AppSwitch
               value={displayedAnalysisReportEnabled}
               onValueChange={handleAnalysisReportToggle}
               disabled={isTogglingAnalysisReport}
-              trackColor={{
-                false: theme.borderColor?.val,
-                true: accent.primary,
-              }}
-              thumbColor="#FFFFFF"
-              ios_backgroundColor={theme.borderColor?.val}
             />
           </XStack>
         </XStack>
