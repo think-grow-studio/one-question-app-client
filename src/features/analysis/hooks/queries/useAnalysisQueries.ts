@@ -10,12 +10,11 @@ export const analysisKeys = {
   history: () => [...analysisKeys.all, 'history'] as const,
 };
 
-/** 진행 중 분석 폴링 주기 (FCM 누락 대비 fallback) */
-const PROCESSING_POLL_MS = 3000;
-
 /**
  * 랜딩 게이트 판정용 가용성 조회.
- * 진행 중(PROCESSING)이면 주기적으로 재조회해 완료 시 IDLE 로 자동 전환.
+ *
+ * **폴링하지 않는다.** 완료 반영은 ANALYSIS_DONE 푸시(useFCMLifecycle의 invalidate)와
+ * 포그라운드 복귀 시 refetch(services/queryClient의 focusManager 연결)에 맡긴다.
  */
 export function useAnalysisAvailability() {
   return useQuery({
@@ -23,14 +22,15 @@ export function useAnalysisAvailability() {
     queryFn: () => analysisApi.getAvailability(),
     staleTime: 1000 * 30,
     refetchOnWindowFocus: true,
-    refetchInterval: (query) =>
-      query.state.data?.reason === 'PROCESSING' ? PROCESSING_POLL_MS : false,
   });
 }
 
 /**
  * 분석 상세/결과 조회.
- * PROCESSING 동안 폴링 → READY/FAILED 로 전환되면 폴링 중단.
+ *
+ * **폴링하지 않는다.** 진행 중(PENDING/PROCESSING)일 때는 staleTime을 0으로 낮춰
+ * 푸시 invalidate와 포그라운드 복귀 refetch가 즉시 반영되게만 한다.
+ * (완료 후에는 결과가 불변이므로 다시 캐시를 오래 유지한다.)
  */
 export function useAnalysisDetail(
   id: number | null,
@@ -40,13 +40,11 @@ export function useAnalysisDetail(
     queryKey: analysisKeys.detail(id ?? -1),
     queryFn: () => analysisApi.getAnalysis(id as number),
     enabled: (options?.enabled ?? true) && id != null,
-    staleTime: 1000 * 60,
-    // PENDING(접수 직후)에서도 폴링해야 한다 — PROCESSING만 보면 서버가 아직 작업을
-    // 집어들기 전 구간에서 폴링이 멈춰 결과 화면이 영영 갱신되지 않는다.
-    refetchInterval: (query) => {
-      const status = query.state.data?.status;
-      return status && isAnalysisInProgress(status) ? PROCESSING_POLL_MS : false;
-    },
+    staleTime: (query) =>
+      query.state.data && isAnalysisInProgress(query.state.data.status)
+        ? 0
+        : 1000 * 60,
+    refetchOnWindowFocus: true,
   });
 }
 

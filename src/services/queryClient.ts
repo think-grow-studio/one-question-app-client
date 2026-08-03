@@ -1,6 +1,17 @@
-import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query';
+import { AppState, type AppStateStatus } from 'react-native';
+import { MutationCache, QueryCache, QueryClient, focusManager } from '@tanstack/react-query';
 import { useApiErrorStore } from '@/shared/stores/useApiErrorStore';
 import type { ApiErrorResponse } from '@/shared/types/api';
+
+/**
+ * refetchOnWindowFocus를 React Native에서 실제로 동작하게 한다.
+ * TanStack의 포커스 감지는 브라우저 이벤트 기반이라, 이 연결이 없으면
+ * `refetchOnWindowFocus: true`가 앱 전체에서 조용히 무시된다.
+ * (폴링을 쓰지 않는 화면은 이 경로가 유일한 자동 갱신 수단이다.)
+ */
+AppState.addEventListener('change', (status: AppStateStatus) => {
+  focusManager.setFocused(status === 'active');
+});
 
 /**
  * 코드별 silent 처리 (dialog 표시 생략).
