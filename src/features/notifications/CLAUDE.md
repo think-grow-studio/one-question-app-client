@@ -28,7 +28,7 @@
 ## 로그아웃과 탈퇴는 정리 경로가 다르다 (`authCleanup.ts`)
 
 - **로그아웃**: `beforeServerLogout`에서 서버 FCM 토큰 삭제 (액세스 토큰 만료 전에 호출, 실패해도 로그아웃 진행).
-- **탈퇴**: 서버가 fcm_token row를 cascade로 정리하므로 **`deleteFcmToken`을 호출하면 "회원을 찾을 수 없다" 에러가 난다** — 탈퇴 경로는 `cleanupLocalAuth`(로컬 정리)만 탄다.
+- **탈퇴**: `DELETE /api/v1/auth/me`가 서버에서 fcm_token row를 함께 정리한다 — 클라이언트가 `deleteFcmToken`을 부를 필요가 없어 탈퇴 경로는 `cleanupLocalAuth`(로컬 정리)만 탄다.
 - `onLocalCleanup`은 두 경로 공통: fcmToken null + `analysisReportEnabled` 기본값 복원 (다음 계정이 이전 계정의 로컬 설정을 물려받지 않도록).
 
 ## Reconciliation 정책 (`useFCMReconciliation`)

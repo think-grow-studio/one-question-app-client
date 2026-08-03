@@ -58,8 +58,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   /**
    * 로컬 인증/세션 클린업 (네트워크 호출 없음).
    * - 일반 로그아웃: logout()이 beforeServerLogout(FCM 토큰 삭제 등) 후에 호출
-   * - 회원 탈퇴: useWithdrawMutation이 직접 호출 (서버가 fcm_token row를 이미
-   *   cascade로 정리하므로 서버 삭제를 호출하면 "회원을 찾을 수 없다" 에러 발생)
+   * - 회원 탈퇴: useWithdrawMutation이 직접 호출 (탈퇴 API가 서버에서 fcm_token을
+   *   함께 정리하므로 클라이언트가 서버 삭제를 또 호출할 이유가 없음)
    */
   cleanupLocalAuth: async () => {
     for (const tasks of authCleanupTasks) {
