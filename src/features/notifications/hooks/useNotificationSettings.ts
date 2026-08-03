@@ -150,12 +150,9 @@ export function useNotificationSettings() {
 
   const updateNotificationTime = useCallback(
     async (newHour: number, newMinute: number): Promise<NotificationActionResult> => {
-      const newAlarmTime = toAlarmTime(newHour, newMinute);
-      const token = useNotificationStore.getState().fcmToken ?? (await getFCMToken());
-      if (!token) return { success: false, reason: 'token' };
+      // 토큰을 요구하지 않는다 — 시간 변경은 설정 조작이고, 토큰은 reconcile 소관.
       updateTimeMutation.mutate({
-        token,
-        alarmTime: newAlarmTime,
+        alarmTime: toAlarmTime(newHour, newMinute),
         timezone,
         enabled: isEnabled,
         analysisReportEnabled,

@@ -12,13 +12,13 @@
     "lightModeDescription": "밝은 배경으로 가독성을 높여요"
   },
   "notification": {
-    "title": "오늘의 질문 알림",
+    "title": "오늘의 질문",
     "sectionTitle": "알림 설정",
     "description": "매일 정해진 시간에 알림을 받아요",
     "time": "알림 시간",
     "analysisReport": {
-      "title": "분석 리포트 알림",
-      "description": "나를 만나는 시간 리포트가 준비되면 알려드려요"
+      "title": "분석 리포트",
+      "description": "나를 만나는 시간 리포트가 작성되면 알려드려요"
     },
     "channels": {
       "dailyReminder": "일일 알림",
@@ -26,8 +26,9 @@
     },
     "permissionOff": {
       "title": "기기 알림이 꺼져 있어요",
-      "message": "알림을 받으려면 기기 설정에서 허용해 주세요",
-      "action": "설정 열기"
+      "message": "기기 설정에서 알림을 허용해 주세요",
+      "action": "설정 열기",
+      "paused": "잠시 멈춤"
     },
     "done": "완료",
     "am": "오전",

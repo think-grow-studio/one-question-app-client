@@ -12,13 +12,13 @@
     "lightModeDescription": "Improve readability with light background"
   },
   "notification": {
-    "title": "Daily Question Reminder",
+    "title": "Today's Question",
     "sectionTitle": "Notification Settings",
     "description": "Get reminded at your preferred time daily",
     "time": "Notification Time",
     "analysisReport": {
       "title": "Analysis Report",
-      "description": "Get notified when your report is ready"
+      "description": "Get notified when your report is written"
     },
     "channels": {
       "dailyReminder": "Daily Reminder",
@@ -26,8 +26,9 @@
     },
     "permissionOff": {
       "title": "Device notifications are off",
-      "message": "Allow notifications in device settings to receive them",
-      "action": "Open Settings"
+      "message": "Allow notifications in your device settings",
+      "action": "Open Settings",
+      "paused": "Paused"
     },
     "done": "Done",
     "am": "AM",

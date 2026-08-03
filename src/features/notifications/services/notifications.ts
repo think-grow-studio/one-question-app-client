@@ -76,9 +76,26 @@ export async function requestNotificationPermission(): Promise<boolean> {
 }
 
 /**
- * 알림 권한 상태 확인
+ * 알림 권한 상태.
+ * **'undetermined'(아직 요청한 적 없음)와 'denied'(거부/해제됨)를 뭉개면 안 된다.**
+ * iOS는 앱이 권한을 한 번이라도 *요청*해야 설정 앱에 알림 항목을 만들어준다
+ * (확인만 하는 getPermissionsAsync는 등록하지 않는다). 그래서 undetermined 상태에서
+ * "설정에서 켜주세요"로 안내하면 항목이 없는 화면에 도착해 막다른 길이 된다.
+ * undetermined의 올바른 처방은 앱 안에서 권한을 요청하는 것(토글을 켜는 것)이다.
+ */
+export type NotificationPermissionState = 'granted' | 'denied' | 'undetermined';
+
+export async function getNotificationPermissionState(): Promise<NotificationPermissionState> {
+  const { status } = await Notifications.getPermissionsAsync();
+  if (status === 'granted') return 'granted';
+  if (status === 'undetermined') return 'undetermined';
+  return 'denied';
+}
+
+/**
+ * "지금 알림이 전달될 수 있나"만 필요한 곳(토큰 게이트, 분석 pre-prompt)용 축약.
+ * 전달 관점에선 undetermined와 denied가 동일하므로 뭉개도 된다.
  */
 export async function getNotificationPermissionStatus(): Promise<boolean> {
-  const { status } = await Notifications.getPermissionsAsync();
-  return status === 'granted';
+  return (await getNotificationPermissionState()) === 'granted';
 }
