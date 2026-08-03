@@ -7,6 +7,10 @@ import { memberQueryKeys, useMemberMe } from '@/features/member/hooks/queries/us
 import { useNotificationStore } from '@/features/notifications/stores/useNotificationStore';
 import { notificationApi } from '@/features/notifications/api/notificationApi';
 import { getNotificationPermissionStatus } from '@/features/notifications/services/notifications';
+import {
+  decideReconcileAction,
+  needsSdkToken,
+} from '@/features/notifications/domain/reconcileDecision';
 import { GetMemberResponse } from '@/shared/types/api';
 
 /**
@@ -71,44 +75,34 @@ export function useFCMReconciliation() {
     try {
       const permissionGranted = await getNotificationPermissionStatus();
       const storedToken = useNotificationStore.getState().fcmToken;
+      const intent = readIntent(queryClient);
+
+      // SDK 토큰은 결정에 필요할 때만 조회한다 (네이티브 왕복).
+      const sdkToken = needsSdkToken(permissionGranted, intent)
+        ? await getFCMToken()
+        : null;
+
+      const action = decideReconcileAction({
+        permissionGranted,
+        storedToken,
+        intent,
+        sdkToken,
+      });
       debugLog(
-        `${trigger}: permission=${permissionGranted} storedToken=${maskToken(storedToken)}`
+        `${trigger}: permission=${permissionGranted} intent=${intent.reminder}/${intent.report} ` +
+          `stored=${maskToken(storedToken)} → ${action.type}` +
+          (action.type === 'none' ? `(${action.reason})` : '')
       );
 
-      if (!permissionGranted) {
-        // 권한 없음 → 토큰을 떼어 전송 경로를 끊는다. 설정값은 사용자 의사로 보존.
-        if (storedToken) {
-          debugLog('권한 없음 → 서버 토큰 삭제 요청');
-          await notificationApi.deleteFcmToken(storedToken);
-          useNotificationStore.getState().setFcmToken(null);
-          debugLog('서버 토큰 삭제 완료');
-        } else {
-          debugLog('권한 없음 + 로컬에 기억된 토큰 없음 → 삭제할 대상이 없음');
-        }
-        return;
+      if (action.type === 'delete') {
+        await notificationApi.deleteFcmToken(action.token);
+        useNotificationStore.getState().setFcmToken(null);
+        debugLog('서버 토큰 삭제 완료');
+      } else if (action.type === 'register') {
+        await notificationApi.registerFcmToken(action.token);
+        useNotificationStore.getState().setFcmToken(action.token);
+        debugLog('서버 토큰 등록 완료');
       }
-
-      // 어떤 카테고리도 원하지 않으면 새 토큰을 심지 않는다 (이미 있으면 그대로 둔다).
-      const { reminder, report } = readIntent(queryClient);
-      if (!reminder && !report) {
-        debugLog('두 카테고리 모두 off → 새 토큰을 심지 않음');
-        return;
-      }
-
-      const sdkToken = await getFCMToken();
-      if (!sdkToken) {
-        debugLog('SDK 토큰을 받지 못함');
-        return;
-      }
-      if (sdkToken === storedToken) {
-        debugLog('SDK 토큰 == 저장된 토큰 → 할 일 없음');
-        return;
-      }
-
-      debugLog(`토큰 불일치 → 서버 등록 요청 (sdk=${maskToken(sdkToken)})`);
-      await notificationApi.registerFcmToken(sdkToken);
-      useNotificationStore.getState().setFcmToken(sdkToken);
-      debugLog('서버 토큰 등록 완료');
     } catch (e) {
       console.warn('[FCM Reconcile] 실패:', e);
       if (!__DEV__) {
