@@ -16,7 +16,7 @@ export interface AnalysisTypeMeta {
   /** 카드/시트/결과 헤더 공용 캐릭터 이미지 (이모지 대체) */
   image: ImageSourcePropType;
   /** i18n: analysis:types.<key>.* */
-  i18nKey: 'thinkingPattern' | 'warmComfort';
+  i18nKey: 'thinkingPattern' | 'warmReflection';
 }
 
 export const ANALYSIS_TYPES: AnalysisTypeMeta[] = [
@@ -27,16 +27,16 @@ export const ANALYSIS_TYPES: AnalysisTypeMeta[] = [
     i18nKey: 'thinkingPattern',
   },
   {
-    type: 'WARM_COMFORT',
+    type: 'WARM_REFLECTION',
     emoji: '💌',
     image: require('@/assets/images/nickname-character/koala.png'),
-    i18nKey: 'warmComfort',
+    i18nKey: 'warmReflection',
   },
 ];
 
 export const ANALYSIS_TYPE_META: Record<AnalysisType, AnalysisTypeMeta> = {
   THINKING_PATTERN: ANALYSIS_TYPES[0],
-  WARM_COMFORT: ANALYSIS_TYPES[1],
+  WARM_REFLECTION: ANALYSIS_TYPES[1],
 };
 
 /**
@@ -58,7 +58,7 @@ const CARD_PALETTES: Record<AnalysisType, { light: CardPalette; dark: CardPalett
     light: { surface: '#ECF1FD', gradient: ['#E9F0FE', '#F1F0FD'], badgeBg: '#FFFFFF', pill: '#3F6FE0', pillText: '#FFFFFF' },
     dark: { surface: '#222C45', gradient: ['#212F49', '#241F40'], badgeBg: '#32415C', pill: '#4F74D6', pillText: '#FFFFFF' },
   },
-  WARM_COMFORT: {
+  WARM_REFLECTION: {
     light: { surface: '#FBEBE9', gradient: ['#FCEEE6', '#FBE8EC'], badgeBg: '#FFFFFF', pill: '#DB7350', pillText: '#FFFFFF' },
     dark: { surface: '#312220', gradient: ['#322620', '#2F1D22'], badgeBg: '#48342A', pill: '#C8694A', pillText: '#FFFFFF' },
   },

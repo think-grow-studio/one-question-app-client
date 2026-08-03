@@ -1,5 +1,6 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { analysisApi } from '../../api/analysisApi';
+import { isAnalysisInProgress } from '../../domain/analysisStatus';
 import type { AnalysisDetailDto } from '../../types/api';
 
 export const analysisKeys = {
@@ -40,8 +41,12 @@ export function useAnalysisDetail(
     queryFn: () => analysisApi.getAnalysis(id as number),
     enabled: (options?.enabled ?? true) && id != null,
     staleTime: 1000 * 60,
-    refetchInterval: (query) =>
-      query.state.data?.status === 'PROCESSING' ? PROCESSING_POLL_MS : false,
+    // PENDING(접수 직후)에서도 폴링해야 한다 — PROCESSING만 보면 서버가 아직 작업을
+    // 집어들기 전 구간에서 폴링이 멈춰 결과 화면이 영영 갱신되지 않는다.
+    refetchInterval: (query) => {
+      const status = query.state.data?.status;
+      return status && isAnalysisInProgress(status) ? PROCESSING_POLL_MS : false;
+    },
   });
 }
 

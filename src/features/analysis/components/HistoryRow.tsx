@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
 import { sp, radius, fs } from '@/shared/utils/responsive';
 import { ANALYSIS_TYPE_META } from '../constants/analysisTypes';
+import { isAnalysisInProgress } from '../domain/analysisStatus';
 import type { AnalysisHistoryItemDto } from '../types/api';
 
 interface HistoryRowProps {
@@ -20,7 +21,7 @@ export function HistoryRow({ item, onPress }: HistoryRowProps) {
   const theme = useTheme();
   const { t } = useTranslation('analysis');
   const meta = ANALYSIS_TYPE_META[item.type];
-  const processing = item.status === 'PROCESSING';
+  const processing = isAnalysisInProgress(item.status);
 
   return (
     <Pressable

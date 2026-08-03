@@ -68,7 +68,7 @@ export function ResultContent({ detail }: { detail: AnalysisDetailDto }) {
         </YStack>
       )}
 
-      {detail.result?.type === 'WARM_COMFORT' && (
+      {detail.result?.type === 'WARM_REFLECTION' && (
         <YStack gap="$3">
           <Text variant="subheading">{t('result.comfortHeading')}</Text>
           <Text variant="body" style={styles.letter}>

@@ -7,6 +7,7 @@ import type {
   AnalysisType,
 } from '../types/api';
 import { MIN_ANSWERS } from '../constants/analysisTypes';
+import { isAnalysisInProgress } from '../domain/analysisStatus';
 
 // =====================================================================
 // Mock 분석 백엔드 — 서버 확정 전 클릭 가능한 프로토타입용.
@@ -25,6 +26,8 @@ interface MockRecord {
   answerCount: number;
   createdAt: number; // epoch ms
   feedback: AnalysisFeedback | null;
+  /** 멱등 재요청 판별용 (시드 데이터엔 없음) */
+  idempotencyKey?: string;
   /** true 면 항상 실패 상태로 둠 (FAILED 상태 데모용 — 현재 미사용) */
   forceFailed?: boolean;
 }
@@ -43,7 +46,7 @@ const records: MockRecord[] = [
   },
   {
     id: 2,
-    type: 'WARM_COMFORT',
+    type: 'WARM_REFLECTION',
     answerCount: 15,
     createdAt: Date.now() - 19 * DAY,
     feedback: null,
@@ -95,7 +98,7 @@ function mockResult(type: AnalysisType): AnalysisResultPayload {
     };
   }
   return {
-    type: 'WARM_COMFORT',
+    type: 'WARM_REFLECTION',
     data: {
       letter:
         '요즘의 당신에게,\n\n쌓아둔 답변들을 가만히 읽다 보니, 참 성실하게 하루하루를 마주해 온 사람이라는 게 느껴졌어요. 기쁜 날에도, 지친 날에도 당신은 도망치지 않고 자기 마음을 들여다봤더라고요.\n\n가끔은 스스로에게 너무 엄격했던 흔적도 보였어요. 그래도 괜찮아요. 그렇게 애써온 당신을, 오늘만큼은 조금 느슨하게 안아줬으면 좋겠어요.\n\n당신은 충분히 잘 해오고 있어요.',
@@ -117,7 +120,7 @@ function toDetail(record: MockRecord): AnalysisDetailDto {
 }
 
 function processingRecord(): MockRecord | undefined {
-  return records.find((r) => statusOf(r) === 'PROCESSING');
+  return records.find((r) => isAnalysisInProgress(statusOf(r)));
 }
 
 export const mockAnalysisApi: AnalysisApi = {
@@ -144,16 +147,30 @@ export const mockAnalysisApi: AnalysisApi = {
     });
   },
 
-  createAnalysis: (req) => {
-    const record: MockRecord = {
-      id: ++seq,
-      type: req.type,
-      answerCount: req.dailyAnswerIds.length,
-      createdAt: Date.now(),
-      feedback: null,
-    };
-    records.unshift(record);
-    return delay({ analysisId: record.id, status: 'PROCESSING' as const });
+  // 멱등키는 서버 계약이라 mock도 시그니처를 맞춘다. 같은 키로 재요청하면 같은
+  // 응답을 돌려줘 실서버의 멱등 동작(202 재반환)까지 흉내낸다.
+  createAnalysis: (req, idempotencyKey) => {
+    const existing = records.find((r) => r.idempotencyKey === idempotencyKey);
+    const record =
+      existing ??
+      ({
+        id: ++seq,
+        type: req.reportType,
+        answerCount: req.dailyQuestionAnswerIds.length,
+        createdAt: Date.now(),
+        feedback: null,
+        idempotencyKey,
+      } as MockRecord);
+
+    if (!existing) records.unshift(record);
+
+    return delay({
+      jobId: record.id,
+      analysisReportId: record.id,
+      reportType: record.type,
+      status: 'PENDING' as const,
+      requestedAt: new Date(record.createdAt).toISOString(),
+    });
   },
 
   getAnalysis: (id) => {

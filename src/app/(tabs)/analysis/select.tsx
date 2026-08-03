@@ -47,7 +47,7 @@ export default function AnalysisSelectScreen() {
     loadMore,
     isLoadingMore,
   } = useAnswerSelection();
-  const { mutate: createAnalysis, isPending } = useCreateAnalysis();
+  const { createAnalysis, isPending } = useCreateAnalysis();
   const { runWithPushPrompt, dialogProps: pushPromptDialogProps } = useAnalysisPushPrompt();
 
   const canSubmit = isCountValid && !isPending && type != null;
@@ -55,7 +55,7 @@ export default function AnalysisSelectScreen() {
   const submitAnalysis = () => {
     if (type == null) return;
     createAnalysis(
-      { type, dailyAnswerIds: [...selectedIds] },
+      { reportType: type, dailyQuestionAnswerIds: [...selectedIds] },
       { onSuccess: () => router.replace('/(tabs)/analysis') },
     );
   };
