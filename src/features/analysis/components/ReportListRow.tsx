@@ -1,5 +1,5 @@
-import { Image, Pressable, StyleSheet, View } from 'react-native';
-import { XStack, YStack, useTheme } from 'tamagui';
+import { Image, StyleSheet } from 'react-native';
+import { Button, XStack, YStack, styled } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
 import { useThemeStore } from '@/shared/stores/useThemeStore';
@@ -14,7 +14,6 @@ interface ReportListRowProps {
 }
 
 export function ReportListRow({ item, onPress }: ReportListRowProps) {
-  const theme = useTheme();
   const isDark = useThemeStore((state) => state.mode) === 'dark';
   const { t, i18n } = useTranslation('analysis');
   const meta = ANALYSIS_TYPE_META[item.type];
@@ -33,17 +32,9 @@ export function ReportListRow({ item, onPress }: ReportListRowProps) {
       : null;
 
   return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      style={({ pressed }) => [styles.card, { opacity: pressed ? 0.72 : 1 }]}
-    >
-      <XStack
-        ai="center"
-        gap="$3"
-        style={[styles.content, { backgroundColor: theme.surface?.val, borderColor: theme.borderColor?.val }]}
-      >
-        <View style={[styles.marker, { backgroundColor: palette.pill }]} />
+    <ReportRowButton onPress={onPress} accessibilityRole="button">
+      <XStack ai="center" gap="$3" flex={1}>
+        <YStack style={styles.marker} backgroundColor={palette.pill} />
         <Image source={meta.image} style={styles.character} resizeMode="contain" />
         <YStack flex={1} gap="$1">
           <Text variant="label" numberOfLines={1}>
@@ -54,7 +45,7 @@ export function ReportListRow({ item, onPress }: ReportListRowProps) {
           </Text>
           {statusLabel && (
             <YStack gap="$0.5">
-              <Text variant="caption" style={{ color: theme.color?.val }}>
+              <Text variant="caption" color="$color">
                 {statusLabel}
               </Text>
               {processing && <Text variant="caption">{t('list.processingHint')}</Text>}
@@ -62,22 +53,29 @@ export function ReportListRow({ item, onPress }: ReportListRowProps) {
           )}
         </YStack>
       </XStack>
-    </Pressable>
+    </ReportRowButton>
   );
 }
 
+const ReportRowButton = styled(Button, {
+  name: 'ReportListRow',
+  unstyled: true,
+  width: '100%',
+  alignItems: 'stretch',
+  overflow: 'hidden',
+  backgroundColor: '$surface',
+  borderColor: '$borderColor',
+  borderWidth: StyleSheet.hairlineWidth,
+  borderRadius: radius(18),
+  minHeight: sp(92),
+  paddingVertical: sp(14),
+  paddingRight: sp(16),
+  pressStyle: {
+    opacity: 0.72,
+  },
+});
+
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: radius(18),
-  },
-  content: {
-    minHeight: sp(92),
-    overflow: 'hidden',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: radius(18),
-    paddingVertical: sp(14),
-    paddingRight: sp(16),
-  },
   marker: {
     alignSelf: 'stretch',
     width: sp(4),
