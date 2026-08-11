@@ -31,6 +31,7 @@ export default function AnalysisLandingScreen() {
     isError,
     hasNextPage,
     isFetchingNextPage,
+    isFetchNextPageError,
     fetchNextPage,
     refetch,
   } = historyQuery;
@@ -119,6 +120,22 @@ export default function AnalysisLandingScreen() {
     </YStack>
   );
 
+  const listFooter = isFetchingNextPage ? (
+    <ActivityIndicator style={styles.footerLoader} color={accent.primary} />
+  ) : isFetchNextPageError ? (
+    <YStack gap="$2" ai="center" style={styles.footerError}>
+      <Text variant="caption" muted center>
+        {t('landing.loadError')}
+      </Text>
+      <Button
+        label={t('landing.retry')}
+        variant="outlined"
+        size="small"
+        onPress={() => void fetchNextPage()}
+      />
+    </YStack>
+  ) : null;
+
   return (
     <Screen edges={['top']} bgColor={screenBg}>
       <FlashList<AnalysisHistoryItemDto>
@@ -131,11 +148,7 @@ export default function AnalysisLandingScreen() {
         onEndReachedThreshold={0.5}
         ListHeaderComponent={listHeader}
         ListEmptyComponent={listEmpty}
-        ListFooterComponent={
-          isFetchingNextPage ? (
-            <ActivityIndicator style={styles.footerLoader} color={accent.primary} />
-          ) : null
-        }
+        ListFooterComponent={listFooter}
       />
     </Screen>
   );
@@ -190,6 +203,9 @@ const styles = StyleSheet.create({
     paddingVertical: sp(24),
   },
   footerLoader: {
+    paddingVertical: sp(16),
+  },
+  footerError: {
     paddingVertical: sp(16),
   },
 });
