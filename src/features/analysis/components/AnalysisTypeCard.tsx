@@ -3,6 +3,7 @@ import { Button, XStack, YStack, styled } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
 import { useThemeStore } from '@/shared/stores/useThemeStore';
+import { getFontStyle } from '@/shared/theme';
 import { radius, sp } from '@/shared/utils/responsive';
 import { getCardPalette, type AnalysisTypeMeta } from '../constants/analysisTypes';
 
@@ -29,7 +30,9 @@ export function AnalysisTypeCard({ meta, onPress }: AnalysisTypeCardProps) {
       <XStack ai="center" gap="$4" flex={1}>
         <Image source={meta.image} style={styles.character} resizeMode="contain" />
         <YStack flex={1} gap="$1.5">
-          <Text variant="subheading">{name}</Text>
+          <TypeName numberOfLines={2} textBreakStrategy="balanced">
+            {name}
+          </TypeName>
           <Text variant="bodySmall" muted>
             {shortDescription}
           </Text>
@@ -54,6 +57,13 @@ const TypeCardButton = styled(Button, {
   pressStyle: {
     opacity: 0.72,
   },
+});
+
+const TypeName = styled(Text, {
+  name: 'AnalysisTypeName',
+  fontSize: 18,
+  lineHeight: 24,
+  ...getFontStyle('600'),
 });
 
 const styles = StyleSheet.create({
