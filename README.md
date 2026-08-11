@@ -99,7 +99,12 @@ app/
 ├─ (tabs)/
 │  ├─ index.tsx             # 홈 (오늘의 질문 / 타임라인 뷰 토글)
 │  ├─ feed.tsx              # 공개 피드
-│  ├─ analysis/             # AI 분석: index / select / [id] / history
+│  ├─ analysis/             # AI 리포트
+│  │  ├─ index.tsx          # 생성 진입 + 전체 리포트 목록
+│  │  ├─ create.tsx         # 리포트 종류 선택 + 상세 소개 시트
+│  │  ├─ select.tsx         # 현재 연차 답변 선택
+│  │  ├─ [id].tsx           # 결과 상세
+│  │  └─ history.tsx        # 이전 경로 호환용 홈 리다이렉트
 │  └─ settings.tsx          # 설정
 ├─ answer/index.tsx         # 답변 작성 — modal, gestureEnabled:false
 │                           #   (작성 중 swipe-dismiss로 답변 유실 방지, X 버튼으로만 닫기)
