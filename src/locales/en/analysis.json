@@ -17,6 +17,11 @@
     "historyEmpty": "No meetings yet.\nStart your first analysis.",
     "disclaimer": "This reading is written by AI from your answers.\nIt's one perspective, not the truth — take it lightly."
   },
+  "create": {
+    "title": "Create a new report",
+    "guide": "Choose the story you want to hear. Tap a card to learn more.",
+    "backA11y": "Go back"
+  },
   "status": {
     "locked": {
       "title": "Let's gather a little more",
@@ -48,6 +53,7 @@
   "types": {
     "thinkingPattern": {
       "name": "The Careful Fox's Thought Journal",
+      "shortDescription": "Explore the thoughts and emotions that keep returning.",
       "tagline": "Look into the flow of thoughts you never noticed",
       "description": "We find the recurring threads in your thoughts, the emotions you linger on, and habits you may not notice.",
       "highlightsTitle": "What you'll learn",
@@ -59,6 +65,7 @@
     },
     "warmReflection": {
       "name": "A Letter from the Kind Koala",
+      "shortDescription": "Receive a warm letter for who you are right now.",
       "tagline": "A letter for you today",
       "description": "We gently read your past answers and write you a warm letter to soothe a tired heart.",
       "highlightsTitle": "What you'll receive",
@@ -69,7 +76,7 @@
       ]
     },
     "duration": "Analysis takes a few minutes",
-    "start": "Start with this analysis",
+    "start": "Start with this report",
     "cardCta": "Start"
   },
   "push": {

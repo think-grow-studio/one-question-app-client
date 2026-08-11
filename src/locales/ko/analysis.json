@@ -17,6 +17,11 @@
     "historyEmpty": "아직 만남이 없어요.\n첫 분석을 시작해보세요.",
     "disclaimer": "이 분석은 AI가 당신의 답변을 읽고 쓴 거예요.\n정답이 아닌 하나의 관점이니 가볍게 참고해 주세요."
   },
+  "create": {
+    "title": "새 리포트 만들기",
+    "guide": "지금 받고 싶은 이야기를 골라주세요. 카드를 누르면 자세한 내용을 볼 수 있어요.",
+    "backA11y": "뒤로 가기"
+  },
   "status": {
     "locked": {
       "title": "조금만 더 쌓아볼까요",
@@ -48,6 +53,7 @@
   "types": {
     "thinkingPattern": {
       "name": "꼼꼼한 여우의 생각 관찰 일지",
+      "shortDescription": "반복되는 생각과 감정의 흐름을 살펴봐요.",
       "tagline": "나도 몰랐던 사고의 흐름 과정을 들여다봐요",
       "description": "당신의 답변에서 반복되는 생각의 결, 자주 머무는 감정, 무의식적인 습관을 찾아드려요.",
       "highlightsTitle": "이런 걸 알 수 있어요",
@@ -59,6 +65,7 @@
     },
     "warmReflection": {
       "name": "다정한 코알라의 편지",
+      "shortDescription": "지금의 나에게 따뜻한 편지를 받아요.",
       "tagline": "오늘의 당신에게 건네는 편지",
       "description": "지난 답변들을 가만히 읽고, 지친 마음을 다독이는 따듯한 편지를 건네드려요.",
       "highlightsTitle": "이런 걸 받을 수 있어요",
@@ -69,7 +76,7 @@
       ]
     },
     "duration": "분석에는 몇 분 정도 걸려요",
-    "start": "이 분석으로 시작하기",
+    "start": "이 리포트로 시작하기",
     "cardCta": "시작"
   },
   "push": {
