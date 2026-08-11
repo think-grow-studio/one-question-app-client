@@ -13,6 +13,8 @@ package-lock.json.tmp
 .serena/
 .claude/
 .codex/
+.superpowers/
+.worktrees/
 
 # Build outputs
 dist/
