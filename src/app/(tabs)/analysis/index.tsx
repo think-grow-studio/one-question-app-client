@@ -60,8 +60,8 @@ export default function AnalysisLandingScreen() {
   const showLoadError = isError && orderedItems.length === 0;
 
   const handleEndReached = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+    if (hasNextPage && !isFetchingNextPage && !isFetchNextPageError) void fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, isFetchNextPageError]);
 
   const renderItem = useCallback(
     ({ item }: { item: AnalysisHistoryItemDto }) => (
