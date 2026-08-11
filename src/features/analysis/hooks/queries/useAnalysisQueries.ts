@@ -59,6 +59,7 @@ export function useAnalysisHistory() {
     initialPageParam: null as number | null,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     staleTime: 1000 * 60 * 5,
+    meta: { suppressGlobalError: true },
     select: (data) => data.pages.flatMap((page) => page.items),
   });
 }

@@ -1,136 +1,195 @@
-import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet } from 'react-native';
-import { XStack, YStack, useTheme } from 'tamagui';
+import { useCallback, useEffect, useMemo } from 'react';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
+import { YStack } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Screen } from '@/shared/layout/Screen';
 import { Text } from '@/shared/ui/Text';
-import { useScreenBackground } from '@/shared/theme';
-import { sp, radius } from '@/shared/utils/responsive';
+import { Button } from '@/shared/ui/Button';
+import { useAccentColors, useScreenBackground } from '@/shared/theme';
+import { radius, sp } from '@/shared/utils/responsive';
 import { logScreenView } from '@/services/firebase';
-import { ANALYSIS_TYPES, type AnalysisTypeMeta } from '@/features/analysis/constants/analysisTypes';
-import { StatusCard } from '@/features/analysis/components/StatusCard';
-import { AnalysisBigCard } from '@/features/analysis/components/AnalysisBigCard';
-import { AnalysisTypeSheet } from '@/features/analysis/components/AnalysisTypeSheet';
+import { ReportCreateCard } from '@/features/analysis/components/ReportCreateCard';
+import { ReportListRow } from '@/features/analysis/components/ReportListRow';
+import { orderAnalysisReports } from '@/features/analysis/domain/reportListOrder';
 import { useAnalysisAvailability, useAnalysisHistory } from '@/features/analysis/hooks/queries/useAnalysisQueries';
+import type { AnalysisHistoryItemDto } from '@/features/analysis/types/api';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export default function AnalysisLandingScreen() {
   const router = useRouter();
-  const theme = useTheme();
   const { t } = useTranslation('analysis');
+  const accent = useAccentColors();
   const screenBg = useScreenBackground();
-
   const { data: availability } = useAnalysisAvailability();
-  const { data: historyItems = [] } = useAnalysisHistory();
-
-  const [sheetMeta, setSheetMeta] = useState<AnalysisTypeMeta | null>(null);
+  const historyQuery = useAnalysisHistory();
+  const {
+    data: historyItems = [],
+    isLoading,
+    isError,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+    refetch,
+  } = historyQuery;
 
   useEffect(() => {
     logScreenView('Analysis');
   }, []);
 
+  const orderedItems = useMemo(() => orderAnalysisReports(historyItems), [historyItems]);
   const reason = availability?.reason;
   const canRequest = availability?.canRequest ?? false;
-
   const cooldownDays = availability?.nextAvailableAt
     ? Math.max(1, Math.ceil((new Date(availability.nextAvailableAt).getTime() - Date.now()) / DAY_MS))
     : 0;
+  const statusMessage =
+    reason === 'INSUFFICIENT_ANSWERS'
+      ? t('status.locked.progress', {
+          current: availability?.answerCount ?? 0,
+          required: availability?.requiredCount ?? 10,
+        })
+      : reason === 'COOLDOWN'
+        ? t('status.cooldown.message', { days: cooldownDays })
+        : reason === 'PROCESSING'
+          ? t('list.processingHint')
+          : undefined;
+  const showLoadError = isError && orderedItems.length === 0;
 
-  const handleStart = (meta: AnalysisTypeMeta) => {
-    setSheetMeta(null);
-    router.push(`/(tabs)/analysis/select?type=${meta.type}`);
-  };
+  const handleEndReached = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  const renderItem = useCallback(
+    ({ item }: { item: AnalysisHistoryItemDto }) => (
+      <View style={styles.row}>
+        <ReportListRow item={item} onPress={() => router.push(`/(tabs)/analysis/${item.id}`)} />
+      </View>
+    ),
+    [router],
+  );
+
+  const listHeader = (
+    <YStack gap="$3" style={styles.header}>
+      <YStack gap="$2">
+        <Text variant="heading">{t('title')}</Text>
+        <Text variant="bodySmall" muted>
+          {t('landing.subtitle')}
+        </Text>
+      </YStack>
+
+      <ReportCreateCard
+        enabled={canRequest}
+        statusMessage={statusMessage}
+        onPress={() => router.push('/(tabs)/analysis/create')}
+      />
+
+      <YStack gap="$1" style={styles.sectionHeading}>
+        <Text variant="subheading">{t('landing.reportsTitle')}</Text>
+        <Text variant="caption" muted>
+          {t('landing.sortLabel')}
+        </Text>
+      </YStack>
+    </YStack>
+  );
+
+  const listEmpty = isLoading ? (
+    <YStack gap="$3" style={styles.skeletonList}>
+      <ReportRowSkeleton />
+      <ReportRowSkeleton />
+      <ReportRowSkeleton />
+    </YStack>
+  ) : showLoadError ? (
+    <YStack gap="$3" ai="center" px="$5" style={styles.emptyState}>
+      <Text variant="bodySmall" muted center>
+        {t('landing.loadError')}
+      </Text>
+      <Button label={t('landing.retry')} variant="outlined" size="small" onPress={() => void refetch()} />
+    </YStack>
+  ) : (
+    <YStack gap="$2" ai="center" px="$5" style={styles.emptyState}>
+      <Text variant="subheading" center>
+        {t('landing.emptyTitle')}
+      </Text>
+      <Text variant="bodySmall" muted center>
+        {t('landing.emptyMessage')}
+      </Text>
+    </YStack>
+  );
 
   return (
     <Screen edges={['top']} bgColor={screenBg}>
-      <ScrollView style={styles.flex} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {/* 헤더 (탭 루트 — 제목 + 부제) */}
-        <YStack gap="$2">
-          <Text variant="heading">{t('title')}</Text>
-          <Text variant="bodySmall" muted>
-            {t('landing.heroTitle')}
-          </Text>
-        </YStack>
-
-        {/* 리포트 목록 진입 (상단) */}
-        <Pressable
-          onPress={() => router.push('/(tabs)/analysis/history')}
-          style={({ pressed }) => [
-            styles.listEntry,
-            {
-              backgroundColor: theme.surface?.val,
-              borderColor: theme.borderColor?.val,
-              opacity: pressed ? 0.7 : 1,
-            },
-          ]}
-        >
-          <XStack ai="center" jc="space-between">
-            <XStack ai="center" gap="$2">
-              <Text variant="label">{t('landing.historyTitle')}</Text>
-              {historyItems.length > 0 && (
-                <Text variant="caption">{historyItems.length}</Text>
-              )}
-            </XStack>
-            <Text variant="label" style={{ color: theme.colorMuted?.val }}>
-              →
-            </Text>
-          </XStack>
-        </Pressable>
-
-        {/* 상태 카드 (게이트 우선순위로 택1) */}
-        {reason === 'INSUFFICIENT_ANSWERS' && (
-          <StatusCard
-            variant="locked"
-            current={availability?.answerCount ?? 0}
-            required={availability?.requiredCount ?? 10}
-          />
-        )}
-        {reason === 'COOLDOWN' && <StatusCard variant="cooldown" days={cooldownDays} />}
-        {reason === 'PROCESSING' && (
-          <StatusCard
-            variant="processing"
-            onPress={() =>
-              availability?.processingId != null &&
-              router.push(`/(tabs)/analysis/${availability.processingId}`)
-            }
-          />
-        )}
-
-        {/* 새 분석 — 분석 종류 카드 */}
-        {canRequest && (
-          <YStack gap="$3">
-            <Text variant="label">{t('landing.chooseTitle')}</Text>
-            <YStack gap="$4">
-              {ANALYSIS_TYPES.map((meta) => (
-                <AnalysisBigCard key={meta.type} meta={meta} onPress={() => setSheetMeta(meta)} />
-              ))}
-            </YStack>
-          </YStack>
-        )}
-
-      </ScrollView>
-
-      <AnalysisTypeSheet meta={sheetMeta} onClose={() => setSheetMeta(null)} onStart={handleStart} />
+      <FlashList<AnalysisHistoryItemDto>
+        data={showLoadError || isLoading ? [] : orderedItems}
+        renderItem={renderItem}
+        keyExtractor={(item) => String(item.id)}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.5}
+        ListHeaderComponent={listHeader}
+        ListEmptyComponent={listEmpty}
+        ListFooterComponent={
+          isFetchingNextPage ? (
+            <ActivityIndicator style={styles.footerLoader} color={accent.primary} />
+          ) : null
+        }
+      />
     </Screen>
   );
 }
 
+function ReportRowSkeleton() {
+  return (
+    <YStack backgroundColor="$surface" borderColor="$borderColor" style={styles.skeletonRow}>
+      <YStack backgroundColor="$backgroundSoft" style={styles.skeletonTitle} />
+      <YStack backgroundColor="$backgroundSoft" style={styles.skeletonSubtitle} />
+    </YStack>
+  );
+}
+
 const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-  },
-  content: {
+  listContent: {
     paddingHorizontal: sp(20),
     paddingTop: sp(8),
     paddingBottom: sp(40),
-    gap: sp(24),
   },
-  listEntry: {
-    paddingHorizontal: sp(16),
-    paddingVertical: sp(14),
-    borderRadius: radius(14),
+  header: {
+    paddingBottom: sp(24),
+  },
+  sectionHeading: {
+    paddingTop: sp(8),
+  },
+  row: {
+    marginBottom: sp(12),
+  },
+  skeletonList: {
+    paddingBottom: sp(12),
+  },
+  skeletonRow: {
+    minHeight: sp(92),
     borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: radius(18),
+    justifyContent: 'center',
+    paddingHorizontal: sp(20),
+    gap: sp(10),
+  },
+  skeletonTitle: {
+    width: '48%',
+    height: sp(14),
+    borderRadius: radius(7),
+  },
+  skeletonSubtitle: {
+    width: '36%',
+    height: sp(10),
+    borderRadius: radius(5),
+  },
+  emptyState: {
+    paddingVertical: sp(24),
+  },
+  footerLoader: {
+    paddingVertical: sp(16),
   },
 });
