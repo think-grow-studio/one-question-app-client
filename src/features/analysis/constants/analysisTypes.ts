@@ -39,6 +39,10 @@ export const ANALYSIS_TYPE_META: Record<AnalysisType, AnalysisTypeMeta> = {
   WARM_REFLECTION: ANALYSIS_TYPES[1],
 };
 
+export function isAnalysisType(value: string | undefined): value is AnalysisType {
+  return value === 'THINKING_PATTERN' || value === 'WARM_REFLECTION';
+}
+
 /**
  * 빅카드 컬러 워시 팔레트 — 종류별 고유 hue (테마 액센트와 무관).
  * 사고 패턴 = 차분한 쿨톤(분석적), 따듯한 위로 = 따스한 웜톤(공감).

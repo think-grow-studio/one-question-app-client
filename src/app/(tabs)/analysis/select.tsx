@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,7 +19,10 @@ import {
 } from '@/features/analysis/hooks/useAnswerSelection';
 import { useCreateAnalysis } from '@/features/analysis/hooks/mutations/useAnalysisMutations';
 import { useAnalysisPushPrompt } from '@/features/analysis/hooks/useAnalysisPushPrompt';
-import type { AnalysisType } from '@/features/analysis/types/api';
+import {
+  ANALYSIS_TYPE_META,
+  isAnalysisType,
+} from '@/features/analysis/constants/analysisTypes';
 
 function Separator() {
   return <View style={styles.separator} />;
@@ -32,7 +35,14 @@ export default function AnalysisSelectScreen() {
   const accent = useAccentColors();
   const screenBg = useScreenBackground();
   const { t } = useTranslation('analysis');
-  const { type } = useLocalSearchParams<{ type: AnalysisType }>();
+  const { type } = useLocalSearchParams<{ type?: string }>();
+  const selectedMeta = isAnalysisType(type) ? ANALYSIS_TYPE_META[type] : null;
+
+  useEffect(() => {
+    if (selectedMeta == null) {
+      router.replace('/(tabs)/analysis/create');
+    }
+  }, [router, selectedMeta]);
 
   const {
     items,
@@ -50,12 +60,12 @@ export default function AnalysisSelectScreen() {
   const { createAnalysis, isPending } = useCreateAnalysis();
   const { runWithPushPrompt, dialogProps: pushPromptDialogProps } = useAnalysisPushPrompt();
 
-  const canSubmit = isCountValid && !isPending && type != null;
+  const canSubmit = isCountValid && !isPending && selectedMeta != null;
 
   const submitAnalysis = () => {
-    if (type == null) return;
+    if (selectedMeta == null) return;
     createAnalysis(
-      { reportType: type, dailyQuestionAnswerIds: [...selectedIds] },
+      { reportType: selectedMeta.type, dailyQuestionAnswerIds: [...selectedIds] },
       { onSuccess: () => router.replace('/(tabs)/analysis') },
     );
   };
@@ -87,6 +97,19 @@ export default function AnalysisSelectScreen() {
         </Pressable>
         <Text variant="subheading">{t('select.title')}</Text>
       </XStack>
+
+      {selectedMeta != null && (
+        <YStack px="$5" mb="$2" gap="$1">
+          <Text variant="label">
+            {t('select.reportLabel', {
+              name: t(`types.${selectedMeta.i18nKey}.name`),
+            })}
+          </Text>
+          <Text variant="caption" muted>
+            {t('select.currentCycleHint')}
+          </Text>
+        </YStack>
+      )}
 
       {/* 안내 문구 (항상 표시) */}
       <Text variant="bodySmall" muted style={styles.guide}>

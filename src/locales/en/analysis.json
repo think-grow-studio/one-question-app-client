@@ -29,9 +29,9 @@
       "progress": "{{current}} / {{required}}"
     },
     "cooldown": {
-      "title": "This week's meeting is done",
-      "message": "{{days}} days until your next analysis.",
-      "hint": "Gather more answers in the meantime for a deeper read."
+      "title": "You can't create a new report yet",
+      "message": "{{days}} days until your next report.",
+      "hint": "Gather more answers for a deeper report next time."
     },
     "processing": {
       "title": "Reading your heart…",
@@ -87,6 +87,8 @@
   },
   "select": {
     "title": "Choose answers to analyze",
+    "reportLabel": "Answers for {{name}}",
+    "currentCycleHint": "Choose from answers collected in your current year.",
     "guide": "We picked your recent answers. Tap to remove any you'd like to exclude.",
     "counter": "{{count}} selected",
     "range": "Min {{min}} · Max {{max}}",

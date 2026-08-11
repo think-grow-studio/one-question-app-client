@@ -20,7 +20,7 @@ export type AnalysisStatus = 'PENDING' | 'PROCESSING' | 'READY' | 'FAILED';
 export type AvailabilityReason =
   | 'OK' // 요청 가능
   | 'INSUFFICIENT_ANSWERS' // 답변 부족 (< requiredCount)
-  | 'COOLDOWN' // 이번 주 이미 사용
+  | 'COOLDOWN' // 현재 이용 기간의 생성 제한
   | 'PROCESSING'; // 진행 중인 분석 존재
 
 export interface AnalysisAvailability {
