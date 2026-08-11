@@ -187,6 +187,7 @@ export const mockAnalysisApi: AnalysisApi = {
         id: r.id,
         type: r.type,
         status: statusOf(r),
+        answerCount: r.answerCount,
         createdAt: new Date(r.createdAt).toISOString(),
       })),
       nextCursor: null,

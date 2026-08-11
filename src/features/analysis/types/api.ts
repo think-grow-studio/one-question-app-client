@@ -99,6 +99,7 @@ export interface AnalysisHistoryItemDto {
   id: number;
   type: AnalysisType;
   status: AnalysisStatus;
+  answerCount: number;
   createdAt: string;
 }
 
