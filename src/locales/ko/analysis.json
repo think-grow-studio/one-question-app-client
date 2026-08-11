@@ -2,6 +2,15 @@
   "title": "나를 만나는 시간",
   "landing": {
     "heroTitle": "쌓아온 답변 속에서\n나를 발견해보세요",
+    "subtitle": "쌓아온 답변에서 지금의 나를 발견해 보세요.",
+    "createTitle": "새 리포트 만들기",
+    "createDescription": "답변을 골라 새로운 분석을 시작해요",
+    "reportsTitle": "나의 리포트",
+    "sortLabel": "최근 생성순",
+    "emptyTitle": "아직 만든 리포트가 없어요",
+    "emptyMessage": "첫 리포트에서 쌓아온 답변을 만나보세요.",
+    "loadError": "리포트를 불러오지 못했어요.",
+    "retry": "다시 불러오기",
     "chooseTitle": "어떤 이야기를 들어볼까요?",
     "historyTitle": "리포트 목록",
     "historyCount": "지난 만남 {{count}}개",
@@ -29,6 +38,12 @@
       "message": "잠시 후 다시 시도해주세요.",
       "retry": "다시 시도"
     }
+  },
+  "list": {
+    "answerCount": "답변 {{count}}개",
+    "processing": "분석하고 있어요",
+    "processingHint": "완료되면 알려드릴게요",
+    "failed": "분석하지 못했어요"
   },
   "types": {
     "thinkingPattern": {

@@ -2,6 +2,15 @@
   "title": "Time to Meet Yourself",
   "landing": {
     "heroTitle": "Discover yourself\nin the answers you've gathered",
+    "subtitle": "Discover who you are in the answers you've gathered.",
+    "createTitle": "Create a new report",
+    "createDescription": "Choose answers to start a new analysis",
+    "reportsTitle": "My reports",
+    "sortLabel": "Newest first",
+    "emptyTitle": "No reports yet",
+    "emptyMessage": "Meet the answers you've gathered in your first report.",
+    "loadError": "We couldn't load your reports.",
+    "retry": "Try again",
     "chooseTitle": "What would you like to hear?",
     "historyTitle": "Reports",
     "historyCount": "Past meetings · {{count}}",
@@ -29,6 +38,12 @@
       "message": "Please try again in a moment.",
       "retry": "Try again"
     }
+  },
+  "list": {
+    "answerCount": "{{count}} answers",
+    "processing": "Analyzing",
+    "processingHint": "We'll let you know when it's ready",
+    "failed": "Analysis failed"
   },
   "types": {
     "thinkingPattern": {
