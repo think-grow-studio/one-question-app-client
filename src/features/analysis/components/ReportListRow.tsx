@@ -1,11 +1,14 @@
-import { Image, StyleSheet } from 'react-native';
+import { ActivityIndicator, Image, StyleSheet } from 'react-native';
 import { Button, XStack, YStack, styled } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
 import { useThemeStore } from '@/shared/stores/useThemeStore';
 import { radius, sp } from '@/shared/utils/responsive';
 import { ANALYSIS_TYPE_META, getCardPalette } from '../constants/analysisTypes';
-import { getAnalysisStatusLabelKey } from '../domain/analysisPresentation';
+import {
+  getAnalysisStatusLabelKey,
+  isAnalysisReportOpenable,
+} from '../domain/analysisPresentation';
 import type { AnalysisHistoryItemDto } from '../types/api';
 
 interface ReportListRowProps {
@@ -24,18 +27,27 @@ export function ReportListRow({ item, onPress }: ReportListRowProps) {
     day: 'numeric',
   }).format(new Date(item.requestedAt));
   const statusLabel = t(getAnalysisStatusLabelKey(item.status));
+  const openable = isAnalysisReportOpenable(item.status);
+  const pending = item.status === 'PENDING';
 
   return (
-    <ReportRowButton onPress={onPress} accessibilityRole="button">
+    <ReportRowButton
+      disabled={!openable}
+      onPress={openable ? onPress : undefined}
+      accessibilityRole={openable ? 'button' : undefined}
+      accessibilityState={{ disabled: !openable }}
+    >
       <XStack ai="center" gap="$3" flex={1}>
         <YStack style={styles.marker} backgroundColor={palette.pill} />
         <Image source={meta.image} style={styles.character} resizeMode="contain" />
         <YStack flex={1} gap="$1">
+          <XStack ai="center" gap="$1.5">
+            <Text variant="caption">{dateLabel} ·</Text>
+            {pending && <ActivityIndicator size="small" color={palette.pill} />}
+            <Text variant="caption">{statusLabel}</Text>
+          </XStack>
           <Text variant="label" numberOfLines={1}>
             {t(`types.${meta.i18nKey}.name`)}
-          </Text>
-          <Text variant="caption">
-            {dateLabel} · {statusLabel}
           </Text>
         </YStack>
       </XStack>

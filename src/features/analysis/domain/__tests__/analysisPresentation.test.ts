@@ -1,6 +1,7 @@
 import {
   getAnalysisDetailPresentationState,
   getAnalysisStatusLabelKey,
+  isAnalysisReportOpenable,
   parseAnalysisReportId,
 } from '../analysisPresentation';
 import type { AnalysisDetailDto } from '../../types/api';
@@ -12,6 +13,14 @@ describe('getAnalysisStatusLabelKey', () => {
     ['FAILED', 'list.failed'],
   ] as const)('%s status always has a visible label', (status, expected) => {
     expect(getAnalysisStatusLabelKey(status)).toBe(expected);
+  });
+});
+
+describe('isAnalysisReportOpenable', () => {
+  it('allows navigation only for completed reports', () => {
+    expect(isAnalysisReportOpenable('COMPLETED')).toBe(true);
+    expect(isAnalysisReportOpenable('PENDING')).toBe(false);
+    expect(isAnalysisReportOpenable('FAILED')).toBe(false);
   });
 });
 

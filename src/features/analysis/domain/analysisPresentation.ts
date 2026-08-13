@@ -18,6 +18,10 @@ export function getAnalysisStatusLabelKey(
   }
 }
 
+export function isAnalysisReportOpenable(status: AnalysisStatus): boolean {
+  return status === 'COMPLETED';
+}
+
 export function parseAnalysisReportId(value: string | undefined): number | null {
   if (!value) return null;
   const id = Number(value);
