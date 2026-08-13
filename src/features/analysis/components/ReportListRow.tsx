@@ -5,7 +5,7 @@ import { Text } from '@/shared/ui/Text';
 import { useThemeStore } from '@/shared/stores/useThemeStore';
 import { radius, sp } from '@/shared/utils/responsive';
 import { ANALYSIS_TYPE_META, getCardPalette } from '../constants/analysisTypes';
-import { isAnalysisInProgress } from '../domain/analysisStatus';
+import { getAnalysisStatusLabelKey } from '../domain/analysisPresentation';
 import type { AnalysisHistoryItemDto } from '../types/api';
 
 interface ReportListRowProps {
@@ -16,20 +16,14 @@ interface ReportListRowProps {
 export function ReportListRow({ item, onPress }: ReportListRowProps) {
   const isDark = useThemeStore((state) => state.mode) === 'dark';
   const { t, i18n } = useTranslation('analysis');
-  const meta = ANALYSIS_TYPE_META[item.type];
-  const palette = getCardPalette(item.type, isDark);
-  const processing = isAnalysisInProgress(item.status);
+  const meta = ANALYSIS_TYPE_META[item.reportType];
+  const palette = getCardPalette(item.reportType, isDark);
   const locale = i18n.resolvedLanguage ?? i18n.language;
   const dateLabel = new Intl.DateTimeFormat(locale, {
     month: 'short',
     day: 'numeric',
-  }).format(new Date(item.createdAt));
-
-  const statusLabel = processing
-    ? t('list.processing')
-    : item.status === 'FAILED'
-      ? t('list.failed')
-      : null;
+  }).format(new Date(item.requestedAt));
+  const statusLabel = t(getAnalysisStatusLabelKey(item.status));
 
   return (
     <ReportRowButton onPress={onPress} accessibilityRole="button">
@@ -41,16 +35,8 @@ export function ReportListRow({ item, onPress }: ReportListRowProps) {
             {t(`types.${meta.i18nKey}.name`)}
           </Text>
           <Text variant="caption">
-            {dateLabel} · {t('list.answerCount', { count: item.answerCount })}
+            {dateLabel} · {statusLabel}
           </Text>
-          {statusLabel && (
-            <YStack gap="$0.5">
-              <Text variant="caption" color="$color">
-                {statusLabel}
-              </Text>
-              {processing && <Text variant="caption">{t('list.processingHint')}</Text>}
-            </YStack>
-          )}
         </YStack>
       </XStack>
     </ReportRowButton>

@@ -1,6 +1,7 @@
 # AI 분석 기능 ("나를 만나는 시간") — 최초 UI/UX 기획안
 
 > 작성일: 2026-06-09 · 상태: 기획 확정, 구현 착수
+> API 계약: 2026-08-13 `GET /api/v1/analysis-reports` 목록·상세 OpenAPI 반영
 > 사용자가 쌓아온 질문-답변을 AI로 분석해, 사고 패턴 통찰 또는 따듯한 위로를 전달하는 신규 기능.
 
 > [!IMPORTANT]
@@ -21,7 +22,7 @@
 화면을 나열하기보다 **분석 1건의 생애주기(lifecycle)** 를 중심으로 설계한다.
 
 ```
-IDLE ──선택──▶ SELECTING ──요청──▶ PROCESSING ──FCM──▶ READY
+IDLE ──선택──▶ SELECTING ──요청──▶ PENDING ──FCM──▶ COMPLETED
   │                                    │                  │
   ├─ 답변<10개 → LOCKED                └─ 실패 → FAILED ──재시도┘
   └─ 이번 주 사용함 → COOLDOWN
@@ -69,7 +70,7 @@ IDLE ──선택──▶ SELECTING ──요청──▶ PROCESSING ──FCM�
 ```
 답변 < 10        → LOCKED     "답변 10개가 모이면 시작할 수 있어요 (7/10)"
 이번 주 사용함    → COOLDOWN   "이번 주 만남은 끝났어요 · 다음 분석까지 3일"
-진행 중           → PROCESSING "당신의 마음을 읽는 중…"
+진행 중           → PENDING    "당신의 마음을 읽는 중…"
 그 외             → IDLE       종류 선택 가능
 ```
 
@@ -77,7 +78,7 @@ IDLE ──선택──▶ SELECTING ──요청──▶ PROCESSING ──FCM�
 ┌─────────────────────────────────┐
 │  나를 만나는 시간                  │  ← 헤더(풀 타이틀)
 │                                  │
-│  [상태 카드 — 위 우선순위로 택1]   │  ← PROCESSING/COOLDOWN/LOCKED 시 상단
+│  [상태 카드 — 위 우선순위로 택1]   │  ← PENDING/COOLDOWN/LOCKED 시 상단
 │                                  │
 │  쌓아온 답변 속에서 나를 발견해보세요│
 │                                  │
@@ -142,21 +143,18 @@ IDLE ──선택──▶ SELECTING ──요청──▶ PROCESSING ──FCM�
 
 ### ⑤ 요청 직후 ~ 결과 (요구사항 5)
 
-- **요청 직후(PROCESSING)**: ③에서 요청 → 랜딩 복귀, 상단 진행 카드. 앱 이탈 가능.
+- **요청 직후(PENDING)**: ③에서 요청 → 랜딩 복귀, 상단 진행 카드. 앱 이탈 가능.
 - **완료(FCM)**: 푸시 탭 → **결과 화면 딥링크**. 앱 내라면 진행 카드가 "결과 보기"로 전환(React Query invalidate).
 - **결과 화면** — 종류별 레이아웃 분기:
 
 ```
-사고 패턴 (분석/섹션형)            따듯한 위로 (편지/서사형)
+사고 패턴 (카드형 본문)             따듯한 위로 (편지/서사형)
 ┌──────────────────────┐         ┌──────────────────────┐
 │ 🧠 사고 패턴 분석       │         │ 💌 당신에게            │
 │ 6/8 · 답변 12개        │         │ 요즘의 당신은…         │
-│ 한눈에: "…요약…"       │         │ (따듯한 편지체 본문)    │
-│ 🔁 반복되는 생각        │         │  …                   │
-│ 🌊 감정의 흐름          │         │ 당신은 충분히…         │
-│ 💡 새로운 관점          │         │ ─────────            │
-│ ─────────            │         │ 이 글이 어땠나요?      │  ← 평가
-│ 도움이 됐나요? 👍 👎    │ ← 평가  │  😞 😐 🙂           │
+│ 답변에서 발견한          │         │ (따듯한 편지체 본문)    │
+│ 생각의 흐름                 │         │  …                   │
+│ (최종 리포트 문자열)      │         │ 당신은 충분히…         │
 └──────────────────────┘         └──────────────────────┘
 ```
 
@@ -171,27 +169,29 @@ IDLE ──선택──▶ SELECTING ──요청──▶ PROCESSING ──FCM�
 | `IDLE` | 종류 선택 가능 | 답변 ≥ 10, 진행 없음, 쿨다운 아님 |
 | `SELECTING` | Q&A 선택 화면 | "시작하기" |
 | `SUBMITTING` | 버튼 로딩 | "분석 요청" |
-| `PROCESSING` | 진행 중 카드 | 요청 성공 |
-| `READY` | 결과 + 히스토리 | FCM 수신 / 폴링 |
+| `PENDING` | 진행 중 카드 | 요청 성공 |
+| `COMPLETED` | 결과 + 히스토리 | FCM 수신 / 포그라운드 복귀 조회 |
 | `FAILED` | 실패 카드 + 재시도 | 서버 에러/타임아웃 |
 
 > COOLDOWN은 **서버가 최종 판정**(클라 시계 조작 방지). 요청 시 429류 응답 → 클라 상태 동기화.
 
 ---
 
-## 6. 서버 API 계약 (제안 — 백엔드와 확정 필요)
+## 6. 서버 API 계약
 
-클라이언트는 아래 계약 기준으로 먼저 구현하고, 실서버 연동 전까지 mock 레이어로 대체한다.
+생성·목록·상세는 `http://localhost:8080/v3/api-docs`의 AnalysisReport 계약을 사용한다. 가용성 조회만 아직 서버 API가 없어 클라이언트 mock으로 둔다.
 
-| 동작 | 메서드/경로(제안) | 요청 | 응답 |
+| 동작 | 메서드/경로 | 요청 | 응답 |
 |---|---|---|---|
-| 가용성 조회 | `GET /api/v1/analyses/availability` | - | `{ canRequest, reason, answerCount, nextAvailableAt }` |
-| 분석 요청 | `POST /api/v1/analyses` | `{ type, dailyAnswerIds[] }` | `{ analysisId, status: 'PROCESSING' }` |
-| 진행/결과 조회 | `GET /api/v1/analyses/{id}` | - | `{ id, type, status, result, createdAt }` |
-| 히스토리 | `GET /api/v1/analyses` | cursor | `{ items[], nextCursor }` |
-| 평가 | `POST /api/v1/analyses/{id}/feedback` | `{ rating }` | `204` |
+| 가용성 조회 | 서버 API 미제공 | - | 현재 클라이언트 mock |
+| 분석 요청 | `POST /api/v1/analysis-reports` | `{ reportType, dailyQuestionAnswerIds[] }` + `Idempotency-Key` | `{ jobId, analysisReportId, reportType, status, requestedAt }` |
+| 리포트 목록 | `GET /api/v1/analysis-reports` | `cursor`, `size` | `{ items[], hasNext, nextCursor }` |
+| 리포트 상세 | `GET /api/v1/analysis-reports/{analysisReportId}` | - | `{ analysisReportId, reportType, status, result, sources[], requestedAt }` |
 
-- `type`: `THINKING_PATTERN` \| `WARM_COMFORT`
+- `reportType`: `THINKING_PATTERN` \| `WARM_REFLECTION`
+- 서버·클라이언트 리포트 상태: `PENDING` \| `COMPLETED` \| `FAILED`
+- 목록 아이템은 종류·상태·요청 시각만 포함한다. 상세의 사용 답변 수는 `sources.length`로 표시한다.
+- 평가 API는 현재 OpenAPI에 없으며 클라이언트에서도 평가 UI를 노출하지 않는다.
 - FCM 페이로드: `{ type: 'ANALYSIS_DONE', analysisId }` → 결과 딥링크용
 
 ---
@@ -201,9 +201,9 @@ IDLE ──선택──▶ SELECTING ──요청──▶ PROCESSING ──FCM�
 - **데이터**: `questionApi.getHistories` (status `ANSWERED` 필터) → ③ 목록
 - **테마**: `getAccentColors()` (blue/lavender/green/white, light/dark) → 강조·CTA
 - **API**: `apiClient` 래퍼 위에 `features/analysis/api/analysisApi.ts` 신설
-- **서버 싱크**: TanStack Query (PROCESSING 폴링 fallback + FCM invalidate)
+- **서버 싱크**: TanStack Query (FCM invalidate + 포그라운드 복귀 시 refetch, 폴링 안 함)
 - **FCM**: 이미 구현됨 → `_layout.tsx` 알림 리스너에 결과 딥링크 분기만 추가
-- **i18n**: ko/en/ja 로케일에 `analysis` 네임스페이스 추가
+- **i18n**: ko/en 로케일의 `analysis` 네임스페이스 사용
 - **UI**: Tamagui + `src/shared/ui/*` 공통 컴포넌트
 
 ---
@@ -213,8 +213,8 @@ IDLE ──선택──▶ SELECTING ──요청──▶ PROCESSING ──FCM�
 1. `features/analysis` 슬라이스: types, `analysisApi`(+mock), React Query 훅, 상태머신 셀렉터
 2. `(tabs)/analysis` 라우트 + 탭 등록, 랜딩(상태 분기) 화면
 3. 설명 바텀시트 → Q&A 선택(`select`) 화면
-4. 결과 상세(`[id]`) 화면 (종류별 레이아웃) + 평가
+4. 결과 상세(`[id]`) 화면 (종류별 레이아웃, 진행/실패/오류 상태)
 5. FCM 결과 딥링크 처리(`_layout.tsx`)
-6. i18n 3개 언어 카피 + 검증/QA
+6. i18n ko/en 카피 + iOS/Android·라이트/다크 QA
 
-> ⚠️ 서버 API 미확정 구간은 mock 레이어로 동작시키고, 계약 확정 후 교체한다.
+> ⚠️ 가용성 API는 아직 미제공이므로 mock을 유지한다. 생성·목록·상세는 실서버를 사용한다.

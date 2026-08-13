@@ -45,10 +45,10 @@
     }
   },
   "list": {
-    "answerCount": "{{count}} answers",
     "processing": "Analyzing",
+    "completed": "Complete",
     "processingHint": "We'll let you know when it's ready",
-    "failed": "Analysis failed"
+    "failed": "Failed"
   },
   "types": {
     "thinkingPattern": {
@@ -101,17 +101,12 @@
   },
   "result": {
     "answerCount": "{{count}} answers",
-    "summaryTitle": "At a glance",
+    "thinkingHeading": "Patterns found in your answers",
     "comfortHeading": "To you",
-    "feedbackTitle": "How was this analysis?",
-    "feedbackThanks": "Thanks for your feedback.",
     "processingTitle": "Still analyzing",
-    "processingMessage": "We'll notify you when it's done."
-  },
-  "feedback": {
-    "good": "Loved it",
-    "okay": "It's okay",
-    "bad": "Not for me"
+    "processingMessage": "We'll notify you when it's done.",
+    "loadErrorTitle": "Couldn't open this report",
+    "loadErrorMessage": "The report may no longer exist, or it couldn't be loaded right now."
   },
   "tab": "Meet"
 }

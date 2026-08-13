@@ -1,6 +1,7 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { analysisApi } from '../../api/analysisApi';
 import { isAnalysisInProgress } from '../../domain/analysisStatus';
+import { getNextAnalysisPageParam } from '../../domain/analysisPagination';
 import type { AnalysisDetailDto } from '../../types/api';
 
 export const analysisKeys = {
@@ -28,7 +29,7 @@ export function useAnalysisAvailability() {
 /**
  * 분석 상세/결과 조회.
  *
- * **폴링하지 않는다.** 진행 중(PENDING/PROCESSING)일 때는 staleTime을 0으로 낮춰
+ * **폴링하지 않는다.** 진행 중(PENDING)일 때는 staleTime을 0으로 낮춰
  * 푸시 invalidate와 포그라운드 복귀 refetch가 즉시 반영되게만 한다.
  * (완료 후에는 결과가 불변이므로 다시 캐시를 오래 유지한다.)
  */
@@ -45,6 +46,7 @@ export function useAnalysisDetail(
         ? 0
         : 1000 * 60,
     refetchOnWindowFocus: true,
+    meta: { suppressGlobalError: true },
   });
 }
 
@@ -57,7 +59,7 @@ export function useAnalysisHistory() {
     queryKey: analysisKeys.history(),
     queryFn: ({ pageParam }) => analysisApi.getHistory(pageParam),
     initialPageParam: null as number | null,
-    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    getNextPageParam: getNextAnalysisPageParam,
     staleTime: 1000 * 60 * 5,
     meta: { suppressGlobalError: true },
     select: (data) => data.pages.flatMap((page) => page.items),

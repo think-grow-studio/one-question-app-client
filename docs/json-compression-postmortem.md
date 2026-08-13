@@ -1,24 +1,27 @@
-# JSON 응답 압축으로 API 속도 개선 시도 — 검토 기록
+# 대용량 JSON 응답 지연 진단 및 gzip 압축 개선 — 기록
 
 > **핵심 한 줄**
-> 전략은 **"payload가 TCP 슬로 스타트 초기 윈도우(threshold)를 넘을 때만 압축한다"** 였다.
-> 그런데 ① 그 threshold가 **RFC상 확정된 단일 상수가 아니고**(권고값·Experimental·서버 의존),
-> ② **실제 응답(~10.7KB)은 그 기준을 넘지 않았다.** → 현재 트래픽은 압축의 대상 조건 자체를
-> 충족하지 못함. (압축이 "느렸다"가 아니라, **압축이 적용될 상황이 아니었다.**)
->
-> **후속 검증(§8):** 단, size=35의 일부 응답은 18~22KB로 threshold를 넘었고, 여기에
-> **gzip(`application/json` 한정)** 을 적용하니 **2 RTT → 1 RTT**, **~37%(~285ms) 단축**을 실측 확인.
-> → "임계 초과 응답엔 압축이 실효" 라는 전략 자체는 옳았음이 증명됨.
+> `histories(size=35)` 응답이 **~18–22KB**로 커서 warm 상태에서도 **~700ms대(2 RTT)** 로 느렸다.
+> 원인은 payload가 **TCP 초기 윈도우(IW ≈ 14.6KB)를 넘어** 슬로 스타트 2번째 왕복을 요구했기 때문.
+> **gzip 압축**으로 on-wire를 **~2.4KB(서버 실측, ~90%↓)** 로 줄여 **IW 밑 → 1 RTT(~485ms, ~37% 단축)**.
+> "압축 덕분이 맞는가 / 커넥션 재사용(cwnd)으로 빨라진 건 아닌가"는 RFC 5681 §4.1로 교란 배제.
 
 ---
 
 ## 0. 배경 / 구성 (측정 환경)
 
 ```
-client(한국) ──→ Cloudflare(orange proxy) ──→ Oracle VM(인도) ──→ Oracle DB(인도)
+client(한국) ══ leg A ══▶ Cloudflare(LA PoP·orange) ══ leg B ══▶ Oracle VM(origin·인도) ──▶ Oracle DB(인도)
+                client↔CF                               CF↔origin
 ```
-한국 유저 · 인도 origin · Cloudflare 프록시(orange). API 응답이 warm 기준 ~400ms,
-화면당 여러 호출이 누적되어 체감 지연 → 원인 진단에서 출발했다.
+한국 유저 · 인도 **origin(= Oracle VM, API 서버)** · Cloudflare 프록시(orange). **단일 API 응답**이
+warm 기준 ~400ms, 대용량 응답은 ~700ms대로 느려 그 원인 진단에서 출발했다.
+
+> **용어 정의**
+> - **origin** = 인도의 **Oracle VM(= API 서버)**. 그 뒤의 Oracle DB도 같은 인도 리전.
+> - **leg A** = **client ↔ Cloudflare** (한국↔LA). **leg B** = **Cloudflare ↔ origin** (LA↔인도).
+> - 응답 본문은 **origin → CF → client** 방향, 즉 **leg B → leg A** 를 차례로 통과한다. 두 leg는
+>   **독립된 TCP 연결**(각자 cwnd/슬로 스타트)이다.
 
 ### 사전 발견 (이 문서의 전제가 되는 사실)
 - **Cloudflare가 한국 트래픽을 미국 LA PoP로 라우팅** — 응답 헤더 `cf-ray: …-LAX` 일관 관측.
@@ -43,111 +46,69 @@ client(한국) ──→ Cloudflare(orange proxy) ──→ Oracle VM(인도) �
 - **`LoggingNioEndpoint`** (서버) — TCP 연결 수립/종료·동시 연결 수.
 - **`ResponseSizeLoggingValve`** (서버) — 원본 vs 압축(on-wire) 응답 크기.
 
-이 문서는 위 환경에서 **"응답 gzip 압축이 지연을 줄이는가"** 를 검증한 기록이다.
+---
 
-## 1. 전략 (가설)
+## 1. 문제 (관찰)
 
-압축은 전송 바이트를 줄여 **TCP 슬로 스타트가 요구하는 추가 왕복(RTT)을 절감**할 때 빨라진다.
-따라서 무조건 압축이 아니라:
+`GET /api/v1/questions/histories?size=35` 가 warm(커넥션 재사용) 상태에서도 **~700ms대**로 느렸다.
+같은 endpoint를 크기별로 보면:
 
-> **"payload가 초기 윈도우(IW)를 넘어 2번째 이상 RTT가 필요해지는 경우에만 압축한다"**
+| decodedBytes | durationMs | |
+|---|---|---|
+| 8.9 KB | 536 ms | |
+| 10.7 KB | 456 ms | |
+| **18.4 KB** | **768 ms** | |
+| **19.8 KB** | **785 ms** | |
 
-가 합리적 전략. 이 전략이 성립하려면 **(A) IW threshold가 명확해야** 하고 **(B) 실제 응답이 그
-threshold를 넘어야** 한다. 두 전제를 검증한 것이 이 문서.
+- **~14KB 부근을 경계로 ~300ms 점프** — payload가 어떤 임계를 넘으면 응답에 **왕복(RTT)이 하나 더** 붙는 패턴.
+- 서버 처리는 ~수십 ms(로그)라 **이 점프는 네트워크 쪽**. payload 크기가 RTT를 추가시키는 메커니즘을 의심.
 
-## 2. 전제 A 검증 — "슬로 스타트 기준은 공식 문서상 명확한가?"
+## 2. 원인 가설 — TCP 슬로 스타트 초기 윈도우(IW)
 
-### RFC 6928 (Increasing TCP's Initial Window) — 권고 공식
+- TCP는 연결 직후 **IW(초기 윈도우)** 만큼만 ACK 없이 보내고, ACK를 받아야 윈도우를 키운다(슬로 스타트).
+- payload가 **IW를 넘으면 첫 RTT에 다 못 보내고 2번째 윈도우(=+1 RTT)** 가 필요 → 응답이 2 RTT.
+- 이 링크의 1 RTT(인도 leg) ≈ ~257ms → **관찰된 ~300ms 점프의 정체로 추정.**
+- 즉 **payload > IW → +1 RTT.** 그럼 "IW가 정확히 얼마냐"가 관건.
+
+### 왜 슬로 스타트가 필요한가 (이 비용의 이유)
+"처음부터 다 보내면 되지 왜 작게 시작하나?"에 대한 답 — 슬로 스타트는 버그가 아니라 **의도된 안전장치**다.
+
+- **연결 시작 시 네트워크 용량을 모른다.** 송신측은 경로의 대역폭·혼잡 상태를 알 수 없다. 받는 쪽이 광고한
+  윈도우(receive window)는 "수신 버퍼"일 뿐, **경로가 견디는 양**이 아니다.
+- **처음부터 풀스피드로 쏘면 경로를 넘쳐 무너진다.** 중간 라우터/링크 버퍼를 초과 → 패킷 손실 → 재전송 폭증
+  → 더 큰 혼잡 → **혼잡 붕괴(congestion collapse)**. 1980년대 인터넷에서 실제로 일어난 문제이고, 이를 막으려
+  Van Jacobson이 슬로 스타트/혼잡제어를 도입했다.
+- **그래서 "작게 시작해 ACK로 용량을 탐색(probe)"** 한다. IW만큼 보내고, ACK가 돌아오면 "네트워크가 그만큼은
+  받아냈다"는 신호로 윈도우를 **매 RTT 2배**로 키운다(=ACK clocking). 손실을 만나면 거기서 멈춰 혼잡회피
+  (congestion avoidance, 선형 증가)로 전환 — 그 지점이 대략 경로의 가용 용량.
+- **결론**: 첫 몇 RTT가 처리량 제한을 받는 건 **"안전하게 용량을 알아내는 대가"**. 그래서 IW를 넘는 payload는
+  필연적으로 추가 RTT를 문다. → 이 비용을 피하려면 **payload를 IW 밑으로(=압축)** 두는 것이 정공법.
+
+## 3. IW 임계 — 공식 근거 (RFC 6928)
 
 ```
 IW = min (10 * MSS, max (2 * MSS, 14600))
 ```
-- **IW10** = 초기 윈도우 10 세그먼트.
-- 전형적 MSS 1460B 기준 → **14,600 bytes ≈ 14.3 KiB**.
+- **IW10** = 초기 윈도우 10 세그먼트. 전형적 MSS 1460B → **14,600 bytes ≈ 14.3 KiB**.
   - (본 스택의 공용 인터넷 경로 실측 MSS = **1448B** [`ss -ti`] → IW ≈ **14.48KB**)
-- 즉 "첫 RTT에 약 14.6KB까지는 ACK 없이 전송 가능" → 이보다 작은 응답은 **1 RTT에 완결**.
+- 즉 "첫 RTT에 약 14.6KB까지는 ACK 없이 전송" → 그보다 큰 응답은 **2번째 윈도우 필요 = +1 RTT**.
 
-### 단, "확정 상수"는 아니다 (중요)
+> ⚠️ **단, "확정 상수"는 아니다.** RFC 6928은 **Experimental** 이고 *"a TCP MAY start with an initial
+> window smaller than 10 segments"* (권고·MAY). 값은 **MSS·OS·CDN 의존**(Cloudflare는 더 큰 IW 튜닝 가능,
+> RFC 3390 시절엔 ~4KB였음). 하드 기준으로 쓰려면 **스택별 실측 필요** — 그것도 client↔CF·CF↔origin
+> 두 구간이 각각 다름.
 
-- RFC 6928 상태 = **Experimental** (표준 트랙 아님). 원문: *"a TCP MAY start with an initial
-  window that is smaller than 10 segments."* → **MAY / 권고**이지 강제 아님.
-- 값이 **MSS 의존** (MSS 다르면 14600 캡과 10*MSS 중 작은 값).
-- **OS·서버·CDN마다 실제 initcwnd가 다름** — Linux는 커널 3.0+부터 IW10 기본이지만,
-  CDN(Cloudflare 등)은 별도 튜닝(더 큰 IW) 가능.
-- 역사적으로도 값이 바뀜: RFC 3390(IW ≈ 3~4 세그먼트, ~4KB) → RFC 6928(IW10). 일반 슬로
-  스타트 정의는 RFC 5681(TCP Congestion Control).
+→ **관찰된 18~22KB > ~14.6KB(IW)** → 2번째 윈도우 → **2 RTT** → §1의 ~700ms와 정합.
 
-> **결론(전제 A):** threshold의 **표준 권고값은 ~14.6KB로 명확**하지만, **Experimental·MAY·
-> 서버 의존**이라 **보장된 단일 상수는 아니다.** 하드한 판단 기준으로 쓰려면 **우리 스택의 실제
-> IW를 측정**해야 함 — 그것도 **두 구간**: client↔CF(엣지의 IW)와 CF↔origin(origin의 IW)이 각각 다름.
+## 4. 해결 + 검증 — gzip 압축 A/B
 
-## 3. 전제 B 검증 — "실제 응답이 기준을 넘는가?"
-
-실측 (`GET /api/v1/questions/histories?size=35`, warm):
-```
-decodedBytes = 10,718 B  (≈ 10.5KB, 디코드 후 = 압축 전 크기)
-durationMs   = 456 ms
-```
-- **10.5KB < ~14.6KB (IW10)** → **첫 윈도우 안, 1 RTT에 전송 완결.**
-- 압축으로 ~2KB가 돼도 여전히 같은 1 윈도우 → **줄일 RTT가 없음.**
-
-> **결론(전제 B): 실제 응답은 threshold를 넘지 않았다.** 압축의 트리거 조건 미충족.
-
-## 4. 그래서 — 왜 "실패"인가
-
-- 압축 전략은 "기준 초과 시"에만 유효한데, **현재 트래픽은 기준 미달** → 적용 상황이 아님.
-- `durationMs 456ms`의 본체는 payload가 아니라 **한국↔(LA)↔인도 거리(왕복 ~400ms)**.
-  payload(1 윈도우)는 수십 ms 기여뿐 → 압축해도 그 일부만 깎임 = 체감 무의미.
-- 부수 관측: **size=35(10.5KB) ≈ size=7(~2KB)** 응답 시간 동일 (둘 다 1 RTT) → 이 범위에선
-  **payload 크기가 병목이 아님.**
-
-## 5. 측정상 한계 (왜 wire 크기를 앱에서 못 봤나)
-
-- OkHttp가 `Accept-Encoding`을 자동 주입 + **transparent gzip 해제**하면서
-  `Content-Encoding`/`Content-Length` 헤더를 **strip** → axios에서 `encoding`/`wireBytes` = **N/A**.
-- 신뢰 신호는 **durationMs + decodedBytes** 뿐. 정확한 on-wire 바이트는 OkHttp
-  `EventListener.responseBodyEnd(byteCount)`(NetworkProbe) 또는 서버사이드/curl로만 관측.
-
-## 6. 최종 결론
-
-| 항목 | 판정 |
-|---|---|
-| 슬로 스타트 threshold가 공식 문서상 명확한가 | △ — **RFC 6928 권고값 ~14.6KB(IW10)는 명확**하나 **Experimental·MAY·서버 의존**이라 확정 상수 아님. 실제값은 **스택별 측정 필요** |
-| 실제 응답이 그 기준을 넘는가 | ❌ — 10.7KB < ~14.6KB. **미달** |
-| 현재 트래픽에 압축이 속도 이득을 주는가 | ❌ — 트리거 조건 미충족 (이미 1 RTT) |
-| 압축이 유효해지는 조건 | payload가 **실측 IW(≈14.6KB±)** 를 넘을 때. 그땐 RTT 절감 |
-| 압축의 잔여 가치 | 데이터 사용량↓(셀룰러)·대형 응답 대비. 저비용이라 켜둘 만하나 **속도 목적 아님** |
-| 이 지연(456ms)의 진짜 레버 | ① **거리(origin 위치)** ② **왕복 수 줄이기** ③ **cold 방지** |
-
-> 결론: 압축은 **"틀린 레버"가 아니라 "조건 미충족"** 이었다. 전략(threshold 초과 시 압축)은
-> 타당하나, ⓐ threshold가 RFC상 보장 상수가 아니어서 **실측 확정이 선행**되어야 하고, ⓑ 현재
-> 응답이 그 기준 아래라 **지금은 해당 없음**. 본질 병목은 **payload가 아니라 거리(RTT)**.
-
-## 7. 후속 (threshold를 정말 쓰려면)
-
-1. **우리 스택의 실제 IW 측정** — client↔CF 엣지, CF↔origin 각각. 서버 응답을 크기별로 늘려가며
-   `Response`(=respStart→respEnd) 또는 byteCount가 어느 크기에서 1 RTT→2 RTT로 꺾이는지 관찰.
-2. 그 실측 임계 이상 응답에만 압축 적용 정책화.
-
-```bash
-# 압축 ON/OFF wire·time 직접 비교 (큰 응답에서만 유의미, 중앙값·warm 기준)
-curl -s -H "Accept-Encoding: br,gzip"  -H "Authorization: Bearer <TOKEN>" -o /dev/null \
-  -w "wire=%{size_download}B time=%{time_total}s\n" "<URL>"
-curl -s -H "Accept-Encoding: identity" -H "Authorization: Bearer <TOKEN>" -o /dev/null \
-  -w "wire=%{size_download}B time=%{time_total}s\n" "<URL>"
-```
-
-## 8. 검증 완료 — gzip A/B 실증
-
-전제 B(§3)의 ~10KB와 달리, 실제로 **threshold를 넘는 응답(18~22KB)** 이 존재했고, 거기에 압축을
-적용해 전략을 실증했다.
+payload를 **IW 밑으로** 줄이면 2번째 윈도우가 사라져 1 RTT로 떨어질 것. gzip으로 검증.
 
 ### 적용 구성
-- **origin(Spring Boot)에서 gzip 압축 활성화**
-- 압축 대상 MIME: **`application/json` 만** (이미지 등 이미 압축된 콘텐츠 제외 → 재압축 낭비 방지)
-- 클라(OkHttp): **무설정** — `Accept-Encoding: gzip` 자동 주입 + 투명 해제
+- **origin(Spring Boot)에서 gzip 압축 활성화**, 대상 MIME **`application/json` 만**(재압축 낭비 방지).
+- 클라(OkHttp): **무설정** — `Accept-Encoding: gzip` 자동 주입 + 투명 해제.
 
-### 결과 (`GET /api/v1/questions/histories?size=35`, warm)
+### 결과 (`size=35`, warm)
 
 | 구분 | decodedBytes | durationMs | RTT(추정) |
 |---|---|---|---|
@@ -156,18 +117,11 @@ curl -s -H "Accept-Encoding: identity" -H "Authorization: Bearer <TOKEN>" -o /de
 | **gzip** | **22.5 KB** | **508 ms** | **1** |
 | **gzip** | **22.5 KB** | **465 ms** | **1** |
 
-> ⚠️ **RTT 횟수(2/1)는 직접 측정값이 아니라 추정.** 실측한 것은 `durationMs`·`decodedBytes`·크기별
-> 패턴뿐이며, "~300ms 점프 = 슬로 스타트 추가 왕복 1번"은 **durationMs + IW10 모델로 추론**한 라벨이다.
-> 실제 왕복 수는 패킷 캡처(tcpdump/Wireshark)로 확정하지 않았다.
-
-### 해석
-- 압축 후에도 `decodedBytes`는 22.5KB (= 해제 후 크기라 오히려 더 큼). 그런데 durationMs는 465~508ms.
-- 무압축이면 22.5KB는 IW(~14.6KB) 초과라 **반드시 2 RTT(~770ms+)** 여야 함. 1 RTT(~485ms)로 나온 것은
-  **on-wire가 gzip으로 ~2.4KB(서버 실측, JSON ~90%↓)로 줄어 첫 윈도우 안으로 복귀**했다는 직접 증거.
-  (아래 "서버 실측 압축 크기" 참고)
+- 압축 후에도 `decodedBytes`는 22.5KB(해제 후라 오히려 더 큼)인데 durationMs는 **465~508ms**.
+- 무압축이면 22.5KB는 IW 초과라 **반드시 2 RTT(~770ms+)** — 1 RTT(~485ms)로 나온 건 **on-wire가 gzip으로
+  줄어 IW 안으로 복귀**했다는 직접 증거.
 - **22.5KB(더 큰 payload)가 18KB(더 작은 무압축)보다 ~300ms 빠름** — 크기 역전이 곧 압축 작동의 증거.
 
-### 효과
 ```
 대형 응답(>14.6KB):  무압축 2 RTT ~770ms  →  gzip 1 RTT ~485ms   ≈ -285ms (~37%)
 소형 응답(<14.6KB):  변화 없음 (이미 1 RTT, jitter 범위)
@@ -184,20 +138,26 @@ origin(Tomcat)에 응답 크기 로깅 Valve를 추가해 **원본 vs 압축(on-
 | 23,626 B (~23 KB) | **2,433 B (~2.4 KB)** | **89.7%** | ~9.7x |
 | 22,966 B (~22 KB) | **2,459 B (~2.4 KB)** | **89.3%** | ~9.3x |
 
-- gzip이 이 JSON을 **~90% 압축(≈10x)**. (반복 구조 JSON이라 압축률이 매우 높음)
-- **결정적**: 압축 후 **~2.4 KB ≪ IW10(~14.6 KB)** → 첫 윈도우 안 = **1 RTT 확정.** §8 앞부분의 durationMs
-  추론(2 RTT→1 RTT)을 **서버 실측이 직접 뒷받침**.
+- gzip이 이 JSON을 **~90% 압축(≈10x)** (반복 구조 JSON이라 압축률 매우 높음).
+- **결정적**: 압축 후 **~2.4 KB ≪ IW10(~14.6 KB)** → 첫 윈도우 안 = **1 RTT 확정.** §4 앞부분의 durationMs
+  추론(2 RTT→1 RTT)을 서버 실측이 직접 뒷받침.
 - **여유도 큼**: 2.4 KB vs 14.6 KB → 원본이 **약 6배(~140 KB)** 까지 커져도 압축 후 여전히 IW 안 → 1 RTT 유지.
 - 이 Valve는 **origin이 보낸 바이트**를 기록 → **비싼 인도 leg(origin→CF)가 2.4 KB로 건너감** 확인
   (= origin 압축이 올바른 위치였음).
 
 > 참고: 앱 `decodedBytes`(~22.5KB)와 서버 `원본`(~23KB)의 ~1KB 차이는 JSON.stringify(앱) vs
 > 서버 raw 응답 바이트(공백·키 순서·숫자 표기 차이) 때문. 둘 다 "압축 전 크기"로 동일 맥락.
+> 또한 앱(axios)에선 OkHttp가 gzip 투명 해제하며 `Content-Length`/`Encoding` 헤더를 strip해
+> **wire 크기를 못 봄** → 그래서 압축 크기는 **서버 `%b`/Valve**로 측정.
+
+## 5. RTT 횟수·구간 귀속은 "추정"
+
+> ⚠️ **RTT 횟수(2/1)는 직접 측정값이 아니라 추정.** 실측한 것은 `durationMs`·`decodedBytes`·크기별
+> 패턴·서버 압축 크기뿐이며, "~300ms 점프 = 슬로 스타트 추가 왕복 1번"은 **durationMs + IW10 모델로
+> 추론**한 라벨이다. 실제 왕복 수는 패킷 캡처(tcpdump/Wireshark)로 확정하지 않았다.
 
 ### 어느 구간의 RTT가 줄었나 (추정)
-
-줄어든 ~285ms가 **어느 leg의 RTT와 일치하는가**로 귀속을 추론한다. (구간 RTT는 별도 측정:
-한국↔미국 ≈ 150ms[TCP 핸드셰이크 실측], 미국↔인도 ≈ 257ms[전체−한국미국 도출])
+줄어든 ~285ms가 **어느 leg의 RTT와 일치하는가**로 귀속을 추론:
 
 | 후보 구간 | RTT | 절감폭(~285ms)과 매칭 |
 |---|---|---|
@@ -206,64 +166,56 @@ origin(Tomcat)에 응답 크기 로깅 Valve를 추가해 **원본 vs 압축(on-
 | 양쪽 합 | ~407ms | ❌ 너무 큼 |
 
 - 절감폭 ~285ms ≈ **LA↔인도 RTT(257ms)** → 줄어든 1 RTT는 **origin↔CF(인도) leg**로 추정.
-- **CF↔client(LA) leg는 페널티 없었던 듯** — Cloudflare가 initcwnd를 크게 튜닝하면 18~22KB도
-  한 윈도우에 전송되어 추가 RTT가 안 생김(추정).
-- 이 추론은 **"origin에서 압축해야 효과"** 라는 결론과도 정합적 — 병목이 인도 leg였으므로
-  origin이 그 구간에 압축 바이트를 실어야 함.
-- **확정 방법(미실행):** ⓐ "CF만 압축(origin 무압축)"으로 바꿔 개선이 사라지면 인도 leg 확정,
-  ⓑ 각 leg 패킷 캡처로 왕복 수 직접 카운트.
+- **CF↔client(LA) leg는 페널티 없었던 듯** — Cloudflare가 initcwnd를 크게 튜닝하면 18~22KB도 한 윈도우에
+  전송되어 추가 RTT가 안 생김(추정).
 
-### 결론 (검증)
-- **전략 실증 완료** — `gzip` + `application/json` 한정 구성으로, IW를 넘던 18~22KB 응답을
-  **2 RTT → 1 RTT**, **~37% 단축**.
-- 단 **단건 체감은 0.77→0.49초 수준으로 극적이진 않음**, 그리고 **소형 응답엔 무효**. 한 줄 설정
-  치곤 좋은 ROI이나, **체감을 바꾸는 근본 레버는 여전히 거리(origin 위치)**.
-- 신뢰도: 위는 소표본(각 2회). 정책화 전 **크기대별 5~10회 중앙값**으로 한 번 더 확정 권장.
+> **단, "leg A가 1 RTT" ≠ "client가 빠르다" (중요).** CF는 응답을 다 모았다 보내는 store-and-forward가
+> 아니라 **받는 대로 흘려보내는 streaming**이다. origin이 슬로 스타트로 데이터를 **2 wave(2 RTT)** 에 걸쳐
+> CF에 보내면, CF는 **아직 받지 않은 바이트를 못 보내므로** client도 2 wave로 받는다. 즉 leg A의 윈도우가
+> 여유 있어도 **client의 wall-clock은 leg B(origin→CF)의 2 RTT에 종속**된다.
+> → 추가 RTT는 **leg B에서 "발생"**, client는 데이터가 origin 슬로 스타트에 막혀 그 시간을 **"기다리는"** 구조.
+> (이 streaming 가정 역시 미확정 — CF가 buffering이면 양상이 달라질 수 있음.)
 
-## 9. 검증 동기 — "정말 압축(RTT 절감) 때문인가?" (cwnd 교란 배제)
+- 이 추론은 **"origin에서 압축해야 효과"** 라는 결론과 정합 — 병목이 인도 leg였으므로 origin이 그 구간에
+  압축 바이트를 실어야 함.
+- **확정 방법(미실행):** ⓐ "CF만 압축(origin 무압축)"으로 개선이 사라지면 인도 leg 확정, ⓑ leg별 패킷 캡처.
 
-이 절은 **두 가지 목적**을 가진다:
-1. **(인과 확정)** §8 개선이 정말 "압축이 payload를 IW 밑으로 줄여 슬로 스타트 왕복을 없앤 것"인지,
-   아니면 다른 교란(커넥션 재사용으로 cwnd가 이미 커져 빨랐다)인지 구분.
-2. **(반대 의문 규명)** 압축 *전*, 커넥션이 재사용되어 cwnd가 컸을 텐데 **왜 2번째 큰 요청이
-   안 빨라졌나**(무압축 768ms ≈ 785ms, carry-over 없음)를 설명.
+## 6. 교란 배제 — "정말 압축 때문인가" + "무압축 2번째는 왜 안 빨라졌나" (cwnd)
 
-두 의문 모두 **"연결이 살아있어도 cwnd는 유지되지 않는다"** 는 같은 메커니즘으로 풀린다.
+§4 개선이 **압축이 IW 밑으로 줄여 슬로 스타트 RTT를 없앤 것**인지, 아니면 **커넥션 재사용으로 cwnd가
+이미 커져 빨랐던 것**(교란)인지 구분이 필요했다. 동시에, 압축 *전* 무압축 큰 요청 2개가 **거의 같은
+시간(768 ≈ 785ms)** 으로 carry-over가 없던 것도 설명해야 한다. 두 의문 다 같은 메커니즘으로 풀린다.
 
 ### 확인 1 — 커넥션 재사용 여부 (origin TCP 로거)
-origin의 TCP 연결 로거(`LoggingNioEndpoint`, 연결 수립/종료 + 동시 연결 수)로 관찰:
-- **curl 루프**: 매 요청마다 TCP 수립→종료 (각 curl이 별도 프로세스라 재사용 X)
-- **앱(OkHttp)**: TCP 유지·재사용 (동시 연결 수가 유지됨) → 즉 **CF↔origin TCP도 살아있음**
-- 부수 확인: 요청 protocol = **HTTP/1.1** (CF↔origin 확정), 서버 처리 **~4ms** (서버 무관 재확인)
+origin의 `LoggingNioEndpoint`(연결 수립/종료·동시 연결 수)로 관찰:
+- **curl 루프**: 매 요청 TCP 수립→종료 (각 curl이 별도 프로세스라 재사용 X).
+- **앱(OkHttp)**: TCP 유지·재사용 (동시 연결 수 유지) → **CF↔origin TCP도 살아있음**.
+- 부수: 요청 protocol **HTTP/1.1**(CF↔origin 확정), 서버 처리 ~4ms(서버 무관 재확인).
 
 ### 확인 2 — "연결 유지 ≠ cwnd 유지" (RFC 5681 §4.1)
-핵심: 연결이 살아있어도 cwnd는 리셋된다. RFC 5681 §4.1 "Restarting Idle Connections" 명문:
+RFC 5681 §4.1 "Restarting Idle Connections" 명문:
 
 > *"a TCP SHOULD set cwnd to no more than **RW** before beginning transmission if the TCP has not
 > sent data in an interval exceeding the **retransmission timeout**."*  (RW = min(IW, cwnd))
 
-- **idle > RTO** 이면 → cwnd를 **RW = min(IW, cwnd) = IW** 로 리셋 (cwnd가 컸어도 IW로 되돌림)
-- RTO ≈ 수백 ms~1s (인도 leg RTT ~257ms 기반, Linux 최소 200ms). 요청 간 텀이 그 이상이면 리셋.
-- → **warm 커넥션이어도 cwnd는 매 요청 IW에서 시작**(텀 있으면). Linux 구현: `tcp_slow_start_after_idle`(기본 1).
+- **idle > RTO** 이면 cwnd를 **RW = min(IW, cwnd) = IW** 로 리셋 (컸어도 IW로 되돌림).
+- RTO ≈ 수백 ms~1s (인도 RTT ~257ms 기반, Linux 최소 200ms). 요청 간 텀이 그 이상이면 리셋.
+- → **warm 커넥션이어도 cwnd는 매 요청 IW에서 시작**(텀 있으면). Linux: `tcp_slow_start_after_idle`(기본 1).
 
-### 확인 3 — "무압축 2번째 요청은 왜 안 빨라졌나" (목적 2의 답)
-- **관찰**: 무압축 큰 요청을 연속으로 → 768ms ≈ 785ms (거의 동일, **carry-over 없음**)
-- **기대했던 것**: TCP 재사용 + 1번째 요청에서 cwnd 성장(10→…) → 2번째는 커진 cwnd로 **1 RTT에 끝나야**
-- **실제 이유**: 두 요청 사이 **idle > RTO → RFC 5681 §4.1에 따라 cwnd가 IW로 리셋** → 2번째도
-  슬로 스타트를 처음부터 → 1번째와 동일하게 2 RTT.
-- 즉 **"연결은 유지(handshake 절약 ✓) / cwnd는 리셋(carry-over ✗)"** 이 768≈785의 정체.
-  → cwnd 성장은 사실상 **단일 transfer 안에서만** 일어나고, 텀 둔 다음 요청으로 안 넘어감.
+### 확인 3 — 무압축 2번째 요청이 안 빨라진 이유
+- 무압축 큰 요청 연속 → **768 ≈ 785ms**(carry-over 없음).
+- 기대: TCP 재사용 + 1번째에서 cwnd 성장 → 2번째는 커진 cwnd로 1 RTT여야.
+- 실제: 두 요청 사이 **idle > RTO → §4.1로 cwnd가 IW로 리셋** → 2번째도 슬로 스타트 처음부터 = 또 2 RTT.
+- 즉 **"연결은 유지(handshake 절약✓) / cwnd는 리셋(carry-over✗)"** 이 768≈785의 정체. cwnd 성장은
+  사실상 **단일 transfer 안에서만** 일어나고 다음 요청으로 안 넘어감.
 
 ### 결론 — 인과 확정
-- cwnd는 RFC 규칙상 **idle마다 IW로 리셋**되어 요청 간 **안정적 우위를 못 줌** → "압축 요청이 우연히
-  큰 cwnd를 물려받아 빨랐다"는 **교란 가설 배제**.
-- 압축/무압축 차이(~285ms)는 **payload의 on-wire 크기가 IW를 넘느냐**에만 연동되고, 커넥션/cwnd
-  상태와 **독립**.
-- ∴ §8의 개선은 **압축이 on-wire payload를 IW 밑으로 줄여 슬로 스타트 RTT를 제거한 것**이 맞다.
-- 그리고 바로 이 때문에 **압축이 "cwnd 운빨"보다 견고**: payload < IW면 cwnd가 IW로 리셋돼도 항상
-  1 윈도우. (반대로 cwnd carry-over에 기대는 건 RFC 5681 §4.1 리셋 때문에 불안정)
+- cwnd는 RFC상 **idle마다 IW로 리셋**되어 요청 간 안정적 우위를 못 줌 → **"cwnd 물려받아 빨랐다" 교란 배제**.
+- 압축/무압축 차이(~285ms)는 **payload의 on-wire 크기가 IW를 넘느냐**에만 연동, cwnd 상태와 **독립**.
+- ∴ §4의 개선은 **압축이 on-wire payload를 IW 밑으로 줄여 슬로 스타트 RTT를 제거한 것**이 맞다.
+- 그래서 **압축이 "cwnd 운빨"보다 견고**: payload < IW면 cwnd가 IW로 리셋돼도 항상 1 윈도우.
 
-## 10. 권고 (정리)
+## 7. 권고 (정리)
 
 지연의 본질은 **payload가 아니라 거리(특히 Cloudflare-LA 우회)**. 레버를 효과/비용순으로:
 
@@ -282,7 +234,7 @@ origin의 TCP 연결 로거(`LoggingNioEndpoint`, 연결 수립/종료 + 동시 
 ## 참고 (공식 문서)
 - **RFC 6928** — Increasing TCP's Initial Window (IW10, `min(10*MSS, max(2*MSS, 14600))`, Experimental)
   — https://www.rfc-editor.org/rfc/rfc6928
-- **RFC 5681** — TCP Congestion Control (슬로 스타트 일반 정의 + **§4.1 Restarting Idle Connections**: idle>RTO 시 cwnd→RW=min(IW,cwnd) 리셋)
+- **RFC 5681** — TCP Congestion Control (슬로 스타트 일반 + **§4.1 Restarting Idle Connections**: idle>RTO 시 cwnd→RW=min(IW,cwnd) 리셋)
   — https://www.rfc-editor.org/rfc/rfc5681
 - **RFC 2861** — TCP Congestion Window Validation (idle·application-limited 구간 cwnd 감쇠)
   — https://www.rfc-editor.org/rfc/rfc2861

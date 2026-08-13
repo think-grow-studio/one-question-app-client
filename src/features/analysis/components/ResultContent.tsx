@@ -1,141 +1,77 @@
-import { Image, Pressable, StyleSheet, View } from 'react-native';
-import { XStack, YStack, useTheme } from 'tamagui';
+import { Image, StyleSheet } from 'react-native';
+import { XStack, YStack } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
-import { useAccentColors } from '@/shared/theme';
 import { sp, radius, fs } from '@/shared/utils/responsive';
 import { ANALYSIS_TYPE_META } from '../constants/analysisTypes';
-import { useSubmitFeedback } from '../hooks/mutations/useAnalysisMutations';
-import type { AnalysisDetailDto, AnalysisFeedback } from '../types/api';
+import type { AnalysisDetailDto } from '../types/api';
 
-const FEEDBACK_OPTIONS: { value: AnalysisFeedback; emoji: string }[] = [
-  { value: 'BAD', emoji: '😞' },
-  { value: 'OKAY', emoji: '😐' },
-  { value: 'GOOD', emoji: '🙂' },
-];
-
-function formatDate(iso: string): string {
-  const d = new Date(iso);
-  return `${d.getMonth() + 1}/${d.getDate()}`;
+function formatDate(iso: string, locale: string): string {
+  return new Intl.DateTimeFormat(locale, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  }).format(new Date(iso));
 }
 
 export function ResultContent({ detail }: { detail: AnalysisDetailDto }) {
-  const theme = useTheme();
-  const accent = useAccentColors();
-  const { t } = useTranslation('analysis');
-  const { mutate: submitFeedback } = useSubmitFeedback(detail.id);
-  const meta = ANALYSIS_TYPE_META[detail.type];
+  const { t, i18n } = useTranslation('analysis');
+  const meta = ANALYSIS_TYPE_META[detail.reportType];
+  const locale = i18n.resolvedLanguage ?? i18n.language;
 
   return (
-    <YStack gap="$4" pb="$6">
-      {/* 헤더 */}
-      <YStack gap="$1">
-        <XStack ai="center" gap="$2">
+    <YStack gap="$5" pb="$6">
+      <YStack gap="$2">
+        <XStack ai="center" gap="$3">
           <Image source={meta.image} style={styles.character} resizeMode="contain" />
-          <Text variant="heading" flex={1}>{t(`types.${meta.i18nKey}.name`)}</Text>
+          <Text variant="heading" flex={1}>
+            {t(`types.${meta.i18nKey}.name`)}
+          </Text>
         </XStack>
         <Text variant="caption">
-          {formatDate(detail.createdAt)} · {t('result.answerCount', { count: detail.answerCount })}
+          {formatDate(detail.requestedAt, locale)} ·{' '}
+          {t('result.answerCount', { count: detail.sources.length })}
         </Text>
       </YStack>
 
-      {/* 본문 */}
-      {detail.result?.type === 'THINKING_PATTERN' && (
-        <YStack gap="$4">
-          <YStack
-            gap="$2"
-            style={[styles.summaryCard, { backgroundColor: theme.surface?.val, borderColor: theme.borderColor?.val }]}
-          >
-            <Text variant="label" style={{ color: accent.primary }}>
-              {t('result.summaryTitle')}
-            </Text>
-            <Text variant="body">{detail.result.data.summary}</Text>
-          </YStack>
-
-          {detail.result.data.sections.map((section) => (
-            <YStack key={section.key} gap="$2">
-              <Text variant="subheading">{section.title}</Text>
-              {section.items.map((item, i) => (
-                <XStack key={i} gap="$2" ai="flex-start">
-                  <View style={[styles.bullet, { backgroundColor: accent.primary }]} />
-                  <Text variant="body" flex={1}>
-                    {item}
-                  </Text>
-                </XStack>
-              ))}
-            </YStack>
-          ))}
+      {detail.reportType === 'THINKING_PATTERN' ? (
+        <YStack
+          gap="$3"
+          backgroundColor="$surface"
+          borderColor="$borderColor"
+          style={styles.insightCard}
+        >
+          <Text variant="label">{t('result.thinkingHeading')}</Text>
+          <Text variant="body" style={styles.reportBody}>
+            {detail.result}
+          </Text>
         </YStack>
-      )}
-
-      {detail.result?.type === 'WARM_REFLECTION' && (
+      ) : (
         <YStack gap="$3">
           <Text variant="subheading">{t('result.comfortHeading')}</Text>
           <Text variant="body" style={styles.letter}>
-            {detail.result.data.letter}
+            {detail.result}
           </Text>
         </YStack>
       )}
-
-      {/* 평가 */}
-      <View style={[styles.divider, { backgroundColor: theme.borderColor?.val }]} />
-      <YStack gap="$3" ai="center">
-        {detail.feedback ? (
-          <Text variant="bodySmall" muted>
-            {t('result.feedbackThanks')}
-          </Text>
-        ) : (
-          <>
-            <Text variant="label">{t('result.feedbackTitle')}</Text>
-            <XStack gap="$4">
-              {FEEDBACK_OPTIONS.map((opt) => (
-                <Pressable
-                  key={opt.value}
-                  onPress={() => submitFeedback(opt.value)}
-                  hitSlop={8}
-                  style={({ pressed }) => [styles.feedbackBtn, pressed && { opacity: 0.6 }]}
-                >
-                  <Text style={styles.feedbackEmoji}>{opt.emoji}</Text>
-                  <Text variant="caption">{t(`feedback.${opt.value.toLowerCase()}`)}</Text>
-                </Pressable>
-              ))}
-            </XStack>
-          </>
-        )}
-      </YStack>
     </YStack>
   );
 }
 
 const styles = StyleSheet.create({
   character: {
-    width: 40,
-    height: 40,
+    width: sp(44),
+    height: sp(44),
   },
-  summaryCard: {
-    borderRadius: radius(18),
+  insightCard: {
     borderWidth: StyleSheet.hairlineWidth,
-    padding: sp(16),
+    borderRadius: radius(18),
+    padding: sp(18),
   },
-  bullet: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginTop: fs(10),
+  reportBody: {
+    lineHeight: fs(16) * 1.75,
   },
   letter: {
     lineHeight: fs(16) * 1.8,
-  },
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    marginVertical: sp(4),
-    opacity: 0.5,
-  },
-  feedbackBtn: {
-    alignItems: 'center',
-    gap: 4,
-  },
-  feedbackEmoji: {
-    fontSize: fs(30),
   },
 });

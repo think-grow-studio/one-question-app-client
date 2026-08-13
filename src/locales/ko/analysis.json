@@ -45,10 +45,10 @@
     }
   },
   "list": {
-    "answerCount": "답변 {{count}}개",
-    "processing": "분석하고 있어요",
+    "processing": "분석 중",
+    "completed": "완료",
     "processingHint": "완료되면 알려드릴게요",
-    "failed": "분석하지 못했어요"
+    "failed": "실패"
   },
   "types": {
     "thinkingPattern": {
@@ -101,17 +101,12 @@
   },
   "result": {
     "answerCount": "답변 {{count}}개",
-    "summaryTitle": "한눈에",
+    "thinkingHeading": "답변에서 발견한 생각의 흐름",
     "comfortHeading": "당신에게",
-    "feedbackTitle": "이 분석이 어땠나요?",
-    "feedbackThanks": "소중한 의견 고마워요.",
     "processingTitle": "아직 분석 중이에요",
-    "processingMessage": "끝나면 알림으로 알려드릴게요."
-  },
-  "feedback": {
-    "good": "좋았어요",
-    "okay": "그저 그래요",
-    "bad": "아쉬워요"
+    "processingMessage": "끝나면 알림으로 알려드릴게요.",
+    "loadErrorTitle": "리포트를 열 수 없어요",
+    "loadErrorMessage": "리포트가 사라졌거나 잠시 불러오지 못했어요."
   },
   "tab": "만남"
 }

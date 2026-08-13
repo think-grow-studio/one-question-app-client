@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { YStack } from 'tamagui';
@@ -12,7 +12,6 @@ import { radius, sp } from '@/shared/utils/responsive';
 import { logScreenView } from '@/services/firebase';
 import { ReportCreateCard } from '@/features/analysis/components/ReportCreateCard';
 import { ReportListRow } from '@/features/analysis/components/ReportListRow';
-import { orderAnalysisReports } from '@/features/analysis/domain/reportListOrder';
 import { useAnalysisAvailability, useAnalysisHistory } from '@/features/analysis/hooks/queries/useAnalysisQueries';
 import type { AnalysisHistoryItemDto } from '@/features/analysis/types/api';
 
@@ -40,7 +39,6 @@ export default function AnalysisLandingScreen() {
     logScreenView('Analysis');
   }, []);
 
-  const orderedItems = useMemo(() => orderAnalysisReports(historyItems), [historyItems]);
   const reason = availability?.reason;
   const canRequest = availability?.canRequest ?? false;
   const cooldownDays = availability?.nextAvailableAt
@@ -57,7 +55,7 @@ export default function AnalysisLandingScreen() {
         : reason === 'PROCESSING'
           ? t('list.processingHint')
           : undefined;
-  const showLoadError = isError && orderedItems.length === 0;
+  const showLoadError = isError && historyItems.length === 0;
 
   const handleEndReached = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage && !isFetchNextPageError) void fetchNextPage();
@@ -66,7 +64,10 @@ export default function AnalysisLandingScreen() {
   const renderItem = useCallback(
     ({ item }: { item: AnalysisHistoryItemDto }) => (
       <View style={styles.row}>
-        <ReportListRow item={item} onPress={() => router.push(`/(tabs)/analysis/${item.id}`)} />
+        <ReportListRow
+          item={item}
+          onPress={() => router.push(`/(tabs)/analysis/${item.analysisReportId}`)}
+        />
       </View>
     ),
     [router],
@@ -139,9 +140,9 @@ export default function AnalysisLandingScreen() {
   return (
     <Screen edges={['top']} bgColor={screenBg}>
       <FlashList<AnalysisHistoryItemDto>
-        data={showLoadError || isLoading ? [] : orderedItems}
+        data={showLoadError || isLoading ? [] : historyItems}
         renderItem={renderItem}
-        keyExtractor={(item) => String(item.id)}
+        keyExtractor={(item) => String(item.analysisReportId)}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         onEndReached={handleEndReached}

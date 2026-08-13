@@ -7,11 +7,7 @@ import {
   type PendingCreateKey,
 } from '../../domain/createRequestIdentity';
 import { analysisKeys } from '../queries/useAnalysisQueries';
-import type {
-  AnalysisDetailDto,
-  AnalysisFeedback,
-  CreateAnalysisRequest,
-} from '../../types/api';
+import type { CreateAnalysisRequest } from '../../types/api';
 
 type CreateVariables = CreateAnalysisRequest & { idempotencyKey: string };
 
@@ -56,31 +52,4 @@ export function useCreateAnalysis() {
   );
 
   return { createAnalysis, isPending: mutation.isPending };
-}
-
-/** 결과 평가 — 상세 캐시 낙관적 업데이트 */
-export function useSubmitFeedback(id: number) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (feedback: AnalysisFeedback) =>
-      analysisApi.submitFeedback(id, feedback),
-    onMutate: async (feedback) => {
-      const key = analysisKeys.detail(id);
-      await queryClient.cancelQueries({ queryKey: key });
-      const previous = queryClient.getQueryData<AnalysisDetailDto>(key);
-      if (previous) {
-        queryClient.setQueryData<AnalysisDetailDto>(key, { ...previous, feedback });
-      }
-      return { previous };
-    },
-    onError: (_err, _feedback, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(analysisKeys.detail(id), context.previous);
-      }
-    },
-    onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: analysisKeys.detail(id) });
-    },
-  });
 }
