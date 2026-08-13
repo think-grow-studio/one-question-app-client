@@ -31,6 +31,7 @@ export default function AnalysisLandingScreen() {
     hasNextPage,
     isFetchingNextPage,
     isFetchNextPageError,
+    isRefetching,
     fetchNextPage,
     refetch,
   } = historyQuery;
@@ -147,6 +148,8 @@ export default function AnalysisLandingScreen() {
         showsVerticalScrollIndicator={false}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
+        onRefresh={() => void refetch()}
+        refreshing={isRefetching}
         ListHeaderComponent={listHeader}
         ListEmptyComponent={listEmpty}
         ListFooterComponent={listFooter}

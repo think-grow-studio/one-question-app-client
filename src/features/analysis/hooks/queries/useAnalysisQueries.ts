@@ -1,4 +1,8 @@
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import {
+  infiniteQueryOptions,
+  useInfiniteQuery,
+  useQuery,
+} from '@tanstack/react-query';
 import { analysisApi } from '../../api/analysisApi';
 import { isAnalysisInProgress } from '../../domain/analysisStatus';
 import { getNextAnalysisPageParam } from '../../domain/analysisPagination';
@@ -52,16 +56,21 @@ export function useAnalysisDetail(
 
 /**
  * 지난 분석(리포트) 히스토리 — 커서 기반 무한 스크롤.
- * select 로 페이지를 평탄화해 컴포넌트는 가공된 배열(data)만 소비한다.
+ * 캐시는 즉시 표시하되 화면 진입마다 서버에서 최신 상태를 다시 확인한다.
  */
-export function useAnalysisHistory() {
-  return useInfiniteQuery({
+export function analysisHistoryQueryOptions() {
+  return infiniteQueryOptions({
     queryKey: analysisKeys.history(),
     queryFn: ({ pageParam }) => analysisApi.getHistory(pageParam),
     initialPageParam: null as number | null,
     getNextPageParam: getNextAnalysisPageParam,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0,
+    refetchOnMount: 'always',
     meta: { suppressGlobalError: true },
     select: (data) => data.pages.flatMap((page) => page.items),
   });
+}
+
+export function useAnalysisHistory() {
+  return useInfiniteQuery(analysisHistoryQueryOptions());
 }
