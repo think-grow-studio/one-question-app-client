@@ -101,12 +101,24 @@
   },
   "result": {
     "answerCount": "답변 {{count}}개",
+    "sourcesButton": "사용한 답변",
+    "sourcesButtonHint": "리포트에 사용한 답변 {{count}}개를 확인해요.",
     "thinkingHeading": "답변에서 발견한 생각의 흐름",
     "comfortHeading": "당신에게",
     "processingTitle": "아직 분석 중이에요",
     "processingMessage": "끝나면 알림으로 알려드릴게요.",
     "loadErrorTitle": "리포트를 열 수 없어요",
     "loadErrorMessage": "리포트가 사라졌거나 잠시 불러오지 못했어요."
+  },
+  "sources": {
+    "title": "사용한 답변",
+    "description": "이 리포트는 아래 답변 {{count}}개를 바탕으로 만들어졌어요.",
+    "questionLabel": "질문",
+    "answerLabel": "나의 답변",
+    "emptyTitle": "사용한 답변을 확인할 수 없어요",
+    "emptyMessage": "이 리포트에 연결된 답변이 없어요.",
+    "loadErrorTitle": "사용한 답변을 불러오지 못했어요",
+    "loadErrorMessage": "잠시 후 다시 불러와 주세요."
   },
   "tab": "만남"
 }

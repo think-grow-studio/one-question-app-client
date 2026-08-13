@@ -2,6 +2,7 @@ import { Image, StyleSheet } from 'react-native';
 import { XStack, YStack } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
+import { Button } from '@/shared/ui/Button';
 import { sp, radius, fs } from '@/shared/utils/responsive';
 import { ANALYSIS_TYPE_META } from '../constants/analysisTypes';
 import type { AnalysisDetailDto } from '../types/api';
@@ -14,7 +15,12 @@ function formatDate(iso: string, locale: string): string {
   }).format(new Date(iso));
 }
 
-export function ResultContent({ detail }: { detail: AnalysisDetailDto }) {
+interface ResultContentProps {
+  detail: AnalysisDetailDto;
+  onShowSources: () => void;
+}
+
+export function ResultContent({ detail, onShowSources }: ResultContentProps) {
   const { t, i18n } = useTranslation('analysis');
   const meta = ANALYSIS_TYPE_META[detail.reportType];
   const locale = i18n.resolvedLanguage ?? i18n.language;
@@ -28,10 +34,19 @@ export function ResultContent({ detail }: { detail: AnalysisDetailDto }) {
             {t(`types.${meta.i18nKey}.name`)}
           </Text>
         </XStack>
-        <Text variant="caption">
-          {formatDate(detail.requestedAt, locale)} ·{' '}
-          {t('result.answerCount', { count: detail.sources.length })}
-        </Text>
+        <XStack ai="center" jc="space-between" gap="$2">
+          <Text variant="caption">{formatDate(detail.requestedAt, locale)}</Text>
+          <Button
+            label={t('result.sourcesButton')}
+            variant="outlined"
+            size="small"
+            fullWidth={false}
+            accessibilityHint={t('result.sourcesButtonHint', {
+              count: detail.sources.length,
+            })}
+            onPress={onShowSources}
+          />
+        </XStack>
       </YStack>
 
       {detail.reportType === 'THINKING_PATTERN' ? (

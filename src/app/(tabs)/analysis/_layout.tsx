@@ -8,6 +8,7 @@ export default function AnalysisStackLayout() {
       <Stack.Screen name="create" options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="select" options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="[id]" options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="[id]/sources" options={{ animation: 'slide_from_right' }} />
     </Stack>
   );
 }

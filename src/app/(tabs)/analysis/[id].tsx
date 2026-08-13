@@ -69,7 +69,12 @@ export default function AnalysisResultScreen() {
             )}
           </YStack>
         ) : presentationState === 'completed' && detail ? (
-          <ResultContent detail={detail} />
+          <ResultContent
+            detail={detail}
+            onShowSources={() =>
+              router.push(`/(tabs)/analysis/${detail.analysisReportId}/sources`)
+            }
+          />
         ) : presentationState === 'failed' ? (
           <YStack ai="center" jc="center" py="$10" gap="$2">
             <Text style={styles.emoji}>😶‍🌫️</Text>

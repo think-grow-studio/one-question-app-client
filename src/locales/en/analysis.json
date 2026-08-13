@@ -101,12 +101,24 @@
   },
   "result": {
     "answerCount": "{{count}} answers",
+    "sourcesButton": "Used answers",
+    "sourcesButtonHint": "View the {{count}} answers used for this report.",
     "thinkingHeading": "Patterns found in your answers",
     "comfortHeading": "To you",
     "processingTitle": "Still analyzing",
     "processingMessage": "We'll notify you when it's done.",
     "loadErrorTitle": "Couldn't open this report",
     "loadErrorMessage": "The report may no longer exist, or it couldn't be loaded right now."
+  },
+  "sources": {
+    "title": "Used answers",
+    "description": "This report was created from the {{count}} answers below.",
+    "questionLabel": "Question",
+    "answerLabel": "My answer",
+    "emptyTitle": "Used answers aren't available",
+    "emptyMessage": "There are no answers linked to this report.",
+    "loadErrorTitle": "Couldn't load the used answers",
+    "loadErrorMessage": "Please try again in a moment."
   },
   "tab": "Meet"
 }
