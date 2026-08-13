@@ -5,6 +5,7 @@ import { Text } from '@/shared/ui/Text';
 import { useThemeStore } from '@/shared/stores/useThemeStore';
 import { radius, sp } from '@/shared/utils/responsive';
 import { ANALYSIS_TYPE_META, getCardPalette } from '../constants/analysisTypes';
+import { getAnalysisStatusColor } from '../constants/analysisStatusColors';
 import {
   getAnalysisStatusLabelKey,
   isAnalysisReportOpenable,
@@ -27,6 +28,7 @@ export function ReportListRow({ item, onPress }: ReportListRowProps) {
     day: 'numeric',
   }).format(new Date(item.requestedAt));
   const statusLabel = t(getAnalysisStatusLabelKey(item.status));
+  const statusColor = getAnalysisStatusColor(item.status, isDark);
   const openable = isAnalysisReportOpenable(item.status);
   const pending = item.status === 'PENDING';
 
@@ -41,14 +43,16 @@ export function ReportListRow({ item, onPress }: ReportListRowProps) {
         <YStack style={styles.marker} backgroundColor={palette.pill} />
         <Image source={meta.image} style={styles.character} resizeMode="contain" />
         <YStack flex={1} gap="$1">
-          <XStack ai="center" gap="$1.5">
-            <Text variant="caption">{dateLabel} ·</Text>
-            {pending && <ActivityIndicator size="small" color={palette.pill} />}
-            <Text variant="caption">{statusLabel}</Text>
-          </XStack>
           <Text variant="label" numberOfLines={1}>
             {t(`types.${meta.i18nKey}.name`)}
           </Text>
+          <XStack ai="center" gap="$1.5">
+            <Text variant="caption">{dateLabel} ·</Text>
+            <Text variant="caption" color={statusColor}>
+              {statusLabel}
+            </Text>
+            {pending && <ActivityIndicator size="small" color={statusColor} />}
+          </XStack>
         </YStack>
       </XStack>
     </ReportRowButton>
