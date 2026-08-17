@@ -1,11 +1,11 @@
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { Pressable, ScrollView, StyleSheet } from 'react-native';
 import { XStack, YStack, useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { Screen } from '@/shared/layout/Screen';
 import { Text } from '@/shared/ui/Text';
 import { Button } from '@/shared/ui/Button';
 import { BackIcon } from '@/shared/icons/BackIcon';
-import { useAccentColors, useScreenBackground } from '@/shared/theme';
+import { useScreenBackground } from '@/shared/theme';
 import { fs, radius, sp } from '@/shared/utils/responsive';
 import { sortAnalysisSourcesNewestFirst } from '../domain/analysisSources';
 import { useAnalysisDetail } from '../hooks/queries/useAnalysisQueries';
@@ -59,12 +59,32 @@ function SourceCard({
   );
 }
 
+function SourcesSkeleton() {
+  return (
+    <YStack gap="$3">
+      {[0, 1].map((index) => (
+        <YStack
+          key={index}
+          gap="$3"
+          backgroundColor="$surface"
+          borderColor="$borderColor"
+          style={styles.card}
+        >
+          <YStack backgroundColor="$backgroundSoft" style={styles.skeletonDate} />
+          <YStack backgroundColor="$backgroundSoft" style={styles.skeletonQuestion} />
+          <YStack height={StyleSheet.hairlineWidth} backgroundColor="$borderColor" />
+          <YStack backgroundColor="$backgroundSoft" style={styles.skeletonAnswer} />
+        </YStack>
+      ))}
+    </YStack>
+  );
+}
+
 export function ReportSourcesContent({
   reportId,
   onBack,
 }: ReportSourcesContentProps) {
   const theme = useTheme();
-  const accent = useAccentColors();
   const screenBg = useScreenBackground();
   const { t, i18n } = useTranslation('analysis');
   const { data: detail, isLoading, isError, refetch } = useAnalysisDetail(reportId);
@@ -95,9 +115,7 @@ export function ReportSourcesContent({
         showsVerticalScrollIndicator={false}
       >
         {isLoading ? (
-          <YStack ai="center" jc="center" py="$10">
-            <ActivityIndicator color={accent.primary} />
-          </YStack>
+          <SourcesSkeleton />
         ) : showError ? (
           <YStack ai="center" jc="center" py="$10" gap="$3">
             <Text variant="subheading" center>
@@ -161,5 +179,20 @@ const styles = StyleSheet.create({
   },
   contentText: {
     lineHeight: fs(16) * 1.65,
+  },
+  skeletonDate: {
+    width: '32%',
+    height: sp(12),
+    borderRadius: radius(6),
+  },
+  skeletonQuestion: {
+    width: '88%',
+    height: sp(44),
+    borderRadius: radius(8),
+  },
+  skeletonAnswer: {
+    width: '100%',
+    height: sp(76),
+    borderRadius: radius(8),
   },
 });
