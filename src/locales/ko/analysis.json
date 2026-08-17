@@ -100,7 +100,6 @@
     "questionLabel": "Q."
   },
   "result": {
-    "answerCount": "답변 {{count}}개",
     "sourcesButton": "사용한 답변",
     "sourcesButtonHint": "리포트에 사용한 답변 {{count}}개를 확인해요.",
     "thinkingHeading": "답변에서 발견한 생각의 흐름",

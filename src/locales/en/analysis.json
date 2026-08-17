@@ -100,7 +100,6 @@
     "questionLabel": "Q."
   },
   "result": {
-    "answerCount": "{{count}} answers",
     "sourcesButton": "Used answers",
     "sourcesButtonHint": "View the {{count}} answers used for this report.",
     "thinkingHeading": "Patterns found in your answers",
