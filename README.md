@@ -104,6 +104,7 @@ app/
 │  │  ├─ create.tsx         # 리포트 종류 선택 + 상세 소개 시트
 │  │  ├─ select.tsx         # 현재 연차 답변 선택
 │  │  ├─ [id].tsx           # 결과 상세
+│  │  ├─ [id]/sources.tsx   # 리포트 생성에 사용한 답변
 │  │  └─ history.tsx        # 이전 경로 호환용 홈 리다이렉트
 │  └─ settings.tsx          # 설정
 ├─ answer/index.tsx         # 답변 작성 — modal, gestureEnabled:false
