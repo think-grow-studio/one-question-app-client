@@ -1,5 +1,5 @@
 import { ActivityIndicator, Image, StyleSheet } from 'react-native';
-import { Button, XStack, YStack, styled } from 'tamagui';
+import { Button, XStack, YStack, styled, useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { Text } from '@/shared/ui/Text';
 import { useThemeStore } from '@/shared/stores/useThemeStore';
@@ -18,6 +18,7 @@ interface ReportListRowProps {
 }
 
 export function ReportListRow({ item, onPress }: ReportListRowProps) {
+  const theme = useTheme();
   const isDark = useThemeStore((state) => state.mode) === 'dark';
   const { t, i18n } = useTranslation('analysis');
   const meta = ANALYSIS_TYPE_META[item.reportType];
@@ -28,7 +29,11 @@ export function ReportListRow({ item, onPress }: ReportListRowProps) {
     day: 'numeric',
   }).format(new Date(item.requestedAt));
   const statusLabel = t(getAnalysisStatusLabelKey(item.status));
-  const statusColor = getAnalysisStatusColor(item.status, isDark);
+  const statusColor = getAnalysisStatusColor(item.status, {
+    pending: theme.statusPending.val,
+    completed: theme.statusCompleted.val,
+    failed: theme.statusFailed.val,
+  });
   const openable = isAnalysisReportOpenable(item.status);
   const pending = item.status === 'PENDING';
 

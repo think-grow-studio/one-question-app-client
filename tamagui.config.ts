@@ -96,6 +96,9 @@ const config = createTamagui({
       cardPeach: '#FFF8F0',
 
       // Semantic colors
+      statusPending: '#9A6200',
+      statusCompleted: '#2F7D5A',
+      statusFailed: '#C94B4B',
       error: '#FF6B6B',
       errorMuted: '#FFE5E5',
     },
@@ -139,6 +142,9 @@ const config = createTamagui({
       cardPeach: '#1C1C1E',
 
       // Semantic colors
+      statusPending: '#F0B95B',
+      statusCompleted: '#72D3A2',
+      statusFailed: '#FF8A8A',
       error: '#FF8A8A',
       errorMuted: '#3A2020',
     },
