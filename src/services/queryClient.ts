@@ -52,36 +52,29 @@ const exponentialBackoff = (attemptIndex: number) => {
  *
  * 재시도 조건:
  * - 5xx 서버 에러: 재시도
- * - 408 Timeout: 재시도
- * - 429 Rate Limit: 재시도 (Retry-After 헤더 고려)
+ * - 408 Timeout / 429 Rate Limit: 재시도
+ *   (apiClient가 에러를 ApiErrorResponse{requestId,status,code,message}로
+ *   정규화하며 원본 응답 헤더는 버리므로 Retry-After 기반 분기는 여기서 불가능 —
+ *   필요해지면 apiClient 정규화 단계에서 헤더 값을 실어 보내야 한다)
  * - 401 Unauthorized: 재시도 안 함 (apiClient에서 이미 token refresh 처리)
- * - 4xx 클라이언트 에러: 재시도 안 함
+ * - 4xx 클라이언트 에러(408/429 제외): 재시도 안 함
  * - 네트워크 에러: 재시도
  */
-const shouldRetry = (failureCount: number, error: any) => {
+const shouldRetry = (failureCount: number, error: Error) => {
   // 최대 1회 재시도
   if (failureCount >= 1) return false;
 
-  const status = error?.status;
+  // TanStack Query의 retry 콜백 타입은 Error지만, apiClient는 항상
+  // ApiErrorResponse 모양의 일반 객체를 reject한다 (실제 Error 인스턴스 아님).
+  const status = (error as unknown as ApiErrorResponse)?.status;
 
   // 401은 apiClient에서 이미 처리됨 (token refresh 시도 완료)
   // 여기서 재시도하면 불필요한 중복 요청 발생
   if (status === 401) return false;
 
-  // 429 Rate Limit: Retry-After 헤더 확인
-  if (status === 429) {
-    const retryAfter = error.response?.headers?.['retry-after'];
-    if (retryAfter) {
-      const seconds = parseInt(retryAfter, 10);
-      // 60초 이상 대기가 필요하면 재시도 안 함 (UX 저하)
-      if (!isNaN(seconds) && seconds > 60) return false;
-    }
-    return true;
-  }
-
   // 4xx 에러는 재시도 안 함 (408, 429 제외)
   if (status >= 400 && status < 500) {
-    return status === 408;
+    return status === 408 || status === 429;
   }
 
   // 5xx, 네트워크 에러는 재시도
@@ -107,11 +100,11 @@ export const queryClient = new QueryClient({
       refetchOnReconnect: true,
     },
     mutations: {
-      retry: (failureCount, error: any) => {
+      retry: (failureCount, error: Error) => {
         // Mutation은 최대 1회 재시도
         if (failureCount >= 1) return false;
 
-        const status = error?.status;
+        const status = (error as unknown as ApiErrorResponse)?.status;
         // 5xx 또는 네트워크 에러만 재시도
         return !status || status >= 500;
       },
