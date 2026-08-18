@@ -13,6 +13,8 @@ import { useRef, useCallback, useEffect } from 'react';
  *   submitForm();
  * }, 500);
  */
+// any 예외: 제네릭 콜러블 제약 관례 — unknown[]/unknown으로 바꾸면 파라미터 반공변성 때문에
+// 타입이 있는 실제 콜백(예: (id: string) => void)이 T를 만족 못 해 호출부가 깨진다.
 export function useThrottledCallback<T extends (...args: any[]) => any>(
   callback: T,
   delay: number = 500
