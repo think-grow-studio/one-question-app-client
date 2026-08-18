@@ -3,7 +3,6 @@ import * as Device from 'expo-device';
 
 // Base design dimensions (iPhone 14 Pro)
 const BASE_WIDTH = 393;
-const BASE_HEIGHT = 852;
 
 // Get screen dimensions once at app start
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -11,19 +10,8 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 // Device type (static)
 export const IS_TABLET = Device.deviceType === Device.DeviceType.TABLET;
 
-// Scale factors (static)
+// Scale factor (static)
 const SCALE_WIDTH = SCREEN_WIDTH / BASE_WIDTH;
-const SCALE_HEIGHT = SCREEN_HEIGHT / BASE_HEIGHT;
-
-// Horizontal scale - based on screen width
-export function hs(size: number): number {
-  return Math.round(PixelRatio.roundToNearestPixel(size * SCALE_WIDTH));
-}
-
-// Vertical scale - based on screen height
-export function vs(size: number): number {
-  return Math.round(PixelRatio.roundToNearestPixel(size * SCALE_HEIGHT));
-}
 
 // Moderate scale - balanced scaling with optional factor
 // factor: 0 = no scaling, 1 = full horizontal scaling
