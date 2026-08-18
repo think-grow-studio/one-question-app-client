@@ -8,7 +8,7 @@ import { TrashIcon } from '@/shared/icons/TrashIcon';
 import { useAccentColors } from '@/shared/theme';
 import { getFontStyle } from '@/shared/theme/typography';
 import { cs, fs, radius, sp } from '@/shared/utils/responsive';
-import { pickNicknameCharacter } from '@/shared/utils/nicknameCharacter';
+import { pickNicknameCharacter } from '@/features/feed/utils/nicknameCharacter';
 
 const MOCK_NICKNAME = '따뜻한 거북이';
 const MOCK_DATE = '오늘';

@@ -5,7 +5,7 @@ import {
   CHARACTER_BY_KEY,
   CHARACTER_BY_KO,
   NICKNAME_CHARACTERS,
-} from '@/shared/constants/nicknameCharacters';
+} from '@/features/feed/constants/nicknameCharacters';
 
 // Server-issued anonymous nicknames follow the format "<adjective> <animal>"
 // (see AnonymousNickname.java). We extract the animal token and resolve it

@@ -5,7 +5,7 @@ import { HeartIcon } from '@/shared/icons/HeartIcon';
 import { useAccentColors } from '@/shared/theme';
 import { getFontStyle } from '@/shared/theme/typography';
 import { cs, fs, radius, sp } from '@/shared/utils/responsive';
-import { pickNicknameCharacter } from '@/shared/utils/nicknameCharacter';
+import { pickNicknameCharacter } from '@/features/feed/utils/nicknameCharacter';
 
 interface MiniCard {
   nickname: string;

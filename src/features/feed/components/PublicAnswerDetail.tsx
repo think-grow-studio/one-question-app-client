@@ -17,7 +17,7 @@ import { useQuestionCardStyles } from '@/shared/ui/QuestionCard';
 import { useAccentColors, useScreenBackground } from '@/shared/theme';
 import { getFontStyle } from '@/shared/theme/typography';
 import { cs, fs, radius, sp } from '@/shared/utils/responsive';
-import { pickNicknameCharacter } from '@/shared/utils/nicknameCharacter';
+import { pickNicknameCharacter } from '@/features/feed/utils/nicknameCharacter';
 import {
   useDailyPublicQuestion,
   useInfinitePublicAnswers,

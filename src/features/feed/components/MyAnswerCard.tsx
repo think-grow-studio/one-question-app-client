@@ -10,7 +10,7 @@ import { AlertDialog } from '@/shared/ui/AlertDialog';
 import { useAccentColors } from '@/shared/theme';
 import { getFontStyle } from '@/shared/theme/typography';
 import { fs, sp, radius, cs } from '@/shared/utils/responsive';
-import { pickNicknameCharacter } from '@/shared/utils/nicknameCharacter';
+import { pickNicknameCharacter } from '@/features/feed/utils/nicknameCharacter';
 import { formatFeedDate } from '../utils/feedUtils';
 import type { FeedItemDomain } from '../types/api';
 
