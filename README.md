@@ -87,7 +87,7 @@ features/<name>/
 ├─ domain/ constants/ utils/  # 순수 로직 (필요시)
 ```
 
-- Barrel export(`index.ts`) 사용 안 함 — `@/features/...` 직접 임포트 (path alias는 `tsconfig.json`).
+- `features/*` 최상위 barrel(`index.ts`) 사용 안 함 — `@/features/...` 직접 임포트 (path alias는 `tsconfig.json`). 컴포넌트/서비스 하위 폴더(예: `shared/ui/AlertDialog/`, `services/firebase/`)를 하나의 응집 단위로 노출하는 barrel은 허용 — 이름을 명시해서 재수출(`export { X } from './X'`), `export * from`은 이름 충돌 위험이 있어 금지.
 - `shared/`로 옮기는 기준: **실제로 2+ feature가 쓸 때** — 선제적 이동 금지.
 
 ## 4. 네비게이션 구조
