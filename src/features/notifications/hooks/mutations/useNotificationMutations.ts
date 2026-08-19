@@ -2,7 +2,7 @@ import { useMutation, useQueryClient, QueryClient } from '@tanstack/react-query'
 import { notificationApi } from '@/features/notifications/api/notificationApi';
 import { memberQueryKeys } from '@/features/member/hooks/queries/useMemberQueries';
 import { useNotificationStore } from '@/features/notifications/stores/useNotificationStore';
-import { GetMemberResponse, NotificationSetting } from '@/shared/types/api';
+import { GetMemberResponse, NotificationSetting } from '@/shared/types/member';
 
 // upsertSetting은 전체 교체(PUT)라 모든 입력에 analysisReportEnabled를 실어
 // 다른 토글 조작이 분석 리포트 설정을 지우지 않도록 한다.

@@ -9,7 +9,7 @@ import {
 import Constants from 'expo-constants';
 import { authApi } from '@/features/auth/api/authApi';
 import { useAuthStore } from '@/shared/stores/useAuthStore';
-import { GoogleAuthRequest } from '@/shared/types/api';
+import { GoogleAuthRequest } from '@/features/auth/types/api';
 import { logEvent, AnalyticsEvents } from '@/services/firebase';
 
 // Google Sign-In 설정

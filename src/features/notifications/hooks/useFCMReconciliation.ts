@@ -11,7 +11,7 @@ import {
   decideReconcileAction,
   needsSdkToken,
 } from '@/features/notifications/domain/reconcileDecision';
-import { GetMemberResponse } from '@/shared/types/api';
+import { GetMemberResponse } from '@/shared/types/member';
 
 /**
  * 사용자가 받겠다고 한 알림 카테고리 (intent) — 호출 시점의 값을 읽는다.

@@ -1,8 +1,8 @@
 import { apiClient } from '@/services/apiClient';
+import type { AuthResponse } from '@/shared/types/auth';
 import type {
   GoogleAuthRequest,
   AppleAuthRequest,
-  AuthResponse,
   ReissueTokenRequest,
   AnonymousAuthRequest,
   CheckGoogleLinkRequest,
@@ -11,7 +11,7 @@ import type {
   CheckAppleLinkRequest,
   CheckAppleLinkResponse,
   LinkToAppleRequest,
-} from '@/shared/types/api';
+} from '@/features/auth/types/api';
 
 export const authApi = {
   googleLogin: (data: GoogleAuthRequest) =>

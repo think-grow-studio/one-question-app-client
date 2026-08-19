@@ -3,7 +3,7 @@ import { Platform } from 'react-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { authApi } from '@/features/auth/api/authApi';
 import { useAuthStore } from '@/shared/stores/useAuthStore';
-import { AppleAuthRequest } from '@/shared/types/api';
+import { AppleAuthRequest } from '@/features/auth/types/api';
 import { createAppleNonce } from '@/features/auth/utils/appleNonce';
 import { logEvent, AnalyticsEvents } from '@/services/firebase';
 

@@ -1,5 +1,5 @@
 import { apiClient } from '@/services/apiClient';
-import { NotificationSetting } from '@/shared/types/api';
+import { NotificationSetting } from '@/shared/types/member';
 
 interface UpsertSettingRequest {
   alarmTime: string;

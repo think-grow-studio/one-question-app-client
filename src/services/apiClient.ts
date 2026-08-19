@@ -5,7 +5,7 @@ import { LANGUAGE_LOCALE_MAP } from '@/shared/stores/useLanguageStore';
 import { storage } from './storage';
 import i18n from '@/locales';
 import { useAuthStore } from '@/shared/stores/useAuthStore';
-import { ApiErrorResponse, AuthResponse } from '@/shared/types/api';
+import { ApiErrorResponse } from '@/shared/types/api';
 import { tokenRefreshService } from './tokenRefreshService';
 import { recordError } from '@/services/firebase';
 

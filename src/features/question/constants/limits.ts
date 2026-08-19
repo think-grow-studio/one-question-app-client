@@ -1,4 +1,4 @@
-import { MemberPermission } from '@/shared/types/api';
+import { MemberPermission } from '@/shared/types/member';
 
 export const LIKE_POP_MIN_COUNT = 1;
 
