@@ -18,7 +18,7 @@ import {
   type SelectableAnswer,
 } from '@/features/analysis/hooks/useAnswerSelection';
 import { useCreateAnalysis } from '@/features/analysis/hooks/mutations/useAnalysisMutations';
-import { useAnalysisPushPrompt } from '@/features/analysis/hooks/useAnalysisPushPrompt';
+import { useAnalysisPushPrompt } from '@/app/integrations/analysis-notifications/useAnalysisPushPrompt';
 import {
   ANALYSIS_TYPE_META,
   isAnalysisType,

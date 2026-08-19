@@ -48,7 +48,7 @@
 | 경로 | 관문 |
 | --- | --- |
 | `toggleNotification` / `toggleAnalysisReport` | `requestNotificationPermission()` |
-| `useAnalysisPushPrompt` | `getNotificationPermissionStatus()` |
+| `useAnalysisPushPrompt` (`app/integrations/analysis-notifications`, notifications 외부) | `getNotificationPermissionStatus()` |
 | `onFCMTokenRefresh` (`useFCMLifecycle`) | `if (!currentToken) return` — 토큰이 이미 없으면 되살리지 않음 |
 | `useFCMReconciliation` | 권한 확인이 로직 본체 |
 
