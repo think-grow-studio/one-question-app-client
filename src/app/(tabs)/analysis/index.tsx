@@ -13,9 +13,8 @@ import { logScreenView } from '@/platform/firebase';
 import { ReportCreateCard } from '@/features/analysis/components/ReportCreateCard';
 import { ReportListRow } from '@/features/analysis/components/ReportListRow';
 import { useAnalysisAvailability, useAnalysisHistory } from '@/features/analysis/hooks/queries/useAnalysisQueries';
+import { getAnalysisStatusMessage } from '@/features/analysis/model/analysisAvailabilityPresentation';
 import type { AnalysisHistoryItemDto } from '@/features/analysis/types/api';
-
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 export default function AnalysisLandingScreen() {
   const router = useRouter();
@@ -40,22 +39,11 @@ export default function AnalysisLandingScreen() {
     logScreenView('Analysis');
   }, []);
 
-  const reason = availability?.reason;
   const canRequest = availability?.canRequest ?? false;
-  const cooldownDays = availability?.nextAvailableAt
-    ? Math.max(1, Math.ceil((new Date(availability.nextAvailableAt).getTime() - Date.now()) / DAY_MS))
-    : 0;
-  const statusMessage =
-    reason === 'INSUFFICIENT_ANSWERS'
-      ? t('status.locked.progress', {
-          current: availability?.answerCount ?? 0,
-          required: availability?.requiredCount ?? 10,
-        })
-      : reason === 'COOLDOWN'
-        ? t('status.cooldown.message', { days: cooldownDays })
-        : reason === 'PROCESSING'
-          ? t('list.processingHint')
-          : undefined;
+  const statusMessageInfo = getAnalysisStatusMessage(availability);
+  const statusMessage = statusMessageInfo
+    ? t(statusMessageInfo.key, 'params' in statusMessageInfo ? statusMessageInfo.params : undefined)
+    : undefined;
   const showLoadError = isError && historyItems.length === 0;
 
   const handleEndReached = useCallback(() => {
