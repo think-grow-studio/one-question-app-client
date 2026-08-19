@@ -3,6 +3,15 @@ import { MutationCache, QueryCache, QueryClient, focusManager } from '@tanstack/
 import { useApiErrorStore } from '@/shared/stores/useApiErrorStore';
 import type { ApiErrorResponse } from '@/shared/types/api';
 
+// apiClient가 모든 응답 에러를 ApiErrorResponse로 정규화해서 reject하므로
+// (실제 Error 인스턴스가 아님), TError 기본값을 프로젝트 전역에 등록한다.
+// 이후 TError를 명시하지 않은 useQuery/useMutation도 자동으로 정확한 타입을 받는다.
+declare module '@tanstack/react-query' {
+  interface Register {
+    defaultError: ApiErrorResponse;
+  }
+}
+
 /**
  * refetchOnWindowFocus를 React Native에서 실제로 동작하게 한다.
  * TanStack의 포커스 감지는 브라우저 이벤트 기반이라, 이 연결이 없으면
@@ -28,11 +37,10 @@ const SILENT_ERROR_CODES = new Set<string>([
   'PUBLIC-QUESTION-005',
 ]);
 
-const handleApiError = (error: unknown) => {
-  const apiError = error as ApiErrorResponse;
-  if (!apiError?.code) return;
-  if (SILENT_ERROR_CODES.has(apiError.code)) return;
-  useApiErrorStore.getState().showError(apiError.message, apiError.requestId);
+const handleApiError = (error: ApiErrorResponse) => {
+  if (!error?.code) return;
+  if (SILENT_ERROR_CODES.has(error.code)) return;
+  useApiErrorStore.getState().showError(error.message, error.requestId);
 };
 
 /**
@@ -60,13 +68,11 @@ const exponentialBackoff = (attemptIndex: number) => {
  * - 4xx 클라이언트 에러(408/429 제외): 재시도 안 함
  * - 네트워크 에러: 재시도
  */
-const shouldRetry = (failureCount: number, error: Error) => {
+const shouldRetry = (failureCount: number, error: ApiErrorResponse) => {
   // 최대 1회 재시도
   if (failureCount >= 1) return false;
 
-  // TanStack Query의 retry 콜백 타입은 Error지만, apiClient는 항상
-  // ApiErrorResponse 모양의 일반 객체를 reject한다 (실제 Error 인스턴스 아님).
-  const status = (error as unknown as ApiErrorResponse)?.status;
+  const status = error?.status;
 
   // 401은 apiClient에서 이미 처리됨 (token refresh 시도 완료)
   // 여기서 재시도하면 불필요한 중복 요청 발생
@@ -100,11 +106,11 @@ export const queryClient = new QueryClient({
       refetchOnReconnect: true,
     },
     mutations: {
-      retry: (failureCount, error: Error) => {
+      retry: (failureCount, error: ApiErrorResponse) => {
         // Mutation은 최대 1회 재시도
         if (failureCount >= 1) return false;
 
-        const status = (error as unknown as ApiErrorResponse)?.status;
+        const status = error?.status;
         // 5xx 또는 네트워크 에러만 재시도
         return !status || status >= 500;
       },
