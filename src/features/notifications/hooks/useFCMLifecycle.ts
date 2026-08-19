@@ -1,33 +1,38 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { onFCMMessage, onFCMTokenRefresh } from '@/services/firebase';
-import { queryClient } from '@/services/queryClient';
-import { analysisKeys } from '@/features/analysis/hooks/queries/useAnalysisQueries';
 import { useNotificationStore } from '@/features/notifications/stores/useNotificationStore';
 import { notificationApi } from '@/features/notifications/api/notificationApi';
 import {
   ensureAndroidNotificationChannel,
   NOTIFICATION_CHANNEL_IDS,
 } from '@/features/notifications/services/notifications';
+import { parseNotificationEvent, type NotificationEvent } from '@/features/notifications/domain/notificationEvents';
+
+interface UseFCMLifecycleParams {
+  /** 파싱된 push event를 외부(app integration)로 전달. transport 이후의 반응은 호출측 책임. */
+  onEvent?: (event: NotificationEvent) => void;
+}
 
 /**
  * FCM 앱 라이프사이클 리스너
  * - 토큰 갱신 감지 → 서버 업데이트
  * - iOS foreground 표시: RNFirebase firebase.json presentation option
  * - Android foreground 표시: FCM onMessage를 local notification으로 표시 (타입별 채널 라우팅)
- * - 분석 완료(ANALYSIS_DONE) 수신 시 분석 쿼리 무효화 → 화면 어디에 있든 다음 진입에 최신 반영
+ * - 수신한 push를 typed event로 파싱해 onEvent로 전달 (이 feature는 transport까지만 담당)
  */
-export function useFCMLifecycle() {
+export function useFCMLifecycle({ onEvent }: UseFCMLifecycleParams = {}) {
+  const onEventRef = useRef(onEvent);
+  onEventRef.current = onEvent;
+
   useEffect(() => {
     ensureAndroidNotificationChannel();
   }, []);
 
   useEffect(() => {
     return onFCMMessage(async (remoteMessage) => {
-      if (remoteMessage.data?.type === 'ANALYSIS_DONE') {
-        void queryClient.invalidateQueries({ queryKey: analysisKeys.all });
-      }
+      onEventRef.current?.(parseNotificationEvent(remoteMessage.data));
 
       if (Platform.OS !== 'android') return;
 

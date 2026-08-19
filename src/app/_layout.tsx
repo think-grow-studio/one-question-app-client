@@ -27,7 +27,7 @@ import { VersionCheckDialog } from '@/shared/ui/VersionCheckDialog';
 import { useAppBootstrap } from '@/shared/hooks/useAppBootstrap';
 import { useVersionCheck } from '@/shared/hooks/useVersionCheck';
 import '@/features/admob/config/adInit'; // AdMob SDK 초기화
-import { useFCMLifecycle } from '@/features/notifications/hooks/useFCMLifecycle';
+import { useNotificationAppIntegration } from '@/app/integrations/notifications/useNotificationAppIntegration';
 import { useNotificationDeepLink } from '@/features/notifications/hooks/useNotificationDeepLink';
 import { registerNotificationAuthCleanup } from '@/features/notifications/services/authCleanup';
 
@@ -46,7 +46,7 @@ function RootLayoutNav() {
   const { dialogState, handleDialogClose, handleUpdate, handleServerDownConfirm } =
     useVersionCheck();
 
-  useFCMLifecycle();
+  useNotificationAppIntegration();
   useNotificationDeepLink({ isAuthenticated, isAppReady: splashDone });
 
   const rootBackgroundColor = mode === 'dark' ? '#1C1C1E' : '#FFFFFF';

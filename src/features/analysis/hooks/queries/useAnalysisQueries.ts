@@ -18,8 +18,9 @@ export const analysisKeys = {
 /**
  * 랜딩 게이트 판정용 가용성 조회.
  *
- * **폴링하지 않는다.** 완료 반영은 ANALYSIS_DONE 푸시(useFCMLifecycle의 invalidate)와
- * 포그라운드 복귀 시 refetch(services/queryClient의 focusManager 연결)에 맡긴다.
+ * **폴링하지 않는다.** 완료 반영은 ANALYSIS_DONE 푸시(app/integrations/notifications의
+ * invalidateAnalysisQueries 호출)와 포그라운드 복귀 시 refetch(services/queryClient의
+ * focusManager 연결)에 맡긴다.
  */
 export function useAnalysisAvailability() {
   return useQuery({
