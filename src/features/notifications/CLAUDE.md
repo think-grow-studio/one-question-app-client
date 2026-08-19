@@ -18,7 +18,7 @@
 2. 백그라운드: FCM SDK가 표시한 알림 탭 (`onFCMNotificationOpened`)
 3. **종료(quit) 상태**: `getInitialFCMNotification` — 인증 + 스플래시 완료(`isAppReady`) 후 **1회만** 처리
 
-새 알림 타입의 라우팅을 추가하면 `routeFromNotificationData` 한 곳만 고치면 되지만, **경로별 표시 주체가 달라 data payload 구조가 3경로 모두 동일한지 확인**해야 한다.
+이 훅은 raw data를 `parseNotificationEvent`로 typed event까지만 변환한다 — 실제 라우팅 결정은 `app/integrations/notifications/useNotificationAppIntegration`이 소유한다(이 feature는 route 문자열을 모른다). 새 알림 타입을 추가하면 라우팅은 그쪽에서, **경로별 표시 주체가 달라 data payload 구조가 3경로 모두 동일한지**는 여기서 확인해야 한다.
 
 ## Android 포그라운드 표시는 브릿지다 (`useFCMLifecycle`)
 

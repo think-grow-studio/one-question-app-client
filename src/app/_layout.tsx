@@ -28,7 +28,6 @@ import { useAppBootstrap } from '@/shared/hooks/useAppBootstrap';
 import { useVersionCheck } from '@/shared/hooks/useVersionCheck';
 import '@/features/admob/config/adInit'; // AdMob SDK 초기화
 import { useNotificationAppIntegration } from '@/app/integrations/notifications/useNotificationAppIntegration';
-import { useNotificationDeepLink } from '@/features/notifications/hooks/useNotificationDeepLink';
 import { registerNotificationAuthCleanup } from '@/features/notifications/services/authCleanup';
 
 // 로그아웃/탈퇴 시 FCM 토큰 정리를 auth 스토어에 연결 (모듈 로드 시 1회)
@@ -46,8 +45,7 @@ function RootLayoutNav() {
   const { dialogState, handleDialogClose, handleUpdate, handleServerDownConfirm } =
     useVersionCheck();
 
-  useNotificationAppIntegration();
-  useNotificationDeepLink({ isAuthenticated, isAppReady: splashDone });
+  useNotificationAppIntegration({ isAuthenticated, isAppReady: splashDone });
 
   const rootBackgroundColor = mode === 'dark' ? '#1C1C1E' : '#FFFFFF';
 
