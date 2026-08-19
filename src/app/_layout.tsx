@@ -45,7 +45,12 @@ function RootLayoutNav() {
   const { dialogState, handleDialogClose, handleUpdate, handleServerDownConfirm } =
     useVersionCheck();
 
-  useNotificationAppIntegration({ isAuthenticated, isAppReady: splashDone });
+  // 실제 route tree가 렌더되는 조건과 동일해야 한다 (아래 스플래시 게이트 참고) —
+  // splashDone만으로는 updateChecked 대기 중에도 준비된 것으로 착각해 quit-state 알림 처리가
+  // route tree가 없는 시점에 실행될 수 있다.
+  const isAppReady = !isLoading && splashDone && updateChecked;
+
+  useNotificationAppIntegration({ isAuthenticated, isAppReady });
 
   const rootBackgroundColor = mode === 'dark' ? '#1C1C1E' : '#FFFFFF';
 
