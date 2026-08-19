@@ -1,6 +1,6 @@
 import { apiClient } from '@/platform/http/apiClient';
-import type { AuthResponse } from '@/shared/types/auth';
 import type {
+  AuthResponse,
   GoogleAuthRequest,
   AppleAuthRequest,
   ReissueTokenRequest,

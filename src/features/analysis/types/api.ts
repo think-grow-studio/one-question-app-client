@@ -83,9 +83,3 @@ export interface AnalysisHistoryResponse {
   hasNext: boolean;
   nextCursor: number | null;
 }
-
-// --- FCM 페이로드 (서버 → 클라, 분석 완료 알림) ---
-export interface AnalysisDonePushData {
-  type: 'ANALYSIS_DONE';
-  analysisId: string; // FCM data 는 문자열로 전달됨
-}

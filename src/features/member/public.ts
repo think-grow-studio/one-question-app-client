@@ -8,4 +8,5 @@ export {
   invalidateMemberMe,
 } from './domain/memberCache';
 export type { MemberMeSnapshot } from './domain/memberCache';
-export type { NotificationSetting } from '@/shared/types/member';
+export { MemberPermission } from './types/api';
+export type { NotificationSetting } from './types/api';

@@ -1,3 +1,9 @@
+export interface AuthResponse {
+  accessToken: string;
+  refreshToken: string;
+  isNewMember: boolean;
+}
+
 export interface GoogleAuthRequest {
   idToken: string;
   email?: string;

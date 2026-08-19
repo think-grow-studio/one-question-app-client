@@ -29,7 +29,7 @@ import { HomeTimelineView } from './HomeTimelineView';
 import { useDailyHistory, usePrefetchTimeline, questionQueryKeys } from '../hooks/queries/useQuestionQueries';
 import { useServeDailyQuestion, useReloadQuestion } from '../hooks/mutations/useQuestionMutations';
 import { useMemberMe, useIsAdFreeMember } from '@/features/member/hooks/queries/useMemberQueries';
-import { MemberPermission } from '@/shared/types/member';
+import { MemberPermission } from '@/features/member/public';
 import { ApiErrorResponse } from '@/platform/http/types';
 import { useInterstitialAd } from '@/features/admob/hooks/useInterstitialAd';
 import { useQueryClient } from '@tanstack/react-query';

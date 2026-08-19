@@ -1,6 +1,6 @@
 import type { QueryClient } from '@tanstack/react-query';
 import { memberQueryKeys } from '../hooks/queries/useMemberQueries';
-import type { GetMemberResponse, NotificationSetting } from '@/shared/types/member';
+import type { GetMemberResponse, NotificationSetting } from '@/features/member/types/api';
 
 export type MemberMeSnapshot = GetMemberResponse | undefined;
 
