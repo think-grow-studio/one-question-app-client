@@ -1,11 +1,11 @@
-jest.mock('@/services/apiClient', () => ({
+jest.mock('@/platform/http/apiClient', () => ({
   apiClient: {
     get: jest.fn(),
     post: jest.fn(),
   },
 }));
 
-import { apiClient } from '@/services/apiClient';
+import { apiClient } from '@/platform/http/apiClient';
 import { analysisApi } from '../analysisApi';
 import type {
   AnalysisDetailDto,

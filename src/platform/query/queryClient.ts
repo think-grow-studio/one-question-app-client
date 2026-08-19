@@ -1,6 +1,6 @@
 import { AppState, type AppStateStatus } from 'react-native';
 import { MutationCache, QueryCache, QueryClient, focusManager } from '@tanstack/react-query';
-import type { ApiErrorResponse } from '@/shared/types/api';
+import type { ApiErrorResponse } from '@/platform/http/types';
 
 interface QueryRuntimeConfig {
   /** silent 코드가 아닌 모든 쿼리/뮤테이션 에러의 기본 표시 처리 — queryClient는 error store를 직접 모른다. */

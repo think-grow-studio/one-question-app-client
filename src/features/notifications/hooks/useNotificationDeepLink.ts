@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import * as Notifications from 'expo-notifications';
-import { onFCMNotificationOpened, getInitialFCMNotification } from '@/services/firebase';
+import { onFCMNotificationOpened, getInitialFCMNotification } from '@/platform/firebase';
 import {
   parseNotificationEvent,
   type NotificationEvent,

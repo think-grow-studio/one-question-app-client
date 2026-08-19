@@ -1,4 +1,4 @@
-import { apiClient } from '@/services/apiClient';
+import { apiClient } from '@/platform/http/apiClient';
 import type { AuthResponse } from '@/shared/types/auth';
 import type {
   GoogleAuthRequest,

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { AppState } from 'react-native';
 import { QueryClient, useQueryClient } from '@tanstack/react-query';
-import { getFCMToken } from '@/services/firebase';
-import { recordError } from '@/services/firebase/crashlytics';
+import { getFCMToken } from '@/platform/firebase';
+import { recordError } from '@/platform/firebase/crashlytics';
 import { useMemberMe, readMemberNotificationSetting } from '@/features/member/public';
 import { useNotificationStore } from '@/features/notifications/stores/useNotificationStore';
 import { notificationApi } from '@/features/notifications/api/notificationApi';

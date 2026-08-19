@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { signInAnonymously, logEvent, AnalyticsEvents } from '@/services/firebase';
+import { signInAnonymously, logEvent, AnalyticsEvents } from '@/platform/firebase';
 import { authApi } from '@/features/auth/api/authApi';
 import { useAuthStore } from '@/shared/stores/useAuthStore';
 

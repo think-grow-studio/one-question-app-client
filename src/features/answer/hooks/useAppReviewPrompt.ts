@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useAppReviewStore } from '@/features/answer/stores/useAppReviewStore';
-import { requestAppReview } from '@/services/appReview';
+import { requestAppReview } from '@/platform/app/appReview';
 
 /**
  * 답변 제출 흐름의 마지막에 호출. 트리거 조건(첫 5번째 답변, 1회 한정) 충족 시

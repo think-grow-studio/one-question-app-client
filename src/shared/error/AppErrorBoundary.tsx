@@ -1,11 +1,11 @@
 import React, { Component, ReactNode } from 'react';
 import { View, Text, StyleSheet, Pressable, Alert, Platform, Appearance } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { queryClient } from '@/services/queryClient';
+import { queryClient } from '@/platform/query/queryClient';
 import { useApiErrorStore } from '@/shared/stores/useApiErrorStore';
 import { useAuthStore } from '@/shared/stores/useAuthStore';
 import { useThemeStore } from '@/shared/stores/useThemeStore';
-import { recordError } from '@/services/firebase';
+import { recordError } from '@/platform/firebase';
 import { getFontStyle } from '@/shared/theme/typography';
 // shared→features 예외: 크래시 화면에도 배너를 노출하는 제품 결정.
 // 이 컴포넌트는 앱 루트(_layout)에서만 마운트되는 사실상 app 레벨 UI라 허용.

@@ -19,7 +19,7 @@ import { useAlertDialog } from '@/shared/ui/AlertDialog/useAlertDialog';
 import { useWithdrawMutation } from '@/features/auth/hooks/mutations/useAuthMutations';
 import { LinkGoogleButton } from '@/features/auth/components/LinkGoogleButton';
 import { LinkAppleButton } from '@/features/auth/components/LinkAppleButton';
-import { logScreenView, logEvent, AnalyticsEvents } from '@/services/firebase';
+import { logScreenView, logEvent, AnalyticsEvents } from '@/platform/firebase';
 import { getFontStyle } from '@/shared/theme/typography';
 import { BannerAdSlot } from '@/features/admob/components/BannerAdSlot';
 

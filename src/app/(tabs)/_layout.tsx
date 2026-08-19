@@ -12,7 +12,7 @@ import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
 import { useDatePickerStore } from '@/features/question/stores/useDatePickerStore';
 import { formatLocalDate } from '@/shared/utils/date';
 import { useFCMReconciliation } from '@/features/notifications/hooks/useFCMReconciliation';
-import { setUserId } from '@/services/firebase';
+import { setUserId } from '@/platform/firebase';
 
 export default function TabLayout() {
   const theme = useTheme();

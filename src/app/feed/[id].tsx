@@ -4,7 +4,7 @@ import { Screen } from '@/shared/layout/Screen';
 import { PublicAnswerDetail } from '@/features/feed/components/PublicAnswerDetail';
 import { BannerAdSlot } from '@/features/admob/components/BannerAdSlot';
 import { useScreenBackground } from '@/shared/theme';
-import { logScreenView } from '@/services/firebase';
+import { logScreenView } from '@/platform/firebase';
 
 export default function PublicAnswerDetailScreen() {
   const screenBg = useScreenBackground();

@@ -9,7 +9,7 @@ import { Text } from '@/shared/ui/Text';
 import { Button } from '@/shared/ui/Button';
 import { useAccentColors, useScreenBackground } from '@/shared/theme';
 import { radius, sp } from '@/shared/utils/responsive';
-import { logScreenView } from '@/services/firebase';
+import { logScreenView } from '@/platform/firebase';
 import { ReportCreateCard } from '@/features/analysis/components/ReportCreateCard';
 import { ReportListRow } from '@/features/analysis/components/ReportListRow';
 import { useAnalysisAvailability, useAnalysisHistory } from '@/features/analysis/hooks/queries/useAnalysisQueries';

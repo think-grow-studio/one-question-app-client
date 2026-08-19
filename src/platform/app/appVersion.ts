@@ -1,4 +1,4 @@
-import { apiClient } from './apiClient';
+import { apiClient } from '@/platform/http/apiClient';
 
 export interface AppVersionCheckResponse {
   latestVersion: string;

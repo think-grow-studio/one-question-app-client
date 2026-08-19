@@ -2,11 +2,11 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import * as Localization from 'expo-localization';
 import { config } from '@/constants/config';
 import { LANGUAGE_LOCALE_MAP } from '@/locales/localeMap';
-import { storage } from './storage';
+import { storage } from '@/platform/storage/storage';
 import i18n from '@/locales';
-import { ApiErrorResponse } from '@/shared/types/api';
+import { ApiErrorResponse } from './types';
 import { tokenRefreshService } from './tokenRefreshService';
-import { recordError } from '@/services/firebase';
+import { recordError } from '@/platform/firebase';
 
 interface HttpRuntimeConfig {
   /** refresh 실패(401 최종 처리) 시 실행 — apiClient는 auth store를 직접 모른다. */

@@ -1,4 +1,4 @@
-import { getFCMToken } from '@/services/firebase';
+import { getFCMToken } from '@/platform/firebase';
 import { notificationApi } from '@/features/notifications/api/notificationApi';
 import { useNotificationStore } from '@/features/notifications/stores/useNotificationStore';
 

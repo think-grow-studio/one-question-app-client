@@ -1,8 +1,8 @@
 import { create } from 'zustand';
-import { storage } from '@/services/storage';
-import { queryClient } from '@/services/queryClient';
+import { storage } from '@/platform/storage/storage';
+import { queryClient } from '@/platform/query/queryClient';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import { setCrashlyticsUserId, setUserId, signOutFirebase, isFirebaseAnonymousUser } from '@/services/firebase';
+import { setCrashlyticsUserId, setUserId, signOutFirebase, isFirebaseAnonymousUser } from '@/platform/firebase';
 
 /**
  * 세션 종료 시 실행할 feature 측 정리 작업 (의존 역전).

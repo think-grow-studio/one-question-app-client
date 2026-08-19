@@ -7,7 +7,7 @@ import { useThemeStore } from '@/shared/stores/useThemeStore';
 import { useThemeTransition } from '@/shared/ui/ThemeTransitionProvider';
 import { AppSwitch } from '@/shared/ui/AppSwitch';
 import { getFontStyle } from '@/shared/theme';
-import { logEvent, AnalyticsEvents } from '@/services/firebase';
+import { logEvent, AnalyticsEvents } from '@/platform/firebase';
 
 interface ThemeToggleProps {
   showLabel?: boolean;

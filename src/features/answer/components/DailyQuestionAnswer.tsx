@@ -25,7 +25,7 @@ import { useAppReviewPrompt } from '../hooks/useAppReviewPrompt';
 import { useCreateAnswer, useUpdateAnswer } from '@/features/question/hooks/mutations/useQuestionMutations';
 import { BannerAdSlot } from '@/features/admob/components/BannerAdSlot';
 import { sp } from '@/shared/utils/responsive';
-import { logScreenView, logEvent, AnalyticsEvents } from '@/services/firebase';
+import { logScreenView, logEvent, AnalyticsEvents } from '@/platform/firebase';
 
 interface QuestionData {
   date: string;

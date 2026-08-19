@@ -13,7 +13,7 @@ import {
   AppleSignInCancelledError,
 } from '@/features/auth/hooks/mutations/useLinkAppleMutations';
 import { memberQueryKeys } from '@/features/member/hooks/queries/useMemberQueries';
-import { logEvent, AnalyticsEvents } from '@/services/firebase';
+import { logEvent, AnalyticsEvents } from '@/platform/firebase';
 import { getFontStyle } from '@/shared/theme/typography';
 import { sp, radius } from '@/shared/utils/responsive';
 

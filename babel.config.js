@@ -14,7 +14,7 @@ module.exports = function (api) {
             '@': './src',
             '@/app': './src/app',
             '@/features': './src/features',
-            '@/services': './src/services',
+            '@/platform': './src/platform',
             '@/shared': './src/shared',
             '@/constants': './src/constants',
             '@/assets': './src/assets',

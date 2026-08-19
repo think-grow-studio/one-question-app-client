@@ -16,7 +16,7 @@ import { getFontStyle } from '@/shared/theme/typography';
 import { sp, cs, radius, fs } from '@/shared/utils/responsive';
 import { useThemeStore } from '@/shared/stores/useThemeStore';
 import * as WebBrowser from 'expo-web-browser';
-import { logScreenView } from '@/services/firebase';
+import { logScreenView } from '@/platform/firebase';
 
 const logoLight = require('@/assets/images/one-question-light.png');
 const logoDark = require('@/assets/images/one-question-dark.png');

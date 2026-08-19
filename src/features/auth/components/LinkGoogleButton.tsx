@@ -13,7 +13,7 @@ import {
   GoogleSignInCancelledError,
 } from '@/features/auth/hooks/mutations/useLinkGoogleMutations';
 import { memberQueryKeys } from '@/features/member/hooks/queries/useMemberQueries';
-import { logEvent, AnalyticsEvents } from '@/services/firebase';
+import { logEvent, AnalyticsEvents } from '@/platform/firebase';
 import { getFontStyle } from '@/shared/theme/typography';
 import { sp, radius } from '@/shared/utils/responsive';
 

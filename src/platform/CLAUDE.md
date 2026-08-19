@@ -1,6 +1,6 @@
-# services — 인프라 계약과 함정
+# platform — 인프라 계약과 함정
 
-이 폴더는 인프라만 담는다 (비즈니스 서비스는 `features/*/services/`). 에러 처리의 계층별 역할 분담은 README §6이 진실원 — 여기엔 세부 계약만.
+이 폴더는 기술 인프라만 담는다 (제품 feature를 몰라야 한다 — 비즈니스 서비스는 `features/*/services/`). 에러 처리의 계층별 역할 분담은 README §6이 진실원 — 여기엔 세부 계약만.
 
 ## apiClient 계약
 
@@ -26,7 +26,7 @@
 - `apiClient`/`queryClient`는 더 이상 `shared/stores`를 직접 import하지 않는다 (Phase 4 리팩토링으로 제거). 대신 `configureHttpRuntime({ onUnauthorized })`/`configureQueryRuntime({ onGlobalError })`로 앱이 콜백을 주입한다 — `src/app/_layout.tsx` 모듈 최상위에서 1회 호출 (컴포넌트 밖, `registerNotificationAuthCleanup()`과 같은 위치/타이밍).
 - **이 호출은 첫 HTTP 요청/쿼리 에러보다 반드시 먼저 실행돼야 한다** — `_layout.tsx`가 로드되자마자(렌더 전) 동기 호출하는 이유. 새 진입점을 추가해도 이 순서를 깨지 말 것.
 - 콜백 내부는 여전히 호출 시점 `getState()`를 쓴다 (`useAuthStore.getState().logout()` 등) — 모듈 초기화 순서 문제가 없는 이 관례는 유지한다.
-- `ApiErrorResponse`(shared/types/api)·`AuthResponse`(shared/types/auth) 같은 **타입 전용** import는 아직 남아있다 — 이건 런타임 역의존이 아니라 타입 소유권 문제라 Phase 5(services→platform 이동)와 함께 정리 예정(ROADMAP Step 4-4 참고).
+- `ApiErrorResponse`/`ReissueTokenResponse`는 `platform/http/types.ts` 소유(Phase 5 이동 완료). `tokenRefreshService`는 더 이상 `features/auth`의 `AuthResponse`를 공유하지 않는다 — 서버 shape가 우연히 같아도 reissue 응답은 platform이 실제 쓰는 필드(`accessToken`/`refreshToken`)만 별도 타입으로 정의한다. `platform → shared` import는 이제 0이다.
 
 ## storage
 

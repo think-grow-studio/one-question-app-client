@@ -11,7 +11,7 @@ import { InfoIcon } from '@/shared/icons/InfoIcon';
 import { BannerAdSlot } from '@/features/admob/components/BannerAdSlot';
 import { cs } from '@/shared/utils/responsive';
 import { useScreenBackground } from '@/shared/theme';
-import { logScreenView } from '@/services/firebase';
+import { logScreenView } from '@/platform/firebase';
 
 export default function FeedScreen() {
   const { t } = useTranslation('feed');

@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient, type InfiniteData } from '@tanstack/react-query';
-import type { ApiErrorResponse } from '@/shared/types/api';
+import type { ApiErrorResponse } from '@/platform/http/types';
 import { publicQuestionApi } from '../../api/publicQuestionApi';
 import type {
   PublicAnswerDomain,

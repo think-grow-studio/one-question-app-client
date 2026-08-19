@@ -4,8 +4,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import * as Updates from 'expo-updates';
 import { useAuthStore } from '@/shared/stores/useAuthStore';
-import { initializeFirebase, enableCrashlytics } from '@/services/firebase';
-import { storage } from '@/services/storage';
+import { initializeFirebase, enableCrashlytics } from '@/platform/firebase';
+import { storage } from '@/platform/storage/storage';
 
 async function migrateTokensToSecureStore() {
   const migrated = await AsyncStorage.getItem('secure_token_migrated');

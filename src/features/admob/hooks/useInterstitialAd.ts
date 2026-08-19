@@ -6,7 +6,7 @@ import {
   isAdMobSupportedPlatform,
 } from '../config/adUnits';
 import { admobInitPromise } from '../config/adInit';
-import { logEvent, AnalyticsEvents } from '@/services/firebase';
+import { logEvent, AnalyticsEvents } from '@/platform/firebase';
 
 type AdUnitKey =
   | 'interstitialSwipe'

@@ -5,7 +5,7 @@ import { authApi } from '@/features/auth/api/authApi';
 import { useAuthStore } from '@/shared/stores/useAuthStore';
 import { AppleAuthRequest } from '@/features/auth/types/api';
 import { createAppleNonce } from '@/features/auth/utils/appleNonce';
-import { logEvent, AnalyticsEvents } from '@/services/firebase';
+import { logEvent, AnalyticsEvents } from '@/platform/firebase';
 
 export function useAppleLogin() {
   const { login } = useAuthStore();

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
-import { onFCMMessage, onFCMTokenRefresh } from '@/services/firebase';
+import { onFCMMessage, onFCMTokenRefresh } from '@/platform/firebase';
 import { useNotificationStore } from '@/features/notifications/stores/useNotificationStore';
 import { notificationApi } from '@/features/notifications/api/notificationApi';
 import {

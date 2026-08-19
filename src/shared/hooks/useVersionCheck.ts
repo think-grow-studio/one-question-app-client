@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { BackHandler, Linking, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { appVersionService } from '@/services/appVersionService';
+import { appVersionService } from '@/platform/app/appVersion';
 import { meetsMinVersion, hasNewerVersion } from '@/shared/utils/versionComparator';
 import { formatLocalDate } from '@/shared/utils/date';
 import { config } from '@/constants/config';

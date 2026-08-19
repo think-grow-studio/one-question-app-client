@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNotificationStore } from '@/features/notifications/stores/useNotificationStore';
 import { requestNotificationPermission } from '@/features/notifications/services/notifications';
 import { ensurePushTokenRegistered } from '@/features/notifications/services/pushToken';
-import { getFCMToken } from '@/services/firebase';
+import { getFCMToken } from '@/platform/firebase';
 import { useMemberMe } from '@/features/member/public';
 import {
   useUpdateNotificationTimeMutation,

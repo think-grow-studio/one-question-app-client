@@ -6,7 +6,7 @@ import { Screen } from '@/shared/layout/Screen';
 import { AlertDialog, useAlertDialog } from '@/shared/ui/AlertDialog';
 import { QuestionHistoryView } from '@/features/question/components/QuestionHistoryView';
 import { useScreenBackground } from '@/shared/theme';
-import { logScreenView } from '@/services/firebase';
+import { logScreenView } from '@/platform/firebase';
 
 export default function HomeScreen() {
   const screenBg = useScreenBackground();

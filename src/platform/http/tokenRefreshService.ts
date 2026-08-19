@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { config } from '@/constants/config';
-import { storage } from './storage';
-import { AuthResponse } from '@/shared/types/auth';
+import { storage } from '@/platform/storage/storage';
+import { ReissueTokenResponse } from './types';
 
 /**
  * Token Refresh Mutex Service
@@ -52,7 +52,7 @@ class TokenRefreshService {
     }
 
     // apiClient 대신 axios 직접 사용 (인터셉터 무한 루프 방지)
-    const response = await axios.post<AuthResponse>(
+    const response = await axios.post<ReissueTokenResponse>(
       `${config.apiUrl}/api/v1/auth/reissue-token`,
       { refreshToken },
       {

@@ -1,4 +1,4 @@
-import { apiClient } from '@/services/apiClient';
+import { apiClient } from '@/platform/http/apiClient';
 import type {
   CheckCandidateCycleRequest,
   CheckCandidateCycleResponse,

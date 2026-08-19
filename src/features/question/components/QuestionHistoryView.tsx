@@ -30,7 +30,7 @@ import { useDailyHistory, usePrefetchTimeline, questionQueryKeys } from '../hook
 import { useServeDailyQuestion, useReloadQuestion } from '../hooks/mutations/useQuestionMutations';
 import { useMemberMe, useIsAdFreeMember } from '@/features/member/hooks/queries/useMemberQueries';
 import { MemberPermission } from '@/shared/types/member';
-import { ApiErrorResponse } from '@/shared/types/api';
+import { ApiErrorResponse } from '@/platform/http/types';
 import { useInterstitialAd } from '@/features/admob/hooks/useInterstitialAd';
 import { useQueryClient } from '@tanstack/react-query';
 import { DatePickerSheet } from './DatePickerSheet';
@@ -40,7 +40,7 @@ import { useAccentColors, useScreenBackground } from '@/shared/theme';
 import { formatLocalDate } from '@/shared/utils/date';
 import { SCREEN, sp, cs, fs } from '@/shared/utils/responsive';
 import { canReloadQuestion, getReloadCountDisplay, LIKE_POP_MIN_COUNT } from '../constants/limits';
-import { logEvent, AnalyticsEvents } from '@/services/firebase';
+import { logEvent, AnalyticsEvents } from '@/platform/firebase';
 import { QuestionLikeButton } from './QuestionLikeButton';
 import { QuestionLikePopLabel } from './QuestionLikePopLabel';
 

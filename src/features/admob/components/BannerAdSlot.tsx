@@ -9,7 +9,7 @@ import {
 } from '@/features/admob/config/adUnits';
 import { admobInitPromise } from '@/features/admob/config/adInit';
 import { useIsAdFreeMember } from '@/features/member/hooks/queries/useMemberQueries';
-import { logEvent, AnalyticsEvents } from '@/services/firebase';
+import { logEvent, AnalyticsEvents } from '@/platform/firebase';
 
 type BannerAdSlotProps = {
   hidden?: boolean;
