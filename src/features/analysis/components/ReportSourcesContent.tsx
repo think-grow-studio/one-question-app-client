@@ -7,7 +7,7 @@ import { Button } from '@/shared/ui/Button';
 import { BackIcon } from '@/shared/icons/BackIcon';
 import { useScreenBackground } from '@/shared/theme';
 import { fs, radius, sp } from '@/shared/utils/responsive';
-import { sortAnalysisSourcesNewestFirst } from '../domain/analysisSources';
+import { sortAnalysisSourcesNewestFirst } from '../model/analysisSources';
 import { useAnalysisDetail } from '../hooks/queries/useAnalysisQueries';
 import type { AnalysisReportSourceDto } from '../types/api';
 

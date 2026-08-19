@@ -13,7 +13,7 @@ import { useAnalysisDetail } from '@/features/analysis/hooks/queries/useAnalysis
 import {
   getAnalysisDetailPresentationState,
   parseAnalysisReportId,
-} from '@/features/analysis/domain/analysisPresentation';
+} from '@/features/analysis/model/analysisPresentation';
 
 export default function AnalysisResultScreen() {
   const router = useRouter();

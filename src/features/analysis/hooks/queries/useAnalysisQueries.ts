@@ -4,8 +4,8 @@ import {
   useQuery,
 } from '@tanstack/react-query';
 import { analysisApi } from '../../api/analysisApi';
-import { isAnalysisInProgress } from '../../domain/analysisStatus';
-import { getNextAnalysisPageParam } from '../../domain/analysisPagination';
+import { isAnalysisInProgress } from '../../model/analysisStatus';
+import { getNextAnalysisPageParam } from '../../model/analysisPagination';
 import type { AnalysisDetailDto } from '../../types/api';
 
 export const analysisKeys = {

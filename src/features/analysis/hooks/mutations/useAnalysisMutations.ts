@@ -5,7 +5,7 @@ import { analysisApi } from '../../api/analysisApi';
 import {
   resolveIdempotencyKey,
   type PendingCreateKey,
-} from '../../domain/createRequestIdentity';
+} from '../../model/createRequestIdentity';
 import { analysisKeys } from '../queries/useAnalysisQueries';
 import type { CreateAnalysisRequest } from '../../types/api';
 
@@ -19,7 +19,7 @@ type CreateVariables = CreateAnalysisRequest & { idempotencyKey: string };
  * 만들면 재시도마다 새 키가 발급돼 리포트가 두 건 생성된다.
  *
  * 여기에 더해 **수동 재시도까지 같은 키를 쓴다** — 키를 ref에 들고 성공할 때까지 유지하고,
- * payload가 바뀌면 새로 발급한다 (정책: domain/createRequestIdentity).
+ * payload가 바뀌면 새로 발급한다 (정책: model/createRequestIdentity).
  * 호출자가 키를 빠뜨릴 수 없도록 mutate 대신 래퍼만 노출한다.
  */
 export function useCreateAnalysis() {

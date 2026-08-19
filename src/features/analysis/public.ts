@@ -1,1 +1,1 @@
-export { invalidateAnalysisQueries } from './domain/analysisCache';
+export { invalidateAnalysisQueries } from './model/analysisCache';

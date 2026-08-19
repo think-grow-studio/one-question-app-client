@@ -9,7 +9,7 @@ import { getAnalysisStatusColor } from '../constants/analysisStatusColors';
 import {
   getAnalysisStatusLabelKey,
   isAnalysisReportOpenable,
-} from '../domain/analysisPresentation';
+} from '../model/analysisPresentation';
 import type { AnalysisHistoryItemDto } from '../types/api';
 
 interface ReportListRowProps {

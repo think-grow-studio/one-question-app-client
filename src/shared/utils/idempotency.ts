@@ -7,7 +7,7 @@ import * as Crypto from 'expo-crypto';
  * 개념이 아니라 생성 계열 POST가 공통으로 쓰는 것이라 shared에 둔다.
  *
  * **주의: 호출할 때마다 새 키다.** 재시도에 같은 키를 유지하는 책임은 호출자에게 있다
- * (분석 요청의 경우 features/analysis/domain/createRequestIdentity 참고).
+ * (분석 요청의 경우 features/analysis/model/createRequestIdentity 참고).
  */
 export function newIdempotencyKey(): string {
   return Crypto.randomUUID();
