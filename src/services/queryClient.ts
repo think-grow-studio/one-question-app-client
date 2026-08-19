@@ -1,7 +1,18 @@
 import { AppState, type AppStateStatus } from 'react-native';
 import { MutationCache, QueryCache, QueryClient, focusManager } from '@tanstack/react-query';
-import { useApiErrorStore } from '@/shared/stores/useApiErrorStore';
 import type { ApiErrorResponse } from '@/shared/types/api';
+
+interface QueryRuntimeConfig {
+  /** silent 코드가 아닌 모든 쿼리/뮤테이션 에러의 기본 표시 처리 — queryClient는 error store를 직접 모른다. */
+  onGlobalError: (error: ApiErrorResponse) => void;
+}
+
+let queryRuntime: QueryRuntimeConfig | undefined;
+
+/** app bootstrap에서 1회 호출해 queryClient가 필요로 하는 앱 레벨 콜백을 주입한다. */
+export function configureQueryRuntime(runtimeConfig: QueryRuntimeConfig): void {
+  queryRuntime = runtimeConfig;
+}
 
 // apiClient가 모든 응답 에러를 ApiErrorResponse로 정규화해서 reject하므로
 // (실제 Error 인스턴스가 아님), TError 기본값을 프로젝트 전역에 등록한다.
@@ -40,7 +51,7 @@ const SILENT_ERROR_CODES = new Set<string>([
 const handleApiError = (error: ApiErrorResponse) => {
   if (!error?.code) return;
   if (SILENT_ERROR_CODES.has(error.code)) return;
-  useApiErrorStore.getState().showError(error.message, error.requestId);
+  queryRuntime?.onGlobalError(error);
 };
 
 /**

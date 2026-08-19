@@ -16,9 +16,11 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { TamaguiProvider, Theme } from 'tamagui';
 import tamaguiConfig from '../../tamagui.config';
-import { queryClient } from '@/services/queryClient';
+import { queryClient, configureQueryRuntime } from '@/services/queryClient';
+import { configureHttpRuntime } from '@/services/apiClient';
 import { useThemeStore } from '@/shared/stores/useThemeStore';
 import { useAuthStore } from '@/shared/stores/useAuthStore';
+import { useApiErrorStore } from '@/shared/stores/useApiErrorStore';
 import { ThemeTransitionProvider } from '@/shared/ui/ThemeTransitionProvider';
 import '@/locales'; // i18n 초기화
 import { GlobalErrorHandler } from '@/shared/error/GlobalErrorHandler';
@@ -32,6 +34,15 @@ import { registerNotificationAuthCleanup } from '@/features/notifications/servic
 
 // 로그아웃/탈퇴 시 FCM 토큰 정리를 auth 스토어에 연결 (모듈 로드 시 1회)
 registerNotificationAuthCleanup();
+
+// platform(services)이 shared store를 직접 import하지 않도록 콜백 주입 (모듈 로드 시 1회,
+// 첫 요청/에러보다 반드시 먼저 실행돼야 하므로 컴포넌트 밖에서 호출한다)
+configureHttpRuntime({
+  onUnauthorized: () => useAuthStore.getState().logout(),
+});
+configureQueryRuntime({
+  onGlobalError: (error) => useApiErrorStore.getState().showError(error.message, error.requestId),
+});
 
 function RootLayoutNav() {
   const { mode } = useThemeStore();

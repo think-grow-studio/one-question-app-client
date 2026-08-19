@@ -10,10 +10,9 @@ export const SUPPORTED_LANGUAGES: { code: Language; nativeLabel: string }[] = [
   { code: 'en', nativeLabel: 'English' },
 ];
 
-export const LANGUAGE_LOCALE_MAP: Record<Language, string> = {
-  ko: 'ko-KR',
-  en: 'en-US',
-};
+// 하위 호환 재노출 — 실제 정의는 platform/i18n 성격이라 locales에 있다 (apiClient가
+// shared/stores를 몰라도 되게 하기 위한 분리, services/CLAUDE.md 참고).
+export { LANGUAGE_LOCALE_MAP } from '@/locales/localeMap';
 
 interface LanguageState {
   language: Language;

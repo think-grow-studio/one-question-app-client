@@ -21,9 +21,12 @@
 - `meta: { suppressGlobalError: true }` — 백그라운드 prefetch처럼 사용자 인터랙션 없는 조회의 실패 dialog를 생략하는 용도. 남용 금지 (화면이 다시 조회하면 meta 없이 정상 표시됨).
 - retry는 최종 실패 시에만 cache onError를 1회 호출 → dialog 중복 없음. 이 전제로 retry 정책을 바꿀 것.
 
-## 알려진 의존 방향 예외
+## Runtime Configuration Seam (app → services 콜백 주입)
 
-- `apiClient` → `useAuthStore`(401 시 logout 오케스트레이션)·`useLanguageStore`(Accept-Language), `queryClient` → `useApiErrorStore`(showError). services가 shared/stores를 임포트하는 **의도된 예외들**이다 — 401 로그아웃을 화면 계층으로 옮기지 말 것. store 접근은 항상 호출 시점 `getState()`라 모듈 초기화 순서 문제가 없다 — 이 관례를 유지할 것 (모듈 최상위에서 store 상태를 읽지 말 것).
+- `apiClient`/`queryClient`는 더 이상 `shared/stores`를 직접 import하지 않는다 (Phase 4 리팩토링으로 제거). 대신 `configureHttpRuntime({ onUnauthorized })`/`configureQueryRuntime({ onGlobalError })`로 앱이 콜백을 주입한다 — `src/app/_layout.tsx` 모듈 최상위에서 1회 호출 (컴포넌트 밖, `registerNotificationAuthCleanup()`과 같은 위치/타이밍).
+- **이 호출은 첫 HTTP 요청/쿼리 에러보다 반드시 먼저 실행돼야 한다** — `_layout.tsx`가 로드되자마자(렌더 전) 동기 호출하는 이유. 새 진입점을 추가해도 이 순서를 깨지 말 것.
+- 콜백 내부는 여전히 호출 시점 `getState()`를 쓴다 (`useAuthStore.getState().logout()` 등) — 모듈 초기화 순서 문제가 없는 이 관례는 유지한다.
+- `ApiErrorResponse`(shared/types/api)·`AuthResponse`(shared/types/auth) 같은 **타입 전용** import는 아직 남아있다 — 이건 런타임 역의존이 아니라 타입 소유권 문제라 Phase 5(services→platform 이동)와 함께 정리 예정(ROADMAP Step 4-4 참고).
 
 ## storage
 

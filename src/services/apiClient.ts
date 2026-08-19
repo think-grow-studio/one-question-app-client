@@ -1,13 +1,24 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import * as Localization from 'expo-localization';
 import { config } from '@/constants/config';
-import { LANGUAGE_LOCALE_MAP } from '@/shared/stores/useLanguageStore';
+import { LANGUAGE_LOCALE_MAP } from '@/locales/localeMap';
 import { storage } from './storage';
 import i18n from '@/locales';
-import { useAuthStore } from '@/shared/stores/useAuthStore';
 import { ApiErrorResponse } from '@/shared/types/api';
 import { tokenRefreshService } from './tokenRefreshService';
 import { recordError } from '@/services/firebase';
+
+interface HttpRuntimeConfig {
+  /** refresh 실패(401 최종 처리) 시 실행 — apiClient는 auth store를 직접 모른다. */
+  onUnauthorized: () => Promise<void>;
+}
+
+let httpRuntime: HttpRuntimeConfig | undefined;
+
+/** app bootstrap에서 1회 호출해 apiClient가 필요로 하는 앱 레벨 콜백을 주입한다. */
+export function configureHttpRuntime(runtimeConfig: HttpRuntimeConfig): void {
+  httpRuntime = runtimeConfig;
+}
 
 // Axios 인스턴스 생성
 export const apiClient = axios.create({
@@ -94,7 +105,7 @@ apiClient.interceptors.response.use(
       } catch (refreshError) {
         // NOTE: 사용자 선택으로 조용히 로그아웃 유지
         // 향후 개선: showWarning으로 사용자에게 알림 후 로그아웃
-        await useAuthStore.getState().logout();
+        await httpRuntime?.onUnauthorized();
         return Promise.reject(refreshError);
       }
     }
