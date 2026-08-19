@@ -6,7 +6,7 @@ import type {
   CreateAnalysisRequest,
   CreateAnalysisResponse,
 } from '../types/api';
-import { getMockAnalysisAvailability } from './mockAnalysis';
+import { getMockAnalysisAvailability } from './mockAnalysisAvailability';
 
 /**
  * 가용성 API만 서버에 없어 mock을 사용한다.
