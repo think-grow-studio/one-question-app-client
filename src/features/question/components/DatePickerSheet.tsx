@@ -12,8 +12,8 @@ import Animated, {
 import { useDatePickerStore } from '../stores/useDatePickerStore';
 import { useSlideDirectionStore } from '../stores/useSlideDirectionStore';
 import { useCalendarHistory } from '../hooks/queries/useQuestionQueries';
-import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
-import { BannerAdSlot } from '@/features/admob/components/BannerAdSlot';
+import { useMemberMe } from '@/features/member/public';
+import { BannerAdSlot } from '@/features/admob/public';
 import { Button } from '@/shared/ui/Button';
 import { AlertDialog } from '@/shared/ui/AlertDialog';
 import { useAccentColors, getFontStyle } from '@/shared/theme';

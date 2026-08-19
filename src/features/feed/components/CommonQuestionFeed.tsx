@@ -33,8 +33,8 @@ import {
   toServiceDateString,
 } from '../utils/feedUtils';
 import { AnimatedView, useDateSwipePager } from '../hooks/useDateSwipePager';
-import { useInterstitialAd } from '@/features/admob/hooks/useInterstitialAd';
-import { useIsAdFreeMember } from '@/features/member/hooks/queries/useMemberQueries';
+import { useInterstitialAd } from '@/features/admob/public';
+import { useIsAdFreeMember } from '@/features/member/public';
 
 // 무한 스크롤 fetch 가 이 횟수마다 전면 광고 1회.
 const SCROLL_AD_INTERVAL = 5;

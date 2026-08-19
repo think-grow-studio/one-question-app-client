@@ -8,7 +8,7 @@ import {
   isAdMobSupportedPlatform,
 } from '@/features/admob/config/adUnits';
 import { admobInitPromise } from '@/features/admob/config/adInit';
-import { useIsAdFreeMember } from '@/features/member/hooks/queries/useMemberQueries';
+import { useIsAdFreeMember } from '@/features/member/public';
 import { logEvent, AnalyticsEvents } from '@/platform/firebase';
 
 type BannerAdSlotProps = {

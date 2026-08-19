@@ -1,4 +1,5 @@
-export { useMemberMe } from './hooks/queries/useMemberQueries';
+export { useMemberMe, useIsAdFreeMember } from './hooks/queries/useMemberQueries';
+export { useUpdateLocaleMutation } from './hooks/mutations/useMemberMutations';
 export {
   snapshotMemberMe,
   restoreMemberMe,

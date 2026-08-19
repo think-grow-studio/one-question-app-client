@@ -22,8 +22,8 @@ import { CloseIcon } from '@/shared/icons/CloseIcon';
 import { useAccentColors, useScreenBackground } from '@/shared/theme';
 import { useThrottledCallback } from '@/shared/hooks/useThrottledCallback';
 import { useAppReviewPrompt } from '../hooks/useAppReviewPrompt';
-import { useCreateAnswer, useUpdateAnswer } from '@/features/question/hooks/mutations/useQuestionMutations';
-import { BannerAdSlot } from '@/features/admob/components/BannerAdSlot';
+import { useCreateAnswer, useUpdateAnswer } from '@/features/question/public';
+import { BannerAdSlot } from '@/features/admob/public';
 import { sp } from '@/shared/utils/responsive';
 import { logScreenView, logEvent, AnalyticsEvents } from '@/platform/firebase';
 

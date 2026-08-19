@@ -1,5 +1,6 @@
 // limits.ts와 동일한 이유로 public.ts가 아닌 types/api.ts에서 직접 가져온다
 // (public.ts 경유 시 apiClient/storage 체인이 로드돼 순수 로직 테스트 격리가 깨짐).
+// eslint-disable-next-line local/no-cross-feature-deep-import
 import { MemberPermission } from '@/features/member/types/api';
 import {
   getMaxReloadCount,

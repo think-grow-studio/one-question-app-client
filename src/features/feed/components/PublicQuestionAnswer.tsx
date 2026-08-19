@@ -21,10 +21,10 @@ import { AlertDialog, AlertDialogButton } from '@/shared/ui/AlertDialog';
 import { CloseIcon } from '@/shared/icons/CloseIcon';
 import { useAccentColors, useScreenBackground } from '@/shared/theme';
 import { useThrottledCallback } from '@/shared/hooks/useThrottledCallback';
-import { useIsAdFreeMember } from '@/features/member/hooks/queries/useMemberQueries';
-import { useInterstitialAd } from '@/features/admob/hooks/useInterstitialAd';
+import { useIsAdFreeMember } from '@/features/member/public';
+import { useInterstitialAd } from '@/features/admob/public';
 import { AdBadge } from '@/shared/ui/ads/AdBadge';
-import { BannerAdSlot } from '@/features/admob/components/BannerAdSlot';
+import { BannerAdSlot } from '@/features/admob/public';
 import { sp } from '@/shared/utils/responsive';
 import {
   useCreatePublicAnswer,

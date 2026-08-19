@@ -7,7 +7,7 @@ import { Text } from '@/shared/ui/Text';
 import { useAccentColors, getFontStyle } from '@/shared/theme';
 import { sp, radius, SHEET_MAX_WIDTH } from '@/shared/utils/responsive';
 import { useLanguageStore, SUPPORTED_LANGUAGES, type Language } from '@/shared/stores/useLanguageStore';
-import { useUpdateLocaleMutation } from '@/features/member/hooks/mutations/useMemberMutations';
+import { useUpdateLocaleMutation } from '@/features/member/public';
 import { logEvent, AnalyticsEvents } from '@/platform/firebase';
 
 export function LanguagePicker() {

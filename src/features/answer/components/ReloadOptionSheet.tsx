@@ -13,13 +13,13 @@ import { useAccentColors, getFontStyle } from '@/shared/theme';
 import { MailIcon } from '@/shared/icons/MailIcon';
 import { PastQuestionIcon } from '@/shared/icons/PastQuestionIcon';
 import { AdBadge } from '@/shared/ui/ads/AdBadge';
-import { BannerAdSlot } from '@/features/admob/components/BannerAdSlot';
+import { BannerAdSlot } from '@/features/admob/public';
 import { fs, sp, radius, cs, SHEET_HEIGHTS, SHEET_MAX_WIDTH } from '@/shared/utils/responsive';
 import {
   useCheckCandidateCycle,
   useSelectQuestion,
-} from '@/features/question/hooks/mutations/useQuestionMutations';
-import type { QuestionCandidateDomain } from '@/features/question/domain/questionDomain';
+  type QuestionCandidateDomain,
+} from '@/features/question/public';
 import { AlertDialog, useAlertDialog } from '@/shared/ui/AlertDialog';
 
 const DISMISS_RATIO = 0.3;

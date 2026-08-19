@@ -1,6 +1,7 @@
 // member/public.ts가 아닌 types/api.ts에서 직접 가져온다 — public.ts는 useMemberMe를
 // 재수출하며 apiClient/storage(AsyncStorage) 체인을 로드하므로, 여기서 그걸 타면 이
 // 순수 로직 파일의 단위 테스트가 네이티브 모듈 의존성을 강제로 물게 된다.
+// eslint-disable-next-line local/no-cross-feature-deep-import
 import { MemberPermission } from '@/features/member/types/api';
 
 export const LIKE_POP_MIN_COUNT = 1;

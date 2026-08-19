@@ -12,7 +12,7 @@ import {
   useLinkToGoogleMutation,
   GoogleSignInCancelledError,
 } from '@/features/auth/hooks/mutations/useLinkGoogleMutations';
-import { memberQueryKeys } from '@/features/member/hooks/queries/useMemberQueries';
+import { invalidateMemberMe } from '@/features/member/public';
 import { logEvent, AnalyticsEvents } from '@/platform/firebase';
 import { getFontStyle } from '@/shared/theme/typography';
 import { sp, radius } from '@/shared/utils/responsive';
@@ -38,7 +38,7 @@ export function LinkGoogleButton() {
     alertDialog.hide();
     if (pendingInvalidateRef.current) {
       pendingInvalidateRef.current = false;
-      queryClient.invalidateQueries({ queryKey: memberQueryKeys.me() });
+      invalidateMemberMe(queryClient);
     }
   };
 
