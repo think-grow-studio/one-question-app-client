@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useTimeline } from '@/features/question/hooks/queries/useQuestionQueries';
+import { useQuestionTimeline } from '@/features/question/public';
 import { MIN_ANSWERS, MAX_ANSWERS } from '../constants/analysisTypes';
 
 export interface SelectableAnswer {
@@ -43,7 +43,7 @@ export interface AnswerSelection {
  * 라우팅 레이어(app/)에 비즈니스 로직을 두지 않기 위해 분리 (README §3 — app/은 조립 전용).
  */
 export function useAnswerSelection(): AnswerSelection {
-  const { data: days = [], hasNextPage, fetchNextPage, isFetchingNextPage, isLoading } = useTimeline();
+  const { data: days = [], hasNextPage, fetchNextPage, isFetchingNextPage, isLoading } = useQuestionTimeline();
 
   const items = useMemo<SelectableAnswer[]>(
     () =>
