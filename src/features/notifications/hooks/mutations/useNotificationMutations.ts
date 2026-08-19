@@ -1,8 +1,14 @@
-import { useMutation, useQueryClient, QueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notificationApi } from '@/features/notifications/api/notificationApi';
-import { memberQueryKeys } from '@/features/member/hooks/queries/useMemberQueries';
+import {
+  snapshotMemberMe,
+  restoreMemberMe,
+  patchMemberNotificationSetting,
+  patchMemberAnalysisReportEnabled,
+  invalidateMemberMe,
+  type NotificationSetting,
+} from '@/features/member/public';
 import { useNotificationStore } from '@/features/notifications/stores/useNotificationStore';
-import { GetMemberResponse, NotificationSetting } from '@/shared/types/member';
 
 // upsertSetting은 전체 교체(PUT)라 모든 입력에 analysisReportEnabled를 실어
 // 다른 토글 조작이 분석 리포트 설정을 지우지 않도록 한다.
@@ -34,16 +40,6 @@ interface AnalysisReportInput {
   analysisReportEnabled: boolean;
 }
 
-function patchMemberSetting(
-  queryClient: QueryClient,
-  next: NotificationSetting,
-) {
-  queryClient.setQueryData<GetMemberResponse>(memberQueryKeys.me(), (old) => {
-    if (!old) return old;
-    return { ...old, notificationSetting: next };
-  });
-}
-
 /**
  * 알림 시간 변경 — 낙관적 업데이트.
  * 서버 응답 전에 캐시를 즉시 갱신해 UI를 체감 0ms로 반영하고,
@@ -66,31 +62,25 @@ export function useUpdateNotificationTimeMutation() {
       }),
 
     onMutate: async (input) => {
-      await queryClient.cancelQueries({ queryKey: memberQueryKeys.me() });
-      const previous = queryClient.getQueryData<GetMemberResponse>(memberQueryKeys.me());
+      const previous = await snapshotMemberMe(queryClient);
 
-      queryClient.setQueryData<GetMemberResponse>(memberQueryKeys.me(), (old) => {
-        if (!old) return old;
-        const nextSetting: NotificationSetting = {
-          alarmTime: input.alarmTime,
-          timezone: input.timezone,
-          enabled: old.notificationSetting?.enabled ?? input.enabled,
-          analysisReportEnabled: input.analysisReportEnabled,
-        };
-        return { ...old, notificationSetting: nextSetting };
-      });
+      const nextSetting: NotificationSetting = {
+        alarmTime: input.alarmTime,
+        timezone: input.timezone,
+        enabled: previous?.notificationSetting?.enabled ?? input.enabled,
+        analysisReportEnabled: input.analysisReportEnabled,
+      };
+      patchMemberNotificationSetting(queryClient, nextSetting);
 
       return { previous };
     },
 
     onError: (_err, _input, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(memberQueryKeys.me(), context.previous);
-      }
+      restoreMemberMe(queryClient, context?.previous);
     },
 
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: memberQueryKeys.me() });
+      invalidateMemberMe(queryClient);
     },
   });
 }
@@ -115,11 +105,10 @@ export function useEnableNotificationMutation() {
     },
 
     onMutate: async (input) => {
-      await queryClient.cancelQueries({ queryKey: memberQueryKeys.me() });
-      const previous = queryClient.getQueryData<GetMemberResponse>(memberQueryKeys.me());
+      const previous = await snapshotMemberMe(queryClient);
       const previousFcmToken = useNotificationStore.getState().fcmToken;
 
-      patchMemberSetting(queryClient, {
+      patchMemberNotificationSetting(queryClient, {
         alarmTime: input.alarmTime,
         timezone: input.timezone,
         enabled: true,
@@ -134,16 +123,14 @@ export function useEnableNotificationMutation() {
     },
 
     onError: (_err, _input, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(memberQueryKeys.me(), context.previous);
-      }
+      restoreMemberMe(queryClient, context?.previous);
       if (context) {
         useNotificationStore.getState().setFcmToken(context.previousFcmToken ?? null);
       }
     },
 
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: memberQueryKeys.me() });
+      invalidateMemberMe(queryClient);
     },
   });
 }
@@ -165,10 +152,9 @@ export function useDisableNotificationMutation() {
       }),
 
     onMutate: async (input) => {
-      await queryClient.cancelQueries({ queryKey: memberQueryKeys.me() });
-      const previous = queryClient.getQueryData<GetMemberResponse>(memberQueryKeys.me());
+      const previous = await snapshotMemberMe(queryClient);
 
-      patchMemberSetting(queryClient, {
+      patchMemberNotificationSetting(queryClient, {
         alarmTime: input.alarmTime,
         timezone: input.timezone,
         enabled: false,
@@ -179,13 +165,11 @@ export function useDisableNotificationMutation() {
     },
 
     onError: (_err, _input, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(memberQueryKeys.me(), context.previous);
-      }
+      restoreMemberMe(queryClient, context?.previous);
     },
 
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: memberQueryKeys.me() });
+      invalidateMemberMe(queryClient);
     },
   });
 }
@@ -209,36 +193,24 @@ export function useUpdateAnalysisReportMutation() {
       }),
 
     onMutate: async (input) => {
-      await queryClient.cancelQueries({ queryKey: memberQueryKeys.me() });
-      const previous = queryClient.getQueryData<GetMemberResponse>(memberQueryKeys.me());
+      const previous = await snapshotMemberMe(queryClient);
       const previousLocal = useNotificationStore.getState().analysisReportEnabled;
 
-      queryClient.setQueryData<GetMemberResponse>(memberQueryKeys.me(), (old) => {
-        if (!old?.notificationSetting) return old;
-        return {
-          ...old,
-          notificationSetting: {
-            ...old.notificationSetting,
-            analysisReportEnabled: input.analysisReportEnabled,
-          },
-        };
-      });
+      patchMemberAnalysisReportEnabled(queryClient, input.analysisReportEnabled);
       useNotificationStore.getState().setAnalysisReportEnabled(input.analysisReportEnabled);
 
       return { previous, previousLocal };
     },
 
     onError: (_err, _input, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(memberQueryKeys.me(), context.previous);
-      }
+      restoreMemberMe(queryClient, context?.previous);
       if (context) {
         useNotificationStore.getState().setAnalysisReportEnabled(context.previousLocal ?? true);
       }
     },
 
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: memberQueryKeys.me() });
+      invalidateMemberMe(queryClient);
     },
   });
 }

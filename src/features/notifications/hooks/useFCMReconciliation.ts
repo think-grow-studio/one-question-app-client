@@ -3,7 +3,7 @@ import { AppState } from 'react-native';
 import { QueryClient, useQueryClient } from '@tanstack/react-query';
 import { getFCMToken } from '@/services/firebase';
 import { recordError } from '@/services/firebase/crashlytics';
-import { memberQueryKeys, useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
+import { useMemberMe, readMemberNotificationSetting } from '@/features/member/public';
 import { useNotificationStore } from '@/features/notifications/stores/useNotificationStore';
 import { notificationApi } from '@/features/notifications/api/notificationApi';
 import { getNotificationPermissionStatus } from '@/features/notifications/services/notifications';
@@ -11,7 +11,6 @@ import {
   decideReconcileAction,
   needsSdkToken,
 } from '@/features/notifications/domain/reconcileDecision';
-import { GetMemberResponse } from '@/shared/types/member';
 
 /**
  * 사용자가 받겠다고 한 알림 카테고리 (intent) — 호출 시점의 값을 읽는다.
@@ -31,9 +30,7 @@ function maskToken(token: string | null): string {
 }
 
 function readIntent(queryClient: QueryClient) {
-  const setting = queryClient.getQueryData<GetMemberResponse>(
-    memberQueryKeys.me()
-  )?.notificationSetting;
+  const setting = readMemberNotificationSetting(queryClient);
 
   return {
     reminder: setting?.enabled ?? false,

@@ -3,7 +3,7 @@ import { useNotificationStore } from '@/features/notifications/stores/useNotific
 import { requestNotificationPermission } from '@/features/notifications/services/notifications';
 import { ensurePushTokenRegistered } from '@/features/notifications/services/pushToken';
 import { getFCMToken } from '@/services/firebase';
-import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
+import { useMemberMe } from '@/features/member/public';
 import {
   useUpdateNotificationTimeMutation,
   useEnableNotificationMutation,
