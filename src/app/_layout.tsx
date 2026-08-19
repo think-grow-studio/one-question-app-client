@@ -26,8 +26,8 @@ import '@/locales'; // i18n 초기화
 import { GlobalErrorHandler } from '@/shared/error/GlobalErrorHandler';
 import { AppErrorBoundary } from '@/shared/error/AppErrorBoundary';
 import { VersionCheckDialog } from '@/shared/ui/VersionCheckDialog';
-import { useAppBootstrap } from '@/shared/hooks/useAppBootstrap';
-import { useVersionCheck } from '@/shared/hooks/useVersionCheck';
+import { useAppBootstrap } from '@/app/bootstrap/useAppBootstrap';
+import { useVersionCheck } from '@/app/bootstrap/useVersionCheck';
 import '@/features/admob/config/adInit'; // AdMob SDK 초기화
 import { useNotificationAppIntegration } from '@/app/integrations/notifications/useNotificationAppIntegration';
 import { registerNotificationAuthCleanup } from '@/features/notifications/services/authCleanup';
