@@ -191,6 +191,8 @@ export function useCreateAnswer(options?: {
   >({
     mutationFn: ({ date, answer }) =>
       questionApi.createAnswer(date, { answer }).then((res) => res.data),
+    // 중복 답변은 onDuplicateAnswer가 로컬 dialog로 처리 — 글로벌 dialog 생략.
+    meta: { suppressGlobalErrorCodes: ['QUESTION-004'] },
     onSuccess: (data, { date }) => {
       invalidateDateQueries(date);
       // 타임라인은 응답으로 직접 패치 (refetch 없이 즉시 반영)

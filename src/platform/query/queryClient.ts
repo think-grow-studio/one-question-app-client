@@ -17,9 +17,22 @@ export function configureQueryRuntime(runtimeConfig: QueryRuntimeConfig): void {
 // apiClient가 모든 응답 에러를 ApiErrorResponse로 정규화해서 reject하므로
 // (실제 Error 인스턴스가 아님), TError 기본값을 프로젝트 전역에 등록한다.
 // 이후 TError를 명시하지 않은 useQuery/useMutation도 자동으로 정확한 타입을 받는다.
+//
+// meta도 함께 등록한다 — 어떤 에러 코드를 글로벌 dialog에서 생략할지는
+// 각 feature의 쿼리/뮤테이션이 스스로 선언한다 (platform은 코드 이름을 모른다).
 declare module '@tanstack/react-query' {
   interface Register {
     defaultError: ApiErrorResponse;
+    queryMeta: {
+      /** 이 쿼리의 모든 에러에 대해 글로벌 dialog 생략 (백그라운드 prefetch 등). */
+      suppressGlobalError?: boolean;
+      /** 이 코드들만 글로벌 dialog 생략 (그 외 에러는 평소대로 표시). */
+      suppressGlobalErrorCodes?: string[];
+    };
+    mutationMeta: {
+      /** 이 코드들만 글로벌 dialog 생략 (그 외 에러는 평소대로 표시). */
+      suppressGlobalErrorCodes?: string[];
+    };
   }
 }
 
@@ -34,23 +47,13 @@ AppState.addEventListener('change', (status: AppStateStatus) => {
 });
 
 /**
- * 코드별 silent 처리 (dialog 표시 생략).
- * 호출자에서 try/catch로 도메인 후속 처리 책임.
+ * 어떤 에러 코드를 글로벌 dialog에서 생략할지는 이 함수가 정하지 않는다 —
+ * 호출한 쿼리/뮤테이션의 meta.suppressGlobalErrorCodes가 결정한다.
+ * 생략된 코드의 후속 처리(dialog/refetch)는 호출자(mutation hook + 컴포넌트) 책임.
  */
-const SILENT_ERROR_CODES = new Set<string>([
-  'QUESTION-004',
-  // 공개 일일 질문 — 404/409 중 글로벌 dialog 가 어색한 코드들.
-  // 003: 그 날짜에 PDQ 없음 → 화면이 빈 상태로 분기. dialog 불필요.
-  // 004: 이미 답변 → 컴포넌트 local dialog + daily refetch.
-  // 005: 답변 없음/권한 없음 → 컴포넌트 local dialog + daily refetch.
-  'PUBLIC-QUESTION-003',
-  'PUBLIC-QUESTION-004',
-  'PUBLIC-QUESTION-005',
-]);
-
-const handleApiError = (error: ApiErrorResponse) => {
+const handleApiError = (error: ApiErrorResponse, suppressCodes?: string[]) => {
   if (!error?.code) return;
-  if (SILENT_ERROR_CODES.has(error.code)) return;
+  if (suppressCodes?.includes(error.code)) return;
   queryRuntime?.onGlobalError(error);
 };
 
@@ -104,10 +107,14 @@ export const queryClient = new QueryClient({
       // 백그라운드 prefetch 등 사용자 인터랙션 없는 조회의 실패는 dialog 생략.
       // (해당 쿼리를 실제 화면이 다시 조회하면 그땐 meta 없이 fetch되어 정상 표시됨)
       if (query.meta?.suppressGlobalError) return;
-      handleApiError(error);
+      handleApiError(error, query.meta?.suppressGlobalErrorCodes);
     },
   }),
-  mutationCache: new MutationCache({ onError: handleApiError }),
+  mutationCache: new MutationCache({
+    onError: (error, _variables, _context, mutation) => {
+      handleApiError(error, mutation.meta?.suppressGlobalErrorCodes);
+    },
+  }),
   defaultOptions: {
     queries: {
       retry: shouldRetry,

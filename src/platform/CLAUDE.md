@@ -17,8 +17,8 @@
 
 ## queryClient 계약
 
-- **`SILENT_ERROR_CODES` Set이 silent 코드의 유일한 관리 지점.** 코드를 추가하면 해당 코드의 후속 처리(refetch/dialog)는 호출측(mutation hook + 컴포넌트) 책임이 된다 — 추가만 하고 후속 처리를 안 만들면 에러가 조용히 사라진다.
-- `meta: { suppressGlobalError: true }` — 백그라운드 prefetch처럼 사용자 인터랙션 없는 조회의 실패 dialog를 생략하는 용도. 남용 금지 (화면이 다시 조회하면 meta 없이 정상 표시됨).
+- **silent 코드는 platform이 모른다 — 각 쿼리/뮤테이션이 `meta: { suppressGlobalErrorCodes: [...] }`로 스스로 선언한다** (Phase 9에서 `SILENT_ERROR_CODES` 중앙 Set 제거, `platform → features 지식` 역전 해소). 코드를 추가하면 해당 코드의 후속 처리(refetch/dialog)는 그 mutation hook + 컴포넌트 책임 — 선언만 하고 후속 처리를 안 만들면 에러가 조용히 사라진다. `queryMeta`/`mutationMeta` 타입은 이 파일 상단 `Register` 선언 참고.
+- `meta: { suppressGlobalError: true }` — 백그라운드 prefetch처럼 사용자 인터랙션 없는 조회의 실패 dialog를 생략하는 용도 (코드 무관, 그 쿼리의 모든 에러). 남용 금지 (화면이 다시 조회하면 meta 없이 정상 표시됨). `suppressGlobalErrorCodes`(코드 한정)와 헷갈리지 말 것.
 - retry는 최종 실패 시에만 cache onError를 1회 호출 → dialog 중복 없음. 이 전제로 retry 정책을 바꿀 것.
 
 ## Runtime Configuration Seam (app → services 콜백 주입)

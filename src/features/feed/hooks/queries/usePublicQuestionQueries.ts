@@ -24,6 +24,8 @@ export function useDailyPublicQuestion(date: string) {
     queryKey: publicQuestionQueryKeys.daily(date),
     queryFn: () => publicQuestionApi.getDaily(date).then((r) => r.data),
     ...NO_CACHE,
+    // 그 날짜에 PDQ 없음(404) → 화면이 빈 상태로 분기, 글로벌 dialog 불필요.
+    meta: { suppressGlobalErrorCodes: ['PUBLIC-QUESTION-003'] },
   });
 }
 

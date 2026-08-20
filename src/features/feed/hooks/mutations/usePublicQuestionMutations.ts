@@ -37,6 +37,8 @@ export function useCreatePublicAnswer(options?: {
   >({
     mutationFn: ({ pdqId, content }) =>
       publicQuestionApi.createAnswer(pdqId, content).then((r) => r.data),
+    // 이미 답변은 onAlreadyAnswered가 로컬 dialog로 처리 — 글로벌 dialog 생략.
+    meta: { suppressGlobalErrorCodes: ['PUBLIC-QUESTION-004'] },
     onSuccess: (_, { date }) => invalidateDaily(date),
     onError: (error, { date }) => {
       if (error?.code === 'PUBLIC-QUESTION-004') {
@@ -67,6 +69,8 @@ export function useUpdatePublicAnswer(options?: {
   >({
     mutationFn: ({ pdqId, answerId, content }) =>
       publicQuestionApi.updateAnswer(pdqId, answerId, content).then((r) => r.data),
+    // stale 답변(이미 없음/권한 없음)은 onAnswerGone이 로컬 dialog로 처리 — 글로벌 dialog 생략.
+    meta: { suppressGlobalErrorCodes: ['PUBLIC-QUESTION-005'] },
     onSuccess: (_, { date }) => invalidateDaily(date),
     onError: (error, { date }) => {
       if (error?.code === 'PUBLIC-QUESTION-005') {
@@ -94,6 +98,8 @@ export function useDeletePublicAnswer(options?: {
   >({
     mutationFn: ({ pdqId, answerId }) =>
       publicQuestionApi.deleteAnswer(pdqId, answerId).then(() => undefined),
+    // stale 답변(이미 없음/권한 없음)은 onAnswerGone이 로컬 dialog로 처리 — 글로벌 dialog 생략.
+    meta: { suppressGlobalErrorCodes: ['PUBLIC-QUESTION-005'] },
     // 삭제 확인 즉시 myAnswer 를 null 로 낙관적 업데이트 → FAB 즉시 표시.
     onMutate: async ({ date }) => {
       await queryClient.cancelQueries({ queryKey: publicQuestionQueryKeys.daily(date) });
