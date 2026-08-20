@@ -24,7 +24,7 @@
 - **UI**: Tamagui (layout/spacing/typography/theme) · **List**: `@shopify/flash-list` v2
 - **Animation**: react-native-reanimated v4 (worklets는 별도 패키지) — RN Animated API 금지
 - **HTTP**: Axios (`platform/http/apiClient.ts` 단일 인스턴스) — `fetch` 직접 사용 금지
-- **Lint**: ESLint (`eslint.config.mjs`, flat config) — `platform/shared/feature` 의존 경계만 강제(`npm run lint`). 스타일/일반 규칙은 다루지 않음(범위 의도적으로 좁게 유지)
+- **Lint**: ESLint (`eslint.config.mjs`, flat config, `npm run lint`) — `platform/shared/feature` 의존 경계 + `@typescript-eslint/no-explicit-any`. 그 외 스타일/일반 규칙은 다루지 않음(범위 의도적으로 좁게 유지)
 - **i18n**: i18next + react-i18next + expo-localization (ko/en — 기기 언어 감지, 미지원 언어와 fallback은 **ko**)
 - **Storage**: 토큰 → `expo-secure-store` · 일반 데이터/persist → AsyncStorage
 - **Push**: `@react-native-firebase/messaging` (FCM) + expo-notifications (Android 표시 브릿지)
@@ -205,7 +205,7 @@ app/
 - ❌ 서버 데이터를 Zustand에 저장 · 컴포넌트에서 `useQueryClient()`로 직접 invalidate
 - ❌ Redux/MobX/새 아키텍처 패턴 도입 · `app/`에 비즈니스 로직
 - ❌ RN Animated API · 인터랙티브 UI에 Lottie · `@gorhom/bottom-sheet`
-- ❌ `any` 타입 · inline style · 사용자 노출 문자열 하드코딩
+- ❌ `any` 타입(`npm run lint`로 강제) · inline style · 사용자 노출 문자열 하드코딩
 - ❌ 토큰을 AsyncStorage/Zustand에 저장 (SecureStore만)
 - ❌ FlashList `keyExtractor` 생략 / `estimatedItemSize` 전달
 - ❌ 카드 배경에 `theme.background` · 컴포넌트에 hex 하드코딩
