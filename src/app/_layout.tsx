@@ -4,9 +4,13 @@ import { StatusBar, Text as RNText } from 'react-native';
 import { fontFamily } from '@/shared/theme/typography';
 
 // 앱 시작 시 기본 폰트 적용 (커스텀 폰트가 설정된 경우)
+// RN Text는 defaultProps를 공식 타입에 노출하지 않아 unknown shape로 다룬다.
 if (fontFamily.regular) {
-  const defaultProps = (RNText as any).defaultProps || {};
-  (RNText as any).defaultProps = {
+  const TextWithDefaultProps = RNText as unknown as {
+    defaultProps?: { style?: unknown };
+  };
+  const defaultProps = TextWithDefaultProps.defaultProps || {};
+  TextWithDefaultProps.defaultProps = {
     ...defaultProps,
     style: [defaultProps.style, { fontFamily: fontFamily.regular }],
   };

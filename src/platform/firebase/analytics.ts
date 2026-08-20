@@ -15,7 +15,7 @@ export async function logScreenView(screenName: string, screenClass?: string) {
 }
 
 // 커스텀 이벤트 추적
-export async function logEvent(eventName: string, params?: Record<string, any>) {
+export async function logEvent(eventName: string, params?: Record<string, string | number | boolean>) {
   await analytics().logEvent(eventName, params);
 }
 

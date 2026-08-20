@@ -78,9 +78,11 @@ export default tseslint.config(
     },
     plugins: {
       local: localPlugin,
+      '@typescript-eslint': tseslint.plugin,
     },
     rules: {
       'local/no-cross-feature-deep-import': 'error',
+      '@typescript-eslint/no-explicit-any': 'error',
     },
   },
   // platform → features/app/shared 금지 (TARGET §4 platform 절대 규칙)
