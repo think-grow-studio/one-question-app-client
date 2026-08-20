@@ -21,7 +21,7 @@
 - `meta: { suppressGlobalError: true }` — 백그라운드 prefetch처럼 사용자 인터랙션 없는 조회의 실패 dialog를 생략하는 용도 (코드 무관, 그 쿼리의 모든 에러). 남용 금지 (화면이 다시 조회하면 meta 없이 정상 표시됨). `suppressGlobalErrorCodes`(코드 한정)와 헷갈리지 말 것.
 - retry는 최종 실패 시에만 cache onError를 1회 호출 → dialog 중복 없음. 이 전제로 retry 정책을 바꿀 것.
 
-## Runtime Configuration Seam (app → services 콜백 주입)
+## Runtime Configuration Seam (app → platform 콜백 주입)
 
 - `apiClient`/`queryClient`는 더 이상 `shared/stores`를 직접 import하지 않는다 (Phase 4 리팩토링으로 제거). 대신 `configureHttpRuntime({ onUnauthorized })`/`configureQueryRuntime({ onGlobalError })`로 앱이 콜백을 주입한다 — `src/app/_layout.tsx` 모듈 최상위에서 1회 호출 (컴포넌트 밖, `registerNotificationAuthCleanup()`과 같은 위치/타이밍).
 - **이 호출은 첫 HTTP 요청/쿼리 에러보다 반드시 먼저 실행돼야 한다** — `_layout.tsx`가 로드되자마자(렌더 전) 동기 호출하는 이유. 새 진입점을 추가해도 이 순서를 깨지 말 것.
