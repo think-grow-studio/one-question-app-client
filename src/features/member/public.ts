@@ -7,7 +7,7 @@ export {
   patchMemberAnalysisReportEnabled,
   readMemberNotificationSetting,
   invalidateMemberMe,
-} from './domain/memberCache';
-export type { MemberMeSnapshot } from './domain/memberCache';
+} from './model/memberCache';
+export type { MemberMeSnapshot } from './model/memberCache';
 export { MemberPermission } from './types/api';
 export type { NotificationSetting } from './types/api';

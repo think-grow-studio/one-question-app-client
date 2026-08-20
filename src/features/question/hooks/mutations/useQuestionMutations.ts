@@ -6,7 +6,7 @@ import { questionQueryKeys, getCalendarBaseDate } from '../queries/useQuestionQu
 import {
   fromServeDailyQuestion,
   type DailyQuestionDomain,
-} from '../../domain/questionDomain';
+} from '../../model/questionDomain';
 import type {
   CheckCandidateCycleResponse,
   CreateAnswerResponse,

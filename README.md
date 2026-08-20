@@ -97,10 +97,9 @@ features/<name>/
 ├─ stores/                  # feature-local Zustand (필요시)
 ├─ services/                # feature 비즈니스 서비스 (필요시)
 ├─ types/api.ts             # request/response 타입
-├─ domain/ 또는 model/       # 순수 로직 — DDD 도메인 레이어가 아니라 React/SDK에
+├─ model/                    # 순수 로직 — DDD 도메인 레이어가 아니라 React/SDK에
 │                           #   안 묶인 feature-local 로직(계산, presentation state,
-│                           #   cache helper). analysis만 model/로 정리됨, 나머지는
-│                           #   domain/ (동의어, 강제 통일 없음)
+│                           #   cache helper, mapper)
 ├─ constants/ utils/        # (필요시)
 └─ public.ts                 # 외부 feature/app이 이 feature를 참조할 때 쓰는
                              #   최소 contract (없으면 아직 외부 consumer 없음)

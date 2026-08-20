@@ -4,7 +4,7 @@ import { onFCMNotificationOpened, getInitialFCMNotification } from '@/platform/f
 import {
   parseNotificationEvent,
   type NotificationEvent,
-} from '@/features/notifications/domain/notificationEvents';
+} from '@/features/notifications/model/notificationEvents';
 
 interface UseNotificationDeepLinkParams {
   isAuthenticated: boolean;

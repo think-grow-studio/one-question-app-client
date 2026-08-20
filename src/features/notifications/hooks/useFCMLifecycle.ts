@@ -8,7 +8,7 @@ import {
   ensureAndroidNotificationChannel,
   NOTIFICATION_CHANNEL_IDS,
 } from '@/features/notifications/services/notifications';
-import { parseNotificationEvent, type NotificationEvent } from '@/features/notifications/domain/notificationEvents';
+import { parseNotificationEvent, type NotificationEvent } from '@/features/notifications/model/notificationEvents';
 
 interface UseFCMLifecycleParams {
   /** 파싱된 push event를 외부(app integration)로 전달. transport 이후의 반응은 호출측 책임. */

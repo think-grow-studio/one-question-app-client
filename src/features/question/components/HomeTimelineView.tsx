@@ -9,7 +9,7 @@ import { useInterstitialAd } from '@/features/admob/public';
 import { useIsAdFreeMember } from '@/features/member/public';
 import { fs, sp } from '@/shared/utils/responsive';
 import { useTimeline } from '../hooks/queries/useQuestionQueries';
-import type { DailyQuestionDomain } from '../domain/questionDomain';
+import type { DailyQuestionDomain } from '../model/questionDomain';
 import { useDatePickerStore } from '../stores/useDatePickerStore';
 import { useSlideDirectionStore } from '../stores/useSlideDirectionStore';
 import { useHomeViewStore } from '../stores/useHomeViewStore';

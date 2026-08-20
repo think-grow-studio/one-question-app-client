@@ -31,9 +31,9 @@
 - **탈퇴**: `DELETE /api/v1/auth/me`가 서버에서 fcm_token row를 함께 정리한다 — 클라이언트가 `deleteFcmToken`을 부를 필요가 없어 탈퇴 경로는 `cleanupLocalAuth`(로컬 정리)만 탄다.
 - `onLocalCleanup`은 두 경로 공통: fcmToken null + `analysisReportEnabled` 기본값 복원 (다음 계정이 이전 계정의 로컬 설정을 물려받지 않도록).
 
-## Reconciliation 정책 (`useFCMReconciliation` + `domain/reconcileDecision`)
+## Reconciliation 정책 (`useFCMReconciliation` + `model/reconcileDecision`)
 
-- **판단은 `domain/reconcileDecision.ts`(순수 함수), 실행만 훅에 있다.** 이 판단이 틀려도 크래시나 에러 화면이 없이 알림만 조용히 사라져서 사용자가 신고하지 않는다 — Crashlytics가 못 잡는 종류라 **테이블 테스트가 유일한 그물**이다. 규칙을 바꾸면 훅이 아니라 이 함수와 테스트를 먼저 고칠 것.
+- **판단은 `model/reconcileDecision.ts`(순수 함수), 실행만 훅에 있다.** 이 판단이 틀려도 크래시나 에러 화면이 없이 알림만 조용히 사라져서 사용자가 신고하지 않는다 — Crashlytics가 못 잡는 종류라 **테이블 테스트가 유일한 그물**이다. 규칙을 바꾸면 훅이 아니라 이 함수와 테스트를 먼저 고칠 것.
 
 - **의사(intent)와 능력(capability)을 섞지 않는다. reconcile은 알림 설정을 PUT하지 않는다.** OS 권한 상태를 `enabled`에 써넣으면 권한을 껐다 켠 사용자의 선택이 복구 불가능하게 사라진다(앱은 원래 값을 이미 잊었다). 설정은 사용자의 명시적 조작으로만 바뀐다.
 - **권한 게이트는 토큰으로 건다**: 권한 denied면 서버 토큰을 삭제해 전송 경로를 끊고, 권한이 돌아오면 재등록해 설정 그대로 복구된다.

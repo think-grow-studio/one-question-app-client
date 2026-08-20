@@ -12,7 +12,7 @@ import {
   fromHistoryItem,
   fromServeDailyQuestion,
   type DailyQuestionDomain,
-} from '../../domain/questionDomain';
+} from '../../model/questionDomain';
 import { formatLocalDate } from '@/shared/utils/date';
 
 /**

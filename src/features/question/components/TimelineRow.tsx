@@ -4,7 +4,7 @@ import { useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { useAccentColors, getFontStyle, useScreenBackground } from '@/shared/theme';
 import { fs, sp, cs, radius } from '@/shared/utils/responsive';
-import type { DailyQuestionDomain } from '../domain/questionDomain';
+import type { DailyQuestionDomain } from '../model/questionDomain';
 
 const CURRENT_YEAR = new Date().getFullYear();
 

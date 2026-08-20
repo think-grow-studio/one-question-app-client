@@ -18,7 +18,7 @@ import { Button } from '@/shared/ui/Button';
 import { AlertDialog } from '@/shared/ui/AlertDialog';
 import { useAccentColors, getFontStyle } from '@/shared/theme';
 import { fs, sp, radius, cs, SCREEN, SHEET_HEIGHTS, SHEET_MAX_WIDTH } from '@/shared/utils/responsive';
-import type { DailyQuestionDomain } from '../domain/questionDomain';
+import type { DailyQuestionDomain } from '../model/questionDomain';
 
 const WEEKDAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
 const MAX_WEEKS = 6;

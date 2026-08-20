@@ -10,7 +10,7 @@ import { getNotificationPermissionStatus } from '@/features/notifications/servic
 import {
   decideReconcileAction,
   needsSdkToken,
-} from '@/features/notifications/domain/reconcileDecision';
+} from '@/features/notifications/model/reconcileDecision';
 
 /**
  * 사용자가 받겠다고 한 알림 카테고리 (intent) — 호출 시점의 값을 읽는다.

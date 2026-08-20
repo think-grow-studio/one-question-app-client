@@ -8,7 +8,7 @@ import { useThemeStore } from '@/shared/stores/useThemeStore';
 import { sp, radius, cs } from '@/shared/utils/responsive';
 import { useToggleQuestionLike } from '../hooks/mutations/useQuestionLikeMutations';
 import { questionQueryKeys } from '../hooks/queries/useQuestionQueries';
-import type { DailyQuestionDomain } from '../domain/questionDomain';
+import type { DailyQuestionDomain } from '../model/questionDomain';
 
 interface QuestionLikeButtonProps {
   questionId: number;

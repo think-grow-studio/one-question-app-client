@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useFCMLifecycle } from '@/features/notifications/hooks/useFCMLifecycle';
 import { useNotificationDeepLink } from '@/features/notifications/hooks/useNotificationDeepLink';
-import type { NotificationEvent } from '@/features/notifications/domain/notificationEvents';
+import type { NotificationEvent } from '@/features/notifications/model/notificationEvents';
 import { invalidateAnalysisQueries } from '@/features/analysis/public';
 
 interface UseNotificationAppIntegrationParams {

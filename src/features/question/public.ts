@@ -5,4 +5,4 @@ export {
   useCheckCandidateCycle,
   useSelectQuestion,
 } from './hooks/mutations/useQuestionMutations';
-export type { QuestionCandidateDomain } from './domain/questionDomain';
+export type { QuestionCandidateDomain } from './model/questionDomain';
