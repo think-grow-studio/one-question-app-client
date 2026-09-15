@@ -14,6 +14,26 @@ interface HttpRuntimeConfig {
 }
 
 let httpRuntime: HttpRuntimeConfig | undefined;
+let unauthorizedPromise: Promise<void> | undefined;
+
+async function rejectExpiredSession(error: AxiosError<ApiErrorResponse>): Promise<never> {
+  // 동시 401도 세션 정리를 한 번만 기다린다.
+  if (!unauthorizedPromise) {
+    unauthorizedPromise = Promise.resolve().then(() => httpRuntime?.onUnauthorized());
+  }
+  try {
+    await unauthorizedPromise;
+  } finally {
+    unauthorizedPromise = undefined;
+    // refresh의 raw AxiosError를 반환하면 query가 네트워크 실패로 보고 다시 요청한다.
+    throw {
+      requestId: error.response?.data?.requestId || '',
+      status: 401,
+      code: error.response?.data?.code || 'UNAUTHORIZED',
+      message: error.response?.data?.message || i18n.t('common:error.unknown'),
+    } satisfies ApiErrorResponse;
+  }
+}
 
 /** app bootstrap에서 1회 호출해 apiClient가 필요로 하는 앱 레벨 콜백을 주입한다. */
 export function configureHttpRuntime(runtimeConfig: HttpRuntimeConfig): void {
@@ -98,16 +118,24 @@ apiClient.interceptors.response.use(
 
       try {
         // 🔒 Mutex: 여러 요청이 동시에 401을 받아도 갱신은 1번만 실행
-        const accessToken = await tokenRefreshService.refresh();
+        const currentToken = await storage.getAccessToken();
+        // 다른 요청이 갱신을 마친 뒤 도착한 과거 토큰의 401은 새 토큰으로만 재시도한다.
+        const accessToken = currentToken &&
+          originalRequest.headers.Authorization !== `Bearer ${currentToken}`
+          ? currentToken
+          : await tokenRefreshService.refresh();
 
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return apiClient(originalRequest);
-      } catch (refreshError) {
+      } catch {
         // NOTE: 사용자 선택으로 조용히 로그아웃 유지
         // 향후 개선: showWarning으로 사용자에게 알림 후 로그아웃
-        await httpRuntime?.onUnauthorized();
-        return Promise.reject(refreshError);
+        return rejectExpiredSession(error);
       }
+    }
+
+    if (error.response?.status === 401 && originalRequest?._retry) {
+      return rejectExpiredSession(error);
     }
 
     // 서버에서 전달한 에러 메시지 사용 (fallback: i18n 메시지)

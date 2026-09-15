@@ -42,7 +42,8 @@ registerNotificationAuthCleanup();
 // platform(services)이 shared store를 직접 import하지 않도록 콜백 주입 (모듈 로드 시 1회,
 // 첫 요청/에러보다 반드시 먼저 실행돼야 하므로 컴포넌트 밖에서 호출한다)
 configureHttpRuntime({
-  onUnauthorized: () => useAuthStore.getState().logout(),
+  // 만료된 세션에서 서버 정리를 요청하면 그 요청의 401이 다시 refresh를 유발한다.
+  onUnauthorized: () => useAuthStore.getState().cleanupLocalAuth(),
 });
 configureQueryRuntime({
   onGlobalError: (error) => useApiErrorStore.getState().showError(error.message, error.requestId),

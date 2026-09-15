@@ -53,6 +53,8 @@ AppState.addEventListener('change', (status: AppStateStatus) => {
  */
 const handleApiError = (error: ApiErrorResponse, suppressCodes?: string[]) => {
   if (!error?.code) return;
+  // 인증 실패는 HTTP 계층에서 세션을 종료한다. 로그인 화면에 오류를 남기지 않는다.
+  if (error.status === 401) return;
   if (suppressCodes?.includes(error.code)) return;
   queryRuntime?.onGlobalError(error);
 };

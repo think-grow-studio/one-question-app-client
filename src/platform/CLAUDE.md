@@ -12,7 +12,9 @@
 
 - `tokenRefreshService.refresh()`는 Promise mutex — 동시다발 401이 와도 갱신은 1회, 나머지는 같은 Promise를 기다린다.
 - refresh는 **raw axios**를 쓴다 (apiClient를 쓰면 interceptor 무한루프). `/auth/reissue-token` 요청 자체는 401 재시도 대상에서 제외.
-- refresh 실패 → **조용히 로그아웃** (`useAuthStore.logout()`) — 의도된 UX 결정 (코드 NOTE 참고).
+- refresh 실패 또는 갱신 후 재시도도 401 → **조용히 로컬 세션 종료** (`useAuthStore.cleanupLocalAuth()`). 만료 세션에서 서버 FCM 삭제를 요청하면 401→refresh가 다시 발생하므로 일반 `logout()`과 구분한다. 동시 실패는 정리 Promise를 공유한다.
+- 갱신이 끝난 후 늦게 도착한 과거 토큰의 401은 현재 저장된 토큰으로 재시도한다 (두 번째 refresh 금지).
+- 이 종료 경로도 `ApiErrorResponse`의 `status: 401`로 정규화한다. query/mutation retry와 글로벌 dialog는 생략한다.
 - 401은 query/mutation retry 대상이 아니다 — interceptor가 이미 refresh+재시도를 끝낸 뒤이므로 queryClient에서 재시도하면 중복 요청.
 
 ## queryClient 계약
