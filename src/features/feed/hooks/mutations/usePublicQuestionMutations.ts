@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient, type InfiniteData } from '@tanstack/react-query';
 import type { ApiErrorResponse } from '@/platform/http/types';
+import i18n from '@/locales';
 import { publicQuestionApi } from '../../api/publicQuestionApi';
 import type {
   PublicAnswerDomain,
@@ -43,7 +44,7 @@ export function useCreatePublicAnswer(options?: {
     onError: (error, { date }) => {
       if (error?.code === 'PUBLIC-QUESTION-004') {
         options?.onAlreadyAnswered?.({
-          message: error.message,
+          message: i18n.t('feed:errors.alreadyAnswered'),
           syncQueries: () => invalidateDaily(date),
         });
       }
@@ -75,7 +76,7 @@ export function useUpdatePublicAnswer(options?: {
     onError: (error, { date }) => {
       if (error?.code === 'PUBLIC-QUESTION-005') {
         options?.onAnswerGone?.({
-          message: error.message,
+          message: i18n.t('feed:errors.answerGone'),
           syncQueries: () => invalidateDaily(date),
         });
       }
@@ -120,7 +121,7 @@ export function useDeletePublicAnswer(options?: {
       }
       if (error?.code === 'PUBLIC-QUESTION-005') {
         options?.onAnswerGone?.({
-          message: error.message,
+          message: i18n.t('feed:errors.answerGone'),
           syncQueries: () => invalidateDaily(date),
         });
       }

@@ -10,6 +10,10 @@
   "weekdays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
   "writeButton": "Answer",
   "editButton": "Edit",
+  "errors": {
+    "alreadyAnswered": "You've already answered this question. Please check your existing answer.",
+    "answerGone": "This answer was deleted or can no longer be changed. We'll refresh the latest information."
+  },
   "myAnswerBadge": "My answer",
   "answersTitle": "Other answers",
   "answersCount_one": "{{count}} answer",

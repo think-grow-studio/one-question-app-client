@@ -10,6 +10,10 @@
   "weekdays": ["일", "월", "화", "수", "목", "금", "토"],
   "writeButton": "답변하기",
   "editButton": "수정하기",
+  "errors": {
+    "alreadyAnswered": "이미 답변한 질문이에요. 기존 답변을 확인해주세요.",
+    "answerGone": "답변이 삭제되었거나 수정할 수 없는 상태예요. 최신 정보를 다시 불러올게요."
+  },
   "myAnswerBadge": "내 답변",
   "answersTitle": "다른 사람들의 답변",
   "answersCount_one": "답변 {{count}}개",
