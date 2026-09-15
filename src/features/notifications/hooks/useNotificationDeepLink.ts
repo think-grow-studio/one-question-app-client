@@ -26,14 +26,32 @@ export function useNotificationDeepLink({
 }: UseNotificationDeepLinkParams): void {
   const onNotificationOpenRef = useRef(onNotificationOpen);
   onNotificationOpenRef.current = onNotificationOpen;
+  const readinessRef = useRef({ isAuthenticated, isAppReady });
+  readinessRef.current = { isAuthenticated, isAppReady };
+  const pendingEvent = useRef<NotificationEvent | null>(null);
 
   const handleNotificationData = useCallback(
     (data: Record<string, unknown> | undefined) => {
-      if (!isAuthenticated) return;
-      onNotificationOpenRef.current(parseNotificationEvent(data));
+      if (!readinessRef.current.isAuthenticated) return;
+      const event = parseNotificationEvent(data);
+      if (!readinessRef.current.isAppReady) {
+        pendingEvent.current = event;
+        return;
+      }
+      onNotificationOpenRef.current(event);
     },
-    [isAuthenticated]
+    []
   );
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      pendingEvent.current = null;
+    } else if (isAppReady && pendingEvent.current) {
+      const event = pendingEvent.current;
+      pendingEvent.current = null;
+      onNotificationOpenRef.current(event);
+    }
+  }, [isAuthenticated, isAppReady]);
 
   useEffect(() => {
     // 포그라운드에서 expo local notification으로 표시된 알림 탭 (Android 브릿지 포함)
@@ -62,6 +80,9 @@ export function useNotificationDeepLink({
 
     getInitialFCMNotification().then((message) => {
       if (message) handleNotificationData(message.data);
+    }).catch(() => {
+      // 네이티브 조회 실패는 앱 시작을 막지 않는다. 다음 준비 상태 변경 시 재시도한다.
+      initialNotificationHandled.current = false;
     });
   }, [isAuthenticated, isAppReady, handleNotificationData]);
 }

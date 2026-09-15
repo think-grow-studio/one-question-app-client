@@ -35,13 +35,14 @@ export function useNotificationAppIntegration({
 
   const handleNotificationOpen = useCallback(
     (event: NotificationEvent) => {
+      handlePushEvent(event);
       if (event.type === 'ANALYSIS_DONE' && event.analysisId) {
         router.replace(`/(tabs)/analysis/${event.analysisId}`);
         return;
       }
       router.replace('/(tabs)');
     },
-    [router]
+    [router, handlePushEvent]
   );
 
   useFCMLifecycle({ onEvent: handlePushEvent });

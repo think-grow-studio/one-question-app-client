@@ -28,7 +28,14 @@ export function useAnalysisPushPrompt() {
         return;
       }
 
-      const granted = await getNotificationPermissionStatus();
+      let granted: boolean;
+      try {
+        granted = await getNotificationPermissionStatus();
+      } catch {
+        // 알림 준비 실패가 분석 요청 자체를 막아서는 안 된다.
+        proceed();
+        return;
+      }
       if (granted) {
         void ensurePushTokenRegistered();
         proceed();
@@ -44,8 +51,12 @@ export function useAnalysisPushPrompt() {
             label: t('push.accept'),
             variant: 'primary',
             onPress: async () => {
-              const ok = await requestNotificationPermission();
-              if (ok) await ensurePushTokenRegistered();
+              try {
+                const ok = await requestNotificationPermission();
+                if (ok) await ensurePushTokenRegistered();
+              } catch {
+                // OS 권한 API 실패도 거절과 동일하게 분석은 진행한다.
+              }
               proceed();
             },
           },

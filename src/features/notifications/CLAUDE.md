@@ -18,7 +18,9 @@
 2. 백그라운드: FCM SDK가 표시한 알림 탭 (`onFCMNotificationOpened`)
 3. **종료(quit) 상태**: `getInitialFCMNotification` — 인증 + 스플래시 완료(`isAppReady`) 후 **1회만** 처리
 
-이 훅은 raw data를 `parseNotificationEvent`로 typed event까지만 변환한다 — 실제 라우팅 결정은 `app/integrations/notifications/useNotificationAppIntegration`이 소유한다(이 feature는 route 문자열을 모른다). 새 알림 타입을 추가하면 라우팅은 그쪽에서, **경로별 표시 주체가 달라 data payload 구조가 3경로 모두 동일한지**는 여기서 확인해야 한다.
+이 훅은 raw data를 `parseNotificationEvent`로 typed event까지만 변환한다 — 실제 라우팅 결정은 `application/integrations/notifications/useNotificationAppIntegration`이 소유한다(이 feature는 route 문자열을 모른다). 새 알림 타입을 추가하면 라우팅은 그쪽에서, **경로별 표시 주체가 달라 data payload 구조가 3경로 모두 동일한지**는 여기서 확인해야 한다.
+
+세 경로 모두 인증·OTA·스플래시 완료를 기다린다. 준비 중 local/FCM 탭은 보류 후 처리하고, 비동기 초기 알림이 도착할 때도 최신 인증 상태를 확인한다. `ANALYSIS_DONE`은 수신뿐 아니라 탭 경로에서도 분석 캐시를 무효화한다.
 
 ## Android 포그라운드 표시는 브릿지다 (`useFCMLifecycle`)
 
@@ -48,7 +50,7 @@
 | 경로 | 관문 |
 | --- | --- |
 | `toggleNotification` / `toggleAnalysisReport` | `requestNotificationPermission()` |
-| `useAnalysisPushPrompt` (`app/integrations/analysis-notifications`, notifications 외부) | `getNotificationPermissionStatus()` |
+| `useAnalysisPushPrompt` (`application/integrations/analysis-notifications`, notifications 외부) | `getNotificationPermissionStatus()` |
 | `onFCMTokenRefresh` (`useFCMLifecycle`) | `if (!currentToken) return` — 토큰이 이미 없으면 되살리지 않음 |
 | `useFCMReconciliation` | 권한 확인이 로직 본체 |
 
