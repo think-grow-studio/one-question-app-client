@@ -3,6 +3,8 @@
 - **Status**: Accepted
 - **Date**: 2026-08-20
 
+> 2026-09-15: 아래 `app/integrations`의 물리 경로는 [ADR-0003](./0003-router-screen-only-directory.md)에 따라 `application/integrations`로 변경했다. 의존 방향과 소유 책임은 동일하다.
+
 ## 문제
 
 `feature/ai-report` 브랜치가 커지면서 feature 간 의존이 통제 없이 늘었다:

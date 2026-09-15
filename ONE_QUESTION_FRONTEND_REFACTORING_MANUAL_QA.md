@@ -1,7 +1,7 @@
 # One Question Frontend Refactoring — Manual QA Checklist
 
 > `tsc --noEmit` / `npm test`는 구조적 정합성(타입, 순수 로직)만 확인한다.
-> 콜백 배선이 바뀌거나 호출 순서가 바뀌는 종류의 회귀는 자동 테스트로 안 잡힌다 — 사람이 눈으로 확인해야 한다.
+> 순수 로직 테스트만으로는 콜백 배선·호출 순서 회귀를 잡을 수 없다. 아래 2026-09-15 검토에서 통합 테스트를 보강했지만, 네이티브 UI·권한·푸시 전달은 여전히 실기기 확인이 필요하다.
 >
 > 이 문서는 [ONE_QUESTION_FRONTEND_REFACTORING_ROADMAP.md](./ONE_QUESTION_FRONTEND_REFACTORING_ROADMAP.md) 진행 중
 > **각 Phase 커밋이 실제로 요구하는 수동 확인 항목**을 추적한다. Phase 0 기준 회귀 체크리스트 전체 목록은
@@ -11,6 +11,54 @@
 
 - `[ ]` 미확인 · `[x] YYYY-MM-DD` 확인 완료(누가/어떤 기기인지 옆에 메모)
 - 우선순위: 🔴 최우선(사용자가 눈치채는 실사용 흐름, 미확인 시 리팩토링 계속 진행 비권장) · 🟡 보통 · ⚪ 낮음(엣지케이스)
+
+## 2026-09-15 코드 검토 및 자동 검증 (Codex)
+
+**판정: 코드에서 재현한 아래 결함은 수정했다. 실기기 수동 QA 전체 통과 판정은 아니다.**
+기존 체크 표시는 그대로 보존했다. 다음 결과는 Jest·Metro 검증이며 실제 기기 확인 표시 `[x]`로 대체하지 않는다.
+
+### 발견 및 수정
+
+| 우선순위 / 관련 Phase | 재현한 문제 | 수정·검증 |
+| --- | --- | --- |
+| 🔴 2·7 | `src/app/bootstrap`·`integrations`의 일반 훅 4개가 Expo Router에서 화면으로 등록됨 | `src/application`으로 이동. 실제 파일 목록 + 설치된 `getRoutes` 실행 테스트. 화면 URL 유지 |
+| 🔴 4·7 | 스플래시 종료 후 OTA 대기 중 인증 리다이렉트 실행 | 화면 렌더와 같은 `isAppReady` 게이트 적용. RootLayout 렌더 테스트 |
+| 🔴 4 | refresh 실패의 raw AxiosError가 query retry·글로벌 오류 처리로 누출. 새 토큰도 401이면 세션 유지 | 실패를 401로 정규화, 로컬 세션 정리, retry·글로벌 dialog 생략. 만료 토큰으로 서버 로그아웃 정리를 재요청하지 않음 |
+| 🔴 4 | 첫 refresh 완료 후 늦게 도착한 다른 요청의 401이 두 번째 refresh 실행 | 요청에 사용한 토큰과 현재 토큰 비교. 동시 401·지연 401 모두 refresh 1회 테스트 |
+| 🟡 2 | 백그라운드/종료 알림 탭은 화면 이동만 하고 분석 캐시 갱신 누락 | 탭에서도 `ANALYSIS_DONE` 캐시 무효화 후 이동 |
+| 🟡 2 | local/FCM 탭은 준비 게이트 없음. 초기 알림 비동기 조회 중 로그아웃해도 이전 인증 상태로 이동 | 준비 중 탭 보류, 최신 인증 상태 확인. local·FCM·로그아웃 중 초기 알림 테스트 |
+| 🟡 2 | OS 권한 조회·요청이 reject되면 분석 제출 중단 | 권한 준비 실패에서도 분석은 계속 진행. 거절·승인·권한 거부·OS 실패·토큰 등록 실패 테스트 |
+| 🟡 9 | 공개 피드 중복/사라진 답변 메시지가 `error.public-question.*`로 표시 | feature가 에러 코드에 맞는 ko/en 문구 제공. create/update/delete 로컬 콜백·캐시 동기화와 네트워크/503 글로벌 오류 동작 테스트 |
+
+공개 피드 문구 문제는 인접 서버 소스에서도 `messages*.properties`에 해당 공개 질문 번역이 없는 것을 확인했다. 이번 변경은 frontend 범위에서 처리하며 서버 파일은 수정하지 않았다.
+
+### 검증 범위
+
+| 항목 | 결과 / 한계 |
+| --- | --- |
+| 기존 기준 | iOS preset 15 suites / 96 tests, 타입 검사, lint 통과 |
+| 수정 후 Jest | iOS·Android preset 각각 21 suites / 123 tests 통과 (회귀 테스트 27개 추가) |
+| 타입·경계 | `npx tsc --noEmit`, `npm run lint`, `git diff --check` 통과 |
+| Metro | iOS·Android Hermes 번들 export 성공. preview API/광고 설정, production JS 모드. 네이티브 빌드·cold start 검증과는 다름 |
+| 빌드 경고 | Tamagui 정적 추출기가 `tamagui.config.ts` 로딩·파싱 실패를 출력하고 추출을 건너뜀. export는 성공하나 경고 없는 빌드라고 볼 수 없음. 이 경고만으로 네이티브 테마 정상 여부를 판정하지 않음 |
+| Phase 3 | member public contract의 snapshot→patch→restore→invalidate 연결 및 PUT 전체 필드 전달 코드 검토. 실제 네트워크 실패·화면 롤백은 미확인 |
+| Phase 6·7·8 | 회원 등급 reload 계산·분석 상태 문구는 기존 단위 테스트 확인. public import 경계는 lint/번들 확인. 광고·소셜 연결 UI는 미확인 |
+| 기기 상태 | 실행 중인 iOS Simulator 없음, `adb devices` 연결 기기 없음. 실제 Google/Apple 로그인·FCM 전달·광고·권한 창·OTA 적용·강제 업데이트 UI는 미확인 |
+
+최종 export 명령:
+
+```bash
+EXPO_NO_DOTENV=1 APP_ENV=preview EXPO_PUBLIC_APP_ENV=preview NODE_ENV=production \
+  npx expo export --platform ios --platform android \
+  --output-dir /private/tmp/one-question-refactor-qa-20260915-final --max-workers 2
+```
+
+### 수동 확인 시 문서와 코드의 차이
+
+- `CommonQuestionFeed`의 이미 삭제된 답변 삭제(`PUBLIC-QUESTION-005`)는 **추가 다이얼로그 없이 동기화**하는 기존 정책이다. 작성·수정 화면의 로컬 다이얼로그 시나리오와 구분한다.
+- `DatePickerSheet`의 과거 날짜 제한은 회원 등급 자체가 아니라 서버 `cycleStartDate` 기준이다. 해당 날짜 전후와 미래 날짜 제한을 확인한다.
+- `[API Request]` 콘솔 출력에는 헤더가 포함되지 않는다. `Accept-Language`는 네트워크 검사 도구에서 확인한다. 토큰을 포함한 전체 헤더 로깅은 추가하지 않는다.
+- 물리 경로 변경의 근거와 의존 규칙은 [ADR-0003](./docs/decisions/0003-router-screen-only-directory.md), 현재 구조는 README를 따른다. 아래 Phase/커밋 설명의 이전 경로는 이력이다.
 
 ---
 

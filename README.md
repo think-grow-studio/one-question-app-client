@@ -54,8 +54,8 @@ npm run lint             # ESLint (의존 경계 검사)
 
 ```
 src/
-├─ app/           # 라우팅·화면 조립 + cross-feature workflow (Expo Router)
-│                 #   bootstrap/ (앱 시작 1회), integrations/ (여러 feature를 조율하는 workflow)
+├─ app/           # Expo Router 화면·레이아웃만 (일반 훅/테스트 파일 금지)
+├─ application/   # 앱 조립 계층: bootstrap/ (앱 시작), integrations/ (feature 간 workflow)
 ├─ features/      # 도메인 로직 — 9개 feature (question, feed, analysis,
 │                 #   notifications, answer, auth, member, settings, admob)
 ├─ platform/      # 기술 인프라만 — http/(apiClient, tokenRefreshService, types),
@@ -70,15 +70,16 @@ src/
 **의존 방향 (절대 규칙)**
 
 ```
-app      → features / platform / shared 전부 허용
+app      → application / features / platform / shared 전부 허용
+application → features / platform / shared 전부 허용 (앱 조립 계층)
 features → features(같은 feature 내부 자유, 다른 feature는 public.ts만·비순환) / platform / shared
-platform → platform만 (features / app / shared 금지)
+platform → platform만 (features / app / application / shared 금지)
 shared   → platform (허용) / features (금지, 예외 1건)
 ```
 
 이 경계는 사람이 기억하는 게 아니라 `npm run lint`(ESLint, `eslint.config.mjs`)로 강제된다.
 
-- `app/`: 비즈니스 로직 ❌, 직접 API 호출 ❌ — `features/`의 훅을 조립만 한다. 앱 시작 1회 부트스트랩은 `app/bootstrap/`(`useAppBootstrap`, `useVersionCheck`). **두 feature 이상을 동시에 참조하거나, 한 feature의 event를 다른 feature의 effect로 연결하는 workflow**(예: 분석 완료 push → 분석 캐시 무효화 + 딥링크)는 `app/integrations/`가 소유 — 어느 한쪽 feature에 넣으면 역방향 의존이 생기는 경우가 기준.
+- `app/`: 비즈니스 로직 ❌, 직접 API 호출 ❌ — `features/`의 훅을 조립만 한다. 앱 시작 부트스트랩은 `application/bootstrap/`, **feature 사이의 event·cache·navigation 연결**은 `application/integrations/`가 소유한다. 둘 다 앱 조립 계층이다. Expo Router가 `src/app`의 일반 `.ts` 파일까지 화면으로 수집하므로 비화면 코드는 물리적으로 분리한다 ([ADR-0003](./docs/decisions/0003-router-screen-only-directory.md)).
 - **feature 간 참조는 상대 feature의 `public.ts`만** — 내부 경로(`hooks/`, `model/`, `components/` 등) 직접 import 금지, ESLint(`local/no-cross-feature-deep-import`)로 강제. `public.ts`는 외부 consumer가 실제로 있는 feature에만 만든다(`export *` 금지, 이름 명시 재수출만).
 - `shared/`는 `features/`를 임포트하지 않는다. **유일한 명시적 예외**: `AppErrorBoundary` → `features/admob/BannerAdSlot` (크래시 화면 배너는 제품 결정, 코드 주석 참고).
 - shared 스토어가 feature 측 정리 작업이 필요하면 **콜백 등록으로 역전**: `useAuthStore.registerAuthCleanup` ← `features/notifications/services/authCleanup.ts`가 `_layout` 모듈 로드 시 등록. 같은 원리로 `platform`이 auth/error store 같은 앱 레벨 상태를 다뤄야 하면 `configureHttpRuntime`/`configureQueryRuntime` 콜백을 `app/_layout.tsx`가 부트스트랩 시점에 주입한다 (`platform`은 `useAuthStore` 등을 직접 import하지 않는다).
@@ -115,9 +116,6 @@ app/
 ├─ _layout.tsx              # 루트: Provider 조립 + platform runtime 설정
 │                           #   (configureHttpRuntime/configureQueryRuntime) +
 │                           #   인증 리다이렉트 + 스플래시 게이트
-├─ bootstrap/               # 앱 시작 1회 로직 (useAppBootstrap, useVersionCheck)
-├─ integrations/            # cross-feature workflow (예: analysis-notifications,
-│                           #   notifications → analysis 캐시/딥링크 연결)
 ├─ (auth)/login.tsx         # 로그인 (Google/Apple)
 ├─ (tabs)/
 │  ├─ index.tsx             # 홈 (오늘의 질문 / 타임라인 뷰 토글)
@@ -160,7 +158,7 @@ app/
 ### apiClient (`platform/http/apiClient.ts`)
 
 - 단일 Axios 인스턴스, timeout 5초. 모든 요청에 자동 주입: `Authorization`(SecureStore 토큰), `Accept-Language`(사용자 선택 언어 우선), `Timezone`(기기 타임존 — **서버의 "오늘" 판정이 이 헤더 기준**).
-- 401 → `tokenRefreshService.refresh()`(mutex — 동시 401에도 갱신 1회) 후 원 요청 재시도. refresh 실패 시 조용히 로그아웃.
+- 401 → `tokenRefreshService.refresh()`(mutex — 동시 401에도 갱신 1회) 후 원 요청 재시도. 갱신 완료 뒤 도착한 이전 토큰의 401은 저장된 새 토큰을 재사용한다. refresh 실패 또는 재시도도 401이면 로컬 세션 정리 후 정규화된 401을 반환하며, query 재시도·글로벌 dialog는 생략한다.
 - 응답 에러는 `ApiErrorResponse`(requestId/status/code/message, `platform/http/types.ts` 소유)로 **정규화만** 하고 reject — 사용자 표시는 하지 않는다.
 - `platform`은 `useAuthStore`/`useApiErrorStore`를 직접 모른다 — `configureHttpRuntime({ onUnauthorized })`/`configureQueryRuntime({ onGlobalError })` 콜백을 `app/_layout.tsx`가 모듈 로드 시점(첫 요청보다 반드시 먼저)에 주입한다.
 
