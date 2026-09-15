@@ -15,7 +15,7 @@ interface UseNotificationAppIntegrationParams {
 /**
  * notifications가 전달하는 push event를 받아 다른 feature/route에 필요한 effect를 실행한다.
  * notifications ↔ analysis가 서로를 모르게 하고, notifications가 route 문자열을 모르게 하기 위한
- * workflow 소유자 (app/integrations).
+ * workflow 소유자 (application/integrations).
  */
 export function useNotificationAppIntegration({
   isAuthenticated,

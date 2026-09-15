@@ -57,7 +57,7 @@ const localPlugin = {
 };
 
 const FORBID_FEATURES = { group: ['@/features', '@/features/**'] };
-const FORBID_APP = { group: ['@/app', '@/app/**'] };
+const FORBID_APP = { group: ['@/app', '@/app/**', '@/application', '@/application/**'] };
 const FORBID_SHARED = { group: ['@/shared', '@/shared/**'] };
 
 export default tseslint.config(

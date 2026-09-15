@@ -30,10 +30,10 @@ import '@/locales'; // i18n 초기화
 import { GlobalErrorHandler } from '@/shared/error/GlobalErrorHandler';
 import { AppErrorBoundary } from '@/shared/error/AppErrorBoundary';
 import { VersionCheckDialog } from '@/shared/ui/VersionCheckDialog';
-import { useAppBootstrap } from '@/app/bootstrap/useAppBootstrap';
-import { useVersionCheck } from '@/app/bootstrap/useVersionCheck';
+import { useAppBootstrap } from '@/application/bootstrap/useAppBootstrap';
+import { useVersionCheck } from '@/application/bootstrap/useVersionCheck';
 import '@/features/admob/config/adInit'; // AdMob SDK 초기화
-import { useNotificationAppIntegration } from '@/app/integrations/notifications/useNotificationAppIntegration';
+import { useNotificationAppIntegration } from '@/application/integrations/notifications/useNotificationAppIntegration';
 import { registerNotificationAuthCleanup } from '@/features/notifications/services/authCleanup';
 
 // 로그아웃/탈퇴 시 FCM 토큰 정리를 auth 스토어에 연결 (모듈 로드 시 1회)
@@ -72,7 +72,7 @@ function RootLayoutNav() {
 
   // 인증 상태에 따라 리다이렉트
   useEffect(() => {
-    if (isLoading || !splashDone) return;
+    if (!isAppReady) return;
 
     const inAuthGroup = segments[0] === '(auth)';
 
@@ -81,7 +81,7 @@ function RootLayoutNav() {
     } else if (isAuthenticated && inAuthGroup) {
       router.replace('/(tabs)');
     }
-  }, [isAuthenticated, isLoading, splashDone, segments]);
+  }, [isAuthenticated, isAppReady, segments, router]);
 
   // 로딩 중이거나 스플래시가 끝나지 않았을 때
   if (isLoading || !splashDone || !updateChecked) {
