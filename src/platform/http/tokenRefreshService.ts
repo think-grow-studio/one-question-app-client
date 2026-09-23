@@ -2,6 +2,7 @@ import axios from 'axios';
 import { config } from '@/constants/config';
 import { storage } from '@/platform/storage/storage';
 import { ReissueTokenResponse } from './types';
+import { APP_USER_AGENT } from './appUserAgent';
 
 /**
  * Token Refresh Mutex Service
@@ -56,7 +57,7 @@ class TokenRefreshService {
       `${config.apiUrl}/api/v1/auth/reissue-token`,
       { refreshToken },
       {
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'User-Agent': APP_USER_AGENT },
         timeout: 5000, // 5초 timeout (무한 대기 방지)
       }
     );

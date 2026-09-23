@@ -1,6 +1,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import * as Localization from 'expo-localization';
 import { config } from '@/constants/config';
+import { APP_USER_AGENT } from './appUserAgent';
 import { LANGUAGE_LOCALE_MAP } from '@/locales/localeMap';
 import { storage } from '@/platform/storage/storage';
 import i18n from '@/locales';
@@ -57,6 +58,9 @@ apiClient.interceptors.request.use(
     if (token) {
       requestConfig.headers.Authorization = `Bearer ${token}`;
     }
+
+    // User-Agent 주입 - OkHttp/NSURLSession 기본값 대신 기기/앱 버전 식별 가능한 값 사용
+    requestConfig.headers['User-Agent'] = APP_USER_AGENT;
 
     // Locale 주입 - 사용자 선택 언어 우선, 없으면 기기 언어 (ko-KR 형식)
     requestConfig.headers['Accept-Language'] =

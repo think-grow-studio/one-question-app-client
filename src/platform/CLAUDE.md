@@ -5,7 +5,7 @@
 ## apiClient 계약
 
 - **interceptor는 정규화만 한다** — 모든 에러는 `ApiErrorResponse{requestId,status,code,message}`로 reject. 사용자 표시는 `queryClient.ts`의 cache-level onError가 담당. **interceptor에 showError를 추가하지 말 것.**
-- 자동 주입 헤더: `Authorization`(SecureStore), `Accept-Language`(사용자 선택 언어 우선), **`Timezone`(기기 타임존)** — 서버의 "오늘의 질문" 날짜 판정이 이 헤더 기준이다. 날짜가 어긋나는 버그는 기기 타임존부터 확인.
+- 자동 주입 헤더: `Authorization`(SecureStore), `Accept-Language`(사용자 선택 언어 우선), **`Timezone`(기기 타임존)** — 서버의 "오늘의 질문" 날짜 판정이 이 헤더 기준이다. 날짜가 어긋나는 버그는 기기 타임존부터 확인. `User-Agent`도 `appUserAgent.ts`가 조립한 `one-question/{appVersion} ({Platform.OS} {osVersion}; {modelName})` 값으로 덮어쓴다 — OkHttp/NSURLSession 기본 UA는 기기 식별 정보가 없어(RN 네트워킹 스택 기본값) 서버 로그로 기기/버전을 구분할 수 없었기 때문. `tokenRefreshService`의 raw axios 호출도 같은 값을 쓴다(누락 시 reissue-token 요청만 기본 UA로 새는 회귀이니 주의).
 - timeout 5초 (refresh 요청도 별도로 5초). 서버 메시지가 없을 때의 fallback 에러 메시지는 i18n(`common:error.*`).
 
 ## 401 / 토큰 갱신
