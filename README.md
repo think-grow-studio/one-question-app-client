@@ -169,10 +169,12 @@ app/
 | interceptor                                                       | 401 refresh + 정규화 + Crashlytics(5xx/네트워크만). **showError 호출 금지** |
 | `QueryCache`/`MutationCache.onError` (`platform/query/queryClient.ts`) | default 표시. 해당 쿼리/뮤테이션의 `meta.suppressGlobalErrorCodes`에 그 에러 코드가 있으면 생략 |
 | mutation hook `onError`                                           | 도메인 후속 처리만 (캐시 무효화, 호출자 callback closure 전달). 표시 ❌     |
-| `GlobalErrorHandler` (`shared/error/`)                            | `useApiErrorStore` 상태로 AlertDialog 1개 렌더, pathname 변경 시 자동 reset |
+| `GlobalErrorHandler` (`shared/error/`)                            | 각 `Screen` 내부에 배치, 포커스된 화면에서만 `useApiErrorStore` 상태로 AlertDialog 1개 표시. 화면 blur/unmount 시 reset |
 | 컴포넌트                                                          | mutation hook에 callback만 전달 — `queryClient`/query keys 직접 의존 ❌     |
 
 **Dialog 위치 판단**: confirm이 "닫기만" → 글로벌 `useApiErrorStore.showError()` · confirm 후 화면별 액션(refetch/navigation) 필요 → 컴포넌트 로컬 `<AlertDialog>` + useState. 글로벌 store에 callback을 넣지 않는다.
+
+글로벌 오류의 **수집은 전역, 표시 위치는 현재 화면 내부**다. `GlobalErrorHandler`를 루트 Stack 바깥으로 옮기지 않는다 — iOS 네이티브 모달(`answer/index`)이 떠 있으면 루트 컨트롤러에서 추가 다이얼로그를 표시할 수 없다. 새 화면도 공통 `Screen`을 사용한다. 비활성 스택/탭의 handler는 표시하지 않아 Android에서도 중복 다이얼로그를 방지한다.
 
 **silent 코드**: 중앙 목록이 없다. 각 쿼리/뮤테이션이 `meta: { suppressGlobalErrorCodes: ['CODE-XXX'] }`로 스스로 선언한다 — `platform`은 어떤 코드가 있는지 모른다 (예: `useCreateAnswer`의 `QUESTION-004`, `useDailyPublicQuestion`의 `PUBLIC-QUESTION-003`, `useCreatePublicAnswer`의 `PUBLIC-QUESTION-004`, `useUpdatePublicAnswer`/`useDeletePublicAnswer`의 `PUBLIC-QUESTION-005`). 코드 단위 선언이라 같은 mutation의 다른 에러(네트워크/5xx 등)는 여전히 글로벌 dialog가 뜬다 — 쿼리 전용인 `meta: { suppressGlobalError: true }`(코드 무관, 백그라운드 prefetch용)와 혼동하지 말 것. 선언한 코드는 호출자(mutation hook + 컴포넌트)가 후속 처리(로컬 dialog + 캐시 동기화)를 책임진다.
 

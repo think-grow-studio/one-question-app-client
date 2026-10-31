@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { usePathname } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
 import { AlertDialog } from '@/shared/ui/AlertDialog';
 import { useApiErrorStore } from '@/shared/stores/useApiErrorStore';
 import { useTranslation } from 'react-i18next';
@@ -7,18 +7,17 @@ import { useTranslation } from 'react-i18next';
 export function GlobalErrorHandler() {
   const { t } = useTranslation('common');
   const { isVisible, message, requestId, hideError } = useApiErrorStore();
-  const pathname = usePathname();
-  const isFirstRenderRef = useRef(true);
+  const [isFocused, setIsFocused] = useState(false);
 
-  // 사용자가 dialog 무시하고 router.back() 시 다음 화면에서 터치 먹통 되는 stuck 방지.
-  // 초기 mount는 무시 (mount 시점의 pathname 변화가 showError trigger와 race하지 않도록).
-  useEffect(() => {
-    if (isFirstRenderRef.current) {
-      isFirstRenderRef.current = false;
-      return;
-    }
-    if (isVisible) hideError();
-  }, [pathname]);
+  // Screen 내부에서 표시해야 iOS 네이티브 modal 위에도 present할 수 있다.
+  // 스택/탭에 남아 있는 비활성 화면은 표시하지 않고, 이탈 시 이전 오류를 정리한다.
+  useFocusEffect(useCallback(() => {
+    setIsFocused(true);
+    return () => {
+      setIsFocused(false);
+      hideError();
+    };
+  }, [hideError]));
 
   // 메시지에 requestId 추가 (__DEV__ 모드에서만)
   const displayMessage = __DEV__ && requestId
@@ -27,7 +26,7 @@ export function GlobalErrorHandler() {
 
   return (
     <AlertDialog
-      visible={isVisible}
+      visible={isFocused && isVisible}
       title={t('error.title', '오류')}
       message={displayMessage}
       buttons={[

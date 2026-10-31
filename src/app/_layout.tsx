@@ -27,7 +27,6 @@ import { useAuthStore } from '@/shared/stores/useAuthStore';
 import { useApiErrorStore } from '@/shared/stores/useApiErrorStore';
 import { ThemeTransitionProvider } from '@/shared/ui/ThemeTransitionProvider';
 import '@/locales'; // i18n 초기화
-import { GlobalErrorHandler } from '@/shared/error/GlobalErrorHandler';
 import { AppErrorBoundary } from '@/shared/error/AppErrorBoundary';
 import { VersionCheckDialog } from '@/shared/ui/VersionCheckDialog';
 import { useAppBootstrap } from '@/application/bootstrap/useAppBootstrap';
@@ -118,7 +117,6 @@ function RootLayoutNav() {
           }}
         />
       </Stack>
-      <GlobalErrorHandler />
       <VersionCheckDialog
         visible={dialogState.visible}
         type={dialogState.type}

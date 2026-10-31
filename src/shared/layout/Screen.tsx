@@ -3,6 +3,7 @@ import { YStack, styled, GetProps, useTheme } from 'tamagui';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar, View, StyleSheet } from 'react-native';
 import { useThemeStore } from '@/shared/stores/useThemeStore';
+import { GlobalErrorHandler } from '@/shared/error/GlobalErrorHandler';
 
 const ScreenContainer = styled(YStack, {
   name: 'Screen',
@@ -57,6 +58,7 @@ export function Screen({
   const content = (
     <ScreenContainer backgroundColor={backgroundColor} {...props}>
       <ContentContainer maxWidth={maxContentWidth}>{children}</ContentContainer>
+      <GlobalErrorHandler />
     </ScreenContainer>
   );
 
