@@ -50,6 +50,14 @@ export function readMemberNotificationSetting(
   );
 }
 
-export function invalidateMemberMe(queryClient: QueryClient): void {
-  void queryClient.invalidateQueries({ queryKey: memberQueryKeys.me() });
+export function invalidateMemberMe(
+  queryClient: QueryClient,
+  options: { refetchType?: 'active' | 'none' } = {},
+): void {
+  void queryClient.invalidateQueries({ queryKey: memberQueryKeys.me(), ...options });
+}
+
+/** 유지되는 탭에 재진입할 때도 stale인 회원 정보만 다시 확인한다. */
+export function refetchStaleMemberMe(queryClient: QueryClient): void {
+  void queryClient.refetchQueries({ queryKey: memberQueryKeys.me(), stale: true, type: 'active' });
 }

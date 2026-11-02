@@ -12,6 +12,9 @@
 - `notificationApi.upsertSetting`은 **PUT 전체 교체**. 한 필드만 바꿀 때도 나머지 필드(alarmTime/timezone/enabled/analysisReportEnabled)를 현재 값으로 pass-through 해야 한다 — 빠뜨리면 다른 설정이 초기화된다 (`useNotificationSettings`의 각 토글이 나머지 값을 실어 보내는 것 참고).
 - `analysisReportEnabled`는 서버 미지원 기간의 **로컬 fallback 진실원** (store 주석 참고): 서버 응답에 필드가 있으면 서버 값 우선, PUT에는 항상 포함(서버가 모르면 무시 — forward-compatible).
 
+- 설정 변경 성공 시 회원 정보를 즉시 재조회한다. 실패 시 서버 캐시·로컬 fallback을 롤백하고 `invalidateMemberMe(queryClient, { refetchType: 'none' })`으로 stale만 표시한다. 실패 직후 재조회하면 저장 오류와 조회 오류가 연달아 안내되므로 금지한다.
+- 실패 후 동기화는 설정 화면의 다음 focus(`useNotificationSettings`) 또는 앱 복귀 시 수행한다. 탭은 unmount되지 않으므로 query의 mount 동작만 의존하면 안 된다. focus callback에 stale 상태를 의존성으로 넣으면 실패 즉시 재실행되므로 queryClient만 의존한다. 화면 재진입에서는 stale 쿼리만 조회한다.
+
 ## 딥링크는 3경로다 (`useNotificationDeepLink`)
 
 1. 포그라운드: expo local notification 탭 (`addNotificationResponseReceivedListener`)

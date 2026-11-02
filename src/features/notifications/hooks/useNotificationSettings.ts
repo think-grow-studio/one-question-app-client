@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { useNotificationStore } from '@/features/notifications/stores/useNotificationStore';
 import { requestNotificationPermission } from '@/features/notifications/services/notifications';
 import { ensurePushTokenRegistered } from '@/features/notifications/services/pushToken';
 import { getFCMToken } from '@/platform/firebase';
-import { useMemberMe } from '@/features/member/public';
+import { useMemberMe, refetchStaleMemberMe } from '@/features/member/public';
 import {
   useUpdateNotificationTimeMutation,
   useEnableNotificationMutation,
@@ -40,6 +42,12 @@ export function useAnalysisReportEnabled(): boolean {
 }
 
 export function useNotificationSettings() {
+  const queryClient = useQueryClient();
+  // 탭은 unmount되지 않으므로, 실패 후 미룬 동기화는 다음 focus에서 재개한다.
+  // stale 상태를 의존성에 넣으면 현재 화면에서 실패 즉시 재조회하게 되므로 넣지 않는다.
+  useFocusEffect(useCallback(() => {
+    refetchStaleMemberMe(queryClient);
+  }, [queryClient]));
   const fcmToken = useNotificationStore((s) => s.fcmToken);
   const { data: memberData } = useMemberMe();
   const analysisReportEnabled = useAnalysisReportEnabled();

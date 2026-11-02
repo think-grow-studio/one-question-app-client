@@ -43,7 +43,7 @@ interface AnalysisReportInput {
 /**
  * 알림 시간 변경 — 낙관적 업데이트.
  * 서버 응답 전에 캐시를 즉시 갱신해 UI를 체감 0ms로 반영하고,
- * 실패 시 이전 상태로 롤백, 성공/실패와 무관하게 최종적으로 서버 truth로 재동기화.
+ * 실패 시 이전 상태로 롤백하고 재조회를 다음 진입/앱 복귀로 미룬다. 성공 시 즉시 재동기화.
  *
  * 토큰은 건드리지 않는다 — 시간 변경은 설정 조작이지 토큰 조작이 아니고,
  * 토큰 정합성은 useFCMReconciliation이 단독으로 책임진다. 여기서 registerFcmToken을
@@ -79,8 +79,9 @@ export function useUpdateNotificationTimeMutation() {
       restoreMemberMe(queryClient, context?.previous);
     },
 
-    onSettled: () => {
-      invalidateMemberMe(queryClient);
+    onSettled: (_data, error) => {
+      // 실패 뒤 즉시 조회하면 같은 연결 오류를 두 번 안내하게 된다. stale 표시는 유지한다.
+      invalidateMemberMe(queryClient, { refetchType: error ? 'none' : 'active' });
     },
   });
 }
@@ -129,8 +130,9 @@ export function useEnableNotificationMutation() {
       }
     },
 
-    onSettled: () => {
-      invalidateMemberMe(queryClient);
+    onSettled: (_data, error) => {
+      // 실패 뒤 즉시 조회하면 같은 연결 오류를 두 번 안내하게 된다. stale 표시는 유지한다.
+      invalidateMemberMe(queryClient, { refetchType: error ? 'none' : 'active' });
     },
   });
 }
@@ -168,8 +170,9 @@ export function useDisableNotificationMutation() {
       restoreMemberMe(queryClient, context?.previous);
     },
 
-    onSettled: () => {
-      invalidateMemberMe(queryClient);
+    onSettled: (_data, error) => {
+      // 실패 뒤 즉시 조회하면 같은 연결 오류를 두 번 안내하게 된다. stale 표시는 유지한다.
+      invalidateMemberMe(queryClient, { refetchType: error ? 'none' : 'active' });
     },
   });
 }
@@ -209,8 +212,9 @@ export function useUpdateAnalysisReportMutation() {
       }
     },
 
-    onSettled: () => {
-      invalidateMemberMe(queryClient);
+    onSettled: (_data, error) => {
+      // 실패 뒤 즉시 조회하면 같은 연결 오류를 두 번 안내하게 된다. stale 표시는 유지한다.
+      invalidateMemberMe(queryClient, { refetchType: error ? 'none' : 'active' });
     },
   });
 }
