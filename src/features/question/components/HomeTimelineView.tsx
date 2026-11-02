@@ -83,16 +83,6 @@ export function HomeTimelineView() {
     );
   }
 
-  if (items.length === 0) {
-    return (
-      <YStack flex={1} justifyContent="center" alignItems="center" px={sp(24)}>
-        <Text style={[styles.emptyText, { color: theme.colorMuted?.val }]}>
-          {t('timeline.empty')}
-        </Text>
-      </YStack>
-    );
-  }
-
   return (
     <View style={styles.listWrap}>
       <FlashList<DailyQuestionDomain>
@@ -100,7 +90,15 @@ export function HomeTimelineView() {
         renderItem={renderItem}
         keyExtractor={(item) => item.date}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={items.length === 0 ? styles.emptyContent : styles.listContent}
+        alwaysBounceVertical
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={[styles.emptyText, { color: theme.colorMuted?.val }]}>
+              {t('timeline.empty')}
+            </Text>
+          </View>
+        }
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
         onRefresh={handleRefresh}
@@ -131,6 +129,15 @@ const styles = StyleSheet.create({
     fontSize: fs(16),
     textAlign: 'center',
     letterSpacing: -0.3,
+  },
+  emptyContent: {
+    flexGrow: 1,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: sp(24),
   },
   footerSpinner: {
     paddingVertical: sp(16),

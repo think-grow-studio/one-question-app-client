@@ -17,6 +17,7 @@
 
 - 서버 조회는 baseDate **포함(inclusive)** 과거 방향 → 다음 커서 = 응답 `startDate`(가장 과거 기록일) **− 1일**. 빼먹으면 경계 날짜가 중복 조회된다 (select의 seen-Set은 방어일 뿐).
 - 빈 결과면 `startDate`가 null (OpenAPI 명세) → 페이지네이션 종료.
+- 빈 타임라인도 `FlashList`를 유지하고 `ListEmptyComponent`로 안내한다. 별도 빈 화면으로 조기 반환하면 pull-to-refresh가 사라진다. iOS에서 짧거나 빈 콘텐츠도 당길 수 있도록 `alwaysBounceVertical`을 유지한다.
 - `initialPageParam`(오늘 날짜)은 **호출 시점 평가** — useMemo 등으로 박제하면 자정 넘긴 뒤 어제로 고정된다.
 
 ## Mutation → 캐시 동기화 규약 (`useQuestionMutations.ts`)
