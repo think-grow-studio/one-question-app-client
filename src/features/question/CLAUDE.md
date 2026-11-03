@@ -2,6 +2,8 @@
 
 이 feature의 핵심 복잡도는 **세 쿼리 캐시의 정합성**이다. 파일 구조는 코드를 읽어라.
 
+`ReloadOptionSheet`는 질문 후보 선택·리로드 UI라 이 feature가 소유한다. `answer`는 답변 작성에서 `question/public.ts`를 사용하므로 이 시트를 answer로 옮겨 참조하면 feature 순환이 된다. 시트 내부에서는 question의 훅·타입을 직접 사용하고 외부 consumer 없는 export는 public에 추가하지 않는다.
+
 ## 캐시 토폴로지 (`useQuestionQueries.ts`의 `questionQueryKeys`)
 
 | 키 | 값 | 소비처 |

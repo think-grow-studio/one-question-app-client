@@ -30,7 +30,7 @@
 
 **3. Feature 간 순환 의존은 금지한다.** 순환이 생기는 지점은 예외 없이 (1) `public.ts` 단방향 참조로 한쪽만 남기거나, (2) `app/integrations`로 끌어올린다.
 
-**4. 이 규칙은 ESLint로 자동 강제한다** (`eslint.config.mjs`의 `local/no-cross-feature-deep-import`). 사람이 리뷰에서 기억해야 하는 규칙은 오래가지 못한다는 것을 이번 리팩토링 자체가 증명했다 — 애초에 이 순환·deep import들이 문서(`README.md`)의 절대 규칙을 어기며 쌓였었다.
+**4. public 경로 규칙은 ESLint로, feature 순환은 Jest 구조 검사로 강제한다.** `eslint.config.mjs`의 `local/no-cross-feature-deep-import`는 참조 경로를 검사하며 feature 그래프의 순환까지 검사하지 않는다. `application/__tests__/featureDependencies.test.js`가 production의 정적 import·re-export를 feature 단위로 모아 타입 참조를 포함한 순환을 검사한다.
 
 ## 결과
 

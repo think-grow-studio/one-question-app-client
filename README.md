@@ -79,6 +79,8 @@ shared   → platform (허용) / features (금지, 예외 1건)
 
 이 경계는 사람이 기억하는 게 아니라 `npm run lint`(ESLint, `eslint.config.mjs`)로 강제된다.
 
+feature 간 순환 의존은 `npm test`의 `application/__tests__/featureDependencies.test.js`가 production 소스의 정적 import·re-export(타입 참조 포함)를 읽어 검사한다. lint의 public 경로 검사와 별개다.
+
 - `app/`: 비즈니스 로직 ❌, 직접 API 호출 ❌ — `features/`의 훅을 조립만 한다. 앱 시작 부트스트랩은 `application/bootstrap/`, **feature 사이의 event·cache·navigation 연결**은 `application/integrations/`가 소유한다. 둘 다 앱 조립 계층이다. Expo Router가 `src/app`의 일반 `.ts` 파일까지 화면으로 수집하므로 비화면 코드는 물리적으로 분리한다 ([ADR-0003](./docs/decisions/0003-router-screen-only-directory.md)).
 - **feature 간 참조는 상대 feature의 `public.ts`만** — 내부 경로(`hooks/`, `model/`, `components/` 등) 직접 import 금지, ESLint(`local/no-cross-feature-deep-import`)로 강제. `public.ts`는 외부 consumer가 실제로 있는 feature에만 만든다(`export *` 금지, 이름 명시 재수출만).
 - `shared/`는 `features/`를 임포트하지 않는다. **유일한 명시적 예외**: `AppErrorBoundary` → `features/admob/BannerAdSlot` (크래시 화면 배너는 제품 결정, 코드 주석 참고).

@@ -6,6 +6,10 @@
 >
 > 원칙: **동작을 유지한 채 의존성을 먼저 정리하고, 파일 이동은 나중에 한다.**
 
+> 현재 구조 보충: 아래 단계별 경로는 당시 계획이다. 실제 bootstrap/integration은 ADR-0003에 따라 `src/application/bootstrap`과 `src/application/integrations`가 소유한다.
+>
+> 마무리 검토에서 `question → answer → question` 순환을 발견해 `ReloadOptionSheet`를 `question/components`로 이동했다. 외부 consumer가 사라진 `answer/public.ts`와 question의 후보 선택 전용 공개 export를 제거하고, Jest에 feature 순환 검사를 추가했다. 시트 UI·번역 키·동작은 유지한다. 분석 관련 QA는 앞선 보류 범위이므로 이 보충만으로 전체 QA 통과를 의미하지 않는다.
+
 ---
 
 # 0. 전체 순서

@@ -2,7 +2,4 @@ export { useTimeline as useQuestionTimeline } from './hooks/queries/useQuestionQ
 export {
   useCreateAnswer,
   useUpdateAnswer,
-  useCheckCandidateCycle,
-  useSelectQuestion,
 } from './hooks/mutations/useQuestionMutations';
-export type { QuestionCandidateDomain } from './model/questionDomain';

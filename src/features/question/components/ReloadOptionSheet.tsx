@@ -18,8 +18,8 @@ import { fs, sp, radius, cs, SHEET_HEIGHTS, SHEET_MAX_WIDTH } from '@/shared/uti
 import {
   useCheckCandidateCycle,
   useSelectQuestion,
-  type QuestionCandidateDomain,
-} from '@/features/question/public';
+} from '../hooks/mutations/useQuestionMutations';
+import type { QuestionCandidateDomain } from '../model/questionDomain';
 import { AlertDialog, useAlertDialog } from '@/shared/ui/AlertDialog';
 
 const DISMISS_RATIO = 0.3;
