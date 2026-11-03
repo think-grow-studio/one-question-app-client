@@ -18,8 +18,8 @@ import { useThemeStore } from '@/shared/stores/useThemeStore';
 import * as WebBrowser from 'expo-web-browser';
 import { logScreenView } from '@/platform/firebase';
 
-const logoLight = require('@/assets/images/one-question-light.png');
-const logoDark = require('@/assets/images/one-question-dark.png');
+const logoLight = require('../../../assets/one-question-light-tile-transparent.png');
+const logoDark = require('../../../assets/one-question-dark-tile-transparent.png');
 
 function GuestIcon({ color }: { color: string }) {
   return (

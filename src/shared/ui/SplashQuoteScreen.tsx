@@ -32,8 +32,8 @@ export function SplashQuoteScreen({ onFinish }: Props) {
   const backgroundColor = isDark ? '#1C1C1E' : '#FFFFFF';
   const quoteColor = isDark ? '#EBEBF5' : '#3C3C43';
   const logo = isDark
-    ? require('../../../assets/one-question-dark.png')
-    : require('../../../assets/one-question-light.png');
+    ? require('../../../assets/one-question-dark-tile-transparent.png')
+    : require('../../../assets/one-question-light-tile-transparent.png');
 
   const opacity = useSharedValue(0);
 

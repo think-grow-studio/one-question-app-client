@@ -90,7 +90,7 @@ export default {
     },
     scheme: 'onequestion',
     orientation: 'portrait',
-    icon: './assets/one-question-light.png',
+    icon: './assets/one-question-light-tile-transparent.png',
     userInterfaceStyle: 'automatic',
     newArchEnabled: true,
     locales: {
@@ -112,7 +112,7 @@ export default {
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: './assets/one-question-light.png',
+        foregroundImage: './assets/one-question-light-tile-transparent.png',
         backgroundColor: '#ffffff',
       },
       package: ENV.androidPackage,
@@ -145,12 +145,12 @@ export default {
       [
         'expo-splash-screen',
         {
-          image: './assets/one-question-light.png',
+          image: './assets/one-question-light-tile-transparent.png',
           imageWidth: 200,
           resizeMode: 'contain',
           backgroundColor: '#ffffff',
           dark: {
-            image: './assets/one-question-dark.png',
+            image: './assets/one-question-dark-tile-transparent.png',
             backgroundColor: '#1C1C1E',
           },
         },

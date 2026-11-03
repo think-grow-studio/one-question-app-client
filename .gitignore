@@ -66,3 +66,7 @@ google-services*.json
 GoogleService-Info.plist
 # Local Expo module Android build outputs
 modules/*/android/build/
+
+# App logo assets referenced by native config and screens
+!assets/one-question-dark-tile-transparent.png
+!assets/one-question-light-tile-transparent.png
