@@ -5,7 +5,8 @@ import { useTheme } from 'tamagui';
 import { useTranslation } from 'react-i18next';
 import { HomeIcon } from '@/shared/icons/HomeIcon';
 import { FeedIcon } from '@/shared/icons/FeedIcon';
-import { ReportIcon } from '@/shared/icons/ReportIcon';
+// 리포트 탭 복원 시 함께 활성화한다.
+// import { ReportIcon } from '@/shared/icons/ReportIcon';
 import { SettingsIcon } from '@/shared/icons/SettingsIcon';
 import { useAccentColors, getFontStyle } from '@/shared/theme';
 import { useMemberMe } from '@/features/member/hooks/queries/useMemberQueries';
@@ -79,6 +80,9 @@ export default function TabLayout() {
           ),
         }}
       />
+      {/* 분석 UI 개편 동안 탭 버튼만 숨긴다. 경로 자동 등록을 막기 위해 선언은 유지한다. */}
+      <Tabs.Screen name="analysis" options={{ href: null }} />
+      {/* 리포트 탭 복원 시 위 숨김 선언을 제거하고 아래 설정을 활성화한다.
       <Tabs.Screen
         name="analysis"
         options={{
@@ -93,6 +97,7 @@ export default function TabLayout() {
           ),
         }}
       />
+      */}
       <Tabs.Screen
         name="settings"
         options={{

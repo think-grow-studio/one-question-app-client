@@ -26,9 +26,10 @@ export function NotificationSettings() {
     updateNotificationTime,
     isTogglingNotification,
     isToggleInteractionDisabled,
-    displayedAnalysisReportEnabled,
-    toggleAnalysisReport,
-    isTogglingAnalysisReport,
+    // 분석 리포트 알림 카드 복원 시 함께 활성화한다.
+    // displayedAnalysisReportEnabled,
+    // toggleAnalysisReport,
+    // isTogglingAnalysisReport,
   } =
     useNotificationSettings();
   const { state: permissionState } = useNotificationPermission();
@@ -77,10 +78,11 @@ export function NotificationSettings() {
     if (!result.success) showFailureDialog(result.reason);
   }, [toggleNotification, showFailureDialog]);
 
-  const handleAnalysisReportToggle = useCallback(async () => {
-    const result = await toggleAnalysisReport();
-    if (!result.success) showFailureDialog(result.reason);
-  }, [toggleAnalysisReport, showFailureDialog]);
+  // 분석 리포트 알림 카드 복원 시 함께 활성화한다.
+  // const handleAnalysisReportToggle = useCallback(async () => {
+  //   const result = await toggleAnalysisReport();
+  //   if (!result.success) showFailureDialog(result.reason);
+  // }, [toggleAnalysisReport, showFailureDialog]);
 
   const handleTimeConfirm = useCallback(
     async (newHour: number, newMinute: number) => {
@@ -234,6 +236,7 @@ export function NotificationSettings() {
           {/* 분석 리포트 — 별도 카드로 띄운다. "오늘의 질문"은 토글+시간 2행 묶음이라
               한 카드에 합치면 어디까지가 한 설정인지 경계가 흐려진다.
               마스터 토글은 두지 않는다 (전체 끄기는 OS 설정이 담당, 권한 배너가 안내). */}
+          {/* 분석 UI 개편 동안 숨김. 복원 시 아래 카드의 주석을 해제한다.
           <YStack
             bg="$backgroundSoft"
             borderRadius={12}
@@ -266,6 +269,7 @@ export function NotificationSettings() {
               </XStack>
             </XStack>
           </YStack>
+          */}
         </View>
       </Pressable>
 
