@@ -18,10 +18,7 @@ import { useAccentColors, useScreenBackground } from '@/shared/theme';
 import { getFontStyle } from '@/shared/theme/typography';
 import { cs, fs, radius, sp } from '@/shared/utils/responsive';
 import { pickNicknameCharacter } from '@/features/feed/utils/nicknameCharacter';
-import {
-  useDailyPublicQuestion,
-  useInfinitePublicAnswers,
-} from '../hooks/queries/usePublicQuestionQueries';
+import { useDailyPublicQuestion } from '../hooks/queries/usePublicQuestionQueries';
 import { useTogglePublicAnswerLike } from '../hooks/mutations/usePublicQuestionMutations';
 import { formatFeedDate } from '../utils/feedUtils';
 
@@ -40,19 +37,14 @@ export function PublicAnswerDetail({ answerPostId, pdqId, date }: PublicAnswerDe
   const cardStyles = useQuestionCardStyles();
 
   const dailyQuery = useDailyPublicQuestion(date);
-  const answersQuery = useInfinitePublicAnswers(pdqId);
   const toggleLike = useTogglePublicAnswerLike();
 
   // 캐시(피드 화면이 mount 중이므로 query subscriber 가 유지됨) 에서 id 매칭.
   // refetchOnMount: 'always' 정책이라 백그라운드 refetch 가 돌지만, 기존 데이터는 그대로 보임.
-  const answer = useMemo(() => {
-    const pages = answersQuery.data?.pages ?? [];
-    for (const page of pages) {
-      const match = page.items.find((it) => it.publicDailyQuestionAnswerId === answerPostId);
-      if (match) return match;
-    }
-    return undefined;
-  }, [answersQuery.data, answerPostId]);
+  const answer = useMemo(
+    () => dailyQuery.answers.find((it) => it.publicDailyQuestionAnswerId === answerPostId),
+    [dailyQuery.answers, answerPostId],
+  );
 
   const handleBack = useCallback(() => {
     router.back();
@@ -60,13 +52,12 @@ export function PublicAnswerDetail({ answerPostId, pdqId, date }: PublicAnswerDe
 
   const handleToggleLike = useCallback(() => {
     if (!answer) return;
-    toggleLike.mutate({ pdqId, answerId: answer.publicDailyQuestionAnswerId });
-  }, [answer, pdqId, toggleLike]);
+    toggleLike.mutate({ pdqId, answerId: answer.publicDailyQuestionAnswerId, date });
+  }, [answer, pdqId, date, toggleLike]);
 
-  const isLoading =
-    (dailyQuery.isLoading || answersQuery.isLoading) && !answer && !dailyQuery.data;
+  const isLoading = dailyQuery.isLoading && !answer && !dailyQuery.pdq;
 
-  const isNotFound = !isLoading && (!dailyQuery.data || !answer);
+  const isNotFound = !isLoading && (!dailyQuery.pdq || !answer);
 
   return (
     <YStack flex={1} style={{ backgroundColor: screenBg }}>
@@ -110,11 +101,11 @@ export function PublicAnswerDetail({ answerPostId, pdqId, date }: PublicAnswerDe
                 >
                   Q.{' '}
                 </Text>
-                {dailyQuery.data?.content ?? ''}
+                {dailyQuery.pdq?.content ?? ''}
               </Text>
-              {dailyQuery.data?.description ? (
+              {dailyQuery.pdq?.description ? (
                 <Text style={cardStyles.questionDescription}>
-                  {dailyQuery.data.description}
+                  {dailyQuery.pdq.description}
                 </Text>
               ) : null}
             </View>

@@ -13,16 +13,12 @@ import { getFontStyle } from '@/shared/theme/typography';
 import { fs, sp, cs } from '@/shared/utils/responsive';
 import { AnswerCard } from './AnswerCard';
 import { MyAnswerCard } from './MyAnswerCard';
-import { useDailyPublicQuestion, useInfinitePublicAnswers } from '../hooks/queries/usePublicQuestionQueries';
+import { useDailyPublicQuestion } from '../hooks/queries/usePublicQuestionQueries';
 import {
   useDeletePublicAnswer,
   useTogglePublicAnswerLike,
 } from '../hooks/mutations/usePublicQuestionMutations';
-import {
-  toFeedItemDomain,
-  type FeedItemDomain,
-  type PublicAnswerDomain,
-} from '../types/api';
+import { toFeedItemDomain, type FeedItemDomain } from '../types/api';
 import {
   addDays,
   formatQuestionDate,
@@ -62,34 +58,31 @@ export function CommonQuestionFeed(_props: CommonQuestionFeedProps) {
 
   const canGoNext = !isSameDay(selectedDate, today);
 
-  // 선택 날짜 기준 PDQ 조회. `selectedDate` 가 바뀌면 새 query 가 발동 (캐시 미사용 정책).
+  // 선택 날짜 기준 PDQ + 답변 조회. `selectedDate` 가 바뀌면 새 query 가 발동 (캐시 미사용 정책).
   // 오늘 날짜는 feed.tsx 와 동일한 KST 기준 문자열 사용 → 쿼리 키 일치 보장.
   const dateStr = isSameDay(selectedDate, today) ? todayStr : toServiceDateString(selectedDate);
   const canGoPrev = dateStr > MIN_FEED_DATE;
   const dailyQuery = useDailyPublicQuestion(dateStr);
-  const pdq = dailyQuery.data;
+  const pdq = dailyQuery.pdq;
   const pdqId = pdq?.publicDailyQuestionId;
+  const answers = dailyQuery.answers;
 
-  const answersQuery = useInfinitePublicAnswers(pdqId);
   const toggleLike = useTogglePublicAnswerLike();
   const deleteMutation = useDeletePublicAnswer({
     // PUBLIC-QUESTION-005: 이미 삭제된 답변 → 다이얼로그 없이 조용히 동기화.
     onAnswerGone: ({ syncQueries }) => syncQueries(),
   });
 
-  // 무한 페이지 → flat list. 본인 답변은 서버가 이미 목록에서 제외.
   const items: FeedItemDomain[] = useMemo(() => {
     if (!pdq) return [];
-    const pages = answersQuery.data?.pages ?? [];
-    const flatAnswers: PublicAnswerDomain[] = pages.flatMap((p) => p.items);
-    return flatAnswers.map((dto) =>
+    return answers.map((dto) =>
       toFeedItemDomain(dto, {
         questionContent: pdq.content,
         questionDescription: pdq.description,
         mine: false,
       }),
     );
-  }, [pdq, answersQuery.data]);
+  }, [pdq, answers]);
 
   const myAnswerItem: FeedItemDomain | null = useMemo(() => {
     if (!pdq?.myAnswer) return null;
@@ -147,17 +140,17 @@ export function CommonQuestionFeed(_props: CommonQuestionFeedProps) {
     (item: FeedItemDomain) => {
       if (!pdqId) return;
       // fire-and-forget — mutation hook 이 캐시 낙관 업데이트 / 롤백 / 보정 모두 담당.
-      toggleLike.mutate({ pdqId, answerId: item.answerPostId });
+      toggleLike.mutate({ pdqId, answerId: item.answerPostId, date: dateStr });
     },
-    [pdqId, toggleLike],
+    [pdqId, dateStr, toggleLike],
   );
 
   const isAdFreeMember = useIsAdFreeMember();
   const { showAd: showScrollAd } = useInterstitialAd('interstitialPublicScroll');
 
   const handleEndReached = () => {
-    if (!answersQuery.hasNextPage || answersQuery.isFetchingNextPage) return;
-    answersQuery.fetchNextPage();
+    if (!dailyQuery.hasNextPage || dailyQuery.isFetchingNextPage) return;
+    void dailyQuery.fetchNextPage();
     if (isAdFreeMember) return;
     scrollAdCounter += 1;
     if (scrollAdCounter % SCROLL_AD_INTERVAL === 0) {
@@ -165,13 +158,11 @@ export function CommonQuestionFeed(_props: CommonQuestionFeedProps) {
     }
   };
 
-  const isRefreshing =
-    (dailyQuery.isRefetching || answersQuery.isRefetching) && !dailyQuery.isLoading;
+  const isRefreshing = dailyQuery.isRefetching && !dailyQuery.isLoading;
 
   const handleRefresh = () => {
-    void dailyQuery.refetch();
-    // 무한 페이지 누적 캐시는 비우고 첫 페이지부터 — 표준 피드 UX + refetch 비용 절감.
-    answersQuery.resetPagination();
+    // 무한 페이지 누적 캐시는 첫 페이지만 남기고 재조회 — 표준 피드 UX + refetch 비용 절감.
+    dailyQuery.resetPagination();
   };
 
   const weekdays = useMemo(() => {
@@ -351,7 +342,7 @@ export function CommonQuestionFeed(_props: CommonQuestionFeedProps) {
               ) : null
             }
             ListFooterComponent={
-              answersQuery.isFetchingNextPage ? (
+              dailyQuery.isFetchingNextPage ? (
                 <View style={styles.footerSpinner}>
                   <ActivityIndicator color={accent.primary} />
                 </View>

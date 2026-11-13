@@ -22,6 +22,8 @@ export interface PublicDailyQuestionDto {
   description: string | null;
   questionDate: string; // YYYY-MM-DD
   myAnswer: PublicAnswerDto | null;
+  // 다른 멤버 답변 첫 페이지 (10개). 이후 페이지는 nextCursor 로 listAnswers 조회.
+  answers: PublicAnswerListDto;
 }
 
 export interface PublicAnswerDto {

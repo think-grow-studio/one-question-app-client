@@ -38,7 +38,7 @@ describe.each(['ko', 'en'])('%s local error messages', (language) => {
     const { message, syncQueries } = localError.mock.calls[0][0];
     expect(message).not.toMatch(/^error\.|^errors\.|^feed:/);
     expect(message.length).toBeGreaterThan(5);
-    queryClient.setQueryData(['publicQuestion', 'daily', input.date], { myAnswer: null });
+    queryClient.setQueryData(['publicQuestion', 'daily', input.date], { pages: [], pageParams: [] });
     syncQueries();
     expect(queryClient.getQueryState(['publicQuestion', 'daily', input.date]).isInvalidated).toBe(true);
   });
