@@ -44,8 +44,12 @@ import { useInterstitialAd } from '@/features/admob/public';
 import { useQueryClient } from '@tanstack/react-query';
 import { DatePickerSheet } from './DatePickerSheet';
 import { ReloadOptionSheet } from './ReloadOptionSheet';
-import { PastQuestionSheet, type PastQuestionMode } from './PastQuestionSheet';
-import type { PastQuestionDomain } from '../model/questionDomain';
+import { PastQuestionSheet } from './PastQuestionSheet';
+import {
+  spendsChangeCount,
+  type PastQuestionDomain,
+  type PastQuestionMode,
+} from '../model/questionDomain';
 import { getFontStyle } from '@/shared/theme/typography';
 import { useAccentColors, useScreenBackground } from '@/shared/theme';
 import { formatLocalDate } from '@/shared/utils/date';
@@ -523,8 +527,8 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
         return;
       }
 
-      // 오늘 후보에 이미 있는 질문은 차감 없이 선택만 됨 → 광고 없음
-      if (question.inCandidates) {
+      // 차감 없는 선택(오늘 후보에 이미 있는 질문)은 광고 없이 바로 재할당
+      if (!spendsChangeCount(mode, question)) {
         reloadPastMutation.mutate(variables, { onSuccess });
         return;
       }

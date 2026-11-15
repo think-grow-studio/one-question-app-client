@@ -12,13 +12,11 @@ import { useTranslation } from 'react-i18next';
 import { useAccentColors, getFontStyle } from '@/shared/theme';
 import { fs, sp, radius, SHEET_HEIGHTS, SHEET_MAX_WIDTH } from '@/shared/utils/responsive';
 import { usePastQuestions } from '../hooks/queries/useQuestionQueries';
-import type { PastQuestionDomain } from '../model/questionDomain';
-
-/**
- * - serve: 그날 질문이 아직 없음 → 고른 질문을 첫 질문으로 받음 (POST /past)
- * - reload: 이미 질문이 있음 → 고른 질문으로 재할당 (POST /past/reload)
- */
-export type PastQuestionMode = 'serve' | 'reload';
+import {
+  spendsChangeCount,
+  type PastQuestionDomain,
+  type PastQuestionMode,
+} from '../model/questionDomain';
 
 type PastQuestionSheetProps = {
   /** null 이면 닫힘 */
@@ -161,7 +159,8 @@ export function PastQuestionSheet({
               <ScrollView style={styles.list} showsVerticalScrollIndicator nestedScrollEnabled>
                 {questions.map((question) => {
                   const isCurrent = isReload && question.questionId === currentQuestionId;
-                  const disabled = isReload && !question.inCandidates && !canSpendChange;
+                  const disabled =
+                    mode !== null && spendsChangeCount(mode, question) && !canSpendChange;
                   return (
                     <Pressable
                       key={question.questionId}

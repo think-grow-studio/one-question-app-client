@@ -1,6 +1,7 @@
 import {
   fromHistoryItem,
   fromPastQuestionsResponse,
+  spendsChangeCount,
   withAnswer,
   type DailyQuestionDomain,
 } from '../questionDomain';
@@ -144,6 +145,28 @@ describe('questionDomain', () => {
         message: '아직 돌아볼 과거 질문이 없어요.',
         questions: [],
       });
+    });
+  });
+
+  describe('spendsChangeCount', () => {
+    const question = (inCandidates: boolean) => ({
+      questionId: 7,
+      content: '오늘 하루에 제목을 붙인다면?',
+      description: null,
+      assignedDates: ['2025-11-15'],
+      inCandidates,
+    });
+
+    it('재할당이고 오늘 후보에 없던 질문이면 변경 횟수를 차감한다', () => {
+      expect(spendsChangeCount('reload', question(false))).toBe(true);
+    });
+
+    it('재할당이어도 오늘 후보에 이미 있는 질문이면 차감하지 않는다', () => {
+      expect(spendsChangeCount('reload', question(true))).toBe(false);
+    });
+
+    it('첫 질문 받기는 차감하지 않는다', () => {
+      expect(spendsChangeCount('serve', question(false))).toBe(false);
     });
   });
 });

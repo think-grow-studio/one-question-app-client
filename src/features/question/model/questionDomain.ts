@@ -42,6 +42,13 @@ export interface DailyQuestionDomain {
   answer: AnswerDomain | null;
 }
 
+/**
+ * 과거 질문 선택 방식
+ * - serve: 그날 질문이 아직 없음 → 고른 질문을 첫 질문으로 받음 (POST /past)
+ * - reload: 이미 질문이 있음 → 고른 질문으로 재할당 (POST /past/reload)
+ */
+export type PastQuestionMode = 'serve' | 'reload';
+
 // 과거 질문 — 이전 사이클들의 같은 날에 최종 확정됐던 질문.
 export interface PastQuestionDomain {
   questionId: number;
@@ -148,4 +155,13 @@ export function fromPastQuestionsResponse(response: GetPastQuestionsResponse): P
       inCandidates: question.inCandidates,
     })),
   };
+}
+
+/**
+ * 과거 질문 선택이 질문 변경 횟수를 1회 차감하는지 (서버 규칙).
+ * 첫 질문 받기(serve)는 차감 없음, 재할당(reload)은 오늘 후보에 없던 질문일 때만 차감.
+ * 시트의 비활성 표시와 광고·횟수 판단이 같은 규칙을 쓰도록 여기 한 곳에 둔다.
+ */
+export function spendsChangeCount(mode: PastQuestionMode, question: PastQuestionDomain): boolean {
+  return mode === 'reload' && !question.inCandidates;
 }
