@@ -447,8 +447,9 @@ export function ReloadOptionSheet({
                 ]}
                 onPress={handlePastQuestion}
               >
-                <View style={[styles.optionIcon, responsiveStyles.optionIcon, { backgroundColor: theme.backgroundSoft?.val }]}>
-                  <PastQuestionIcon size={cs(22)} color={theme.colorMuted?.val} />
+                {/* 랜덤 질문(주 동작)은 강조색 채움, 과거 질문(보조 동작)은 연한 강조색 */}
+                <View style={[styles.optionIcon, responsiveStyles.optionIcon, { backgroundColor: `${accent.primary}18` }]}>
+                  <PastQuestionIcon size={cs(22)} color={accent.primary} />
                 </View>
                 <YStack style={[styles.optionTextContainer, responsiveStyles.optionTextContainer]}>
                   <View style={styles.optionTitleRow}>
