@@ -10,6 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import { useAccentColors, getFontStyle } from '@/shared/theme';
+import { AdBadge } from '@/shared/ui/ads/AdBadge';
 import { fs, sp, radius, SHEET_HEIGHTS, SHEET_MAX_WIDTH } from '@/shared/utils/responsive';
 import { usePastQuestions } from '../hooks/queries/useQuestionQueries';
 import {
@@ -26,6 +27,8 @@ type PastQuestionSheetProps = {
   currentQuestionId?: number;
   /** reload 모드에서 변경 횟수가 남았는지 — false 면 오늘 후보에 없던 질문(차감 필요)은 비활성 */
   canSpendChange: boolean;
+  /** reload 모드에서 변경 횟수가 차감되는 선택에 광고가 붙는지 — 해당 항목에만 광고 배지 표시 */
+  changeRequiresAd: boolean;
   onClose: () => void;
   /** 시트의 native dismiss 완료 후 호출 (광고 present 와 transition 충돌 방지) */
   onSelect: (question: PastQuestionDomain, mode: PastQuestionMode) => void;
@@ -36,6 +39,7 @@ export function PastQuestionSheet({
   date,
   currentQuestionId,
   canSpendChange,
+  changeRequiresAd,
   onClose,
   onSelect,
 }: PastQuestionSheetProps) {
@@ -159,8 +163,10 @@ export function PastQuestionSheet({
               <ScrollView style={styles.list} showsVerticalScrollIndicator nestedScrollEnabled>
                 {questions.map((question) => {
                   const isCurrent = isReload && question.questionId === currentQuestionId;
-                  const disabled =
-                    mode !== null && spendsChangeCount(mode, question) && !canSpendChange;
+                  const spendsChange = mode !== null && spendsChangeCount(mode, question);
+                  const disabled = spendsChange && !canSpendChange;
+                  // serve 모드는 모든 항목이 같은 광고 규칙이라 진입 버튼의 배지로 충분
+                  const showAdBadge = spendsChange && changeRequiresAd && !disabled;
                   return (
                     <Pressable
                       key={question.questionId}
@@ -196,6 +202,7 @@ export function PastQuestionSheet({
                             {t('answer:past.metToday')}
                           </Text>
                         )}
+                        {showAdBadge && <AdBadge size="compact" />}
                       </View>
                     </Pressable>
                   );

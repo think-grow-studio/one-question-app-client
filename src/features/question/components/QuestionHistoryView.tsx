@@ -774,7 +774,11 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
             </XStack>
           </Pressable>
           <Pressable style={cardStyles.emptyButton} onPress={handleDrawYearAgoQuestion}>
-            <Text style={cardStyles.emptyButtonText}>{t('empty.yearAgo')}</Text>
+            <XStack ai="center" gap="$2">
+              <Text style={cardStyles.emptyButtonText}>{t('empty.yearAgo')}</Text>
+              {/* 첫 질문 받기는 랜덤 뽑기와 같은 광고 규칙 */}
+              {shouldGateRandomQuestion && <AdBadge size="compact" />}
+            </XStack>
           </Pressable>
         </View>
       </View>
@@ -847,6 +851,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
         onRandomQuestion={handleRandomQuestion}
         onPastQuestion={handlePastQuestion}
         randomRequiresAd={shouldGateReloadQuestion}
+        pastRequiresAd={shouldGateReloadQuestion}
         candidates={candidates}
         date={currentDate}
         onSelectSuccess={triggerLikeAnimation}
@@ -857,6 +862,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
         date={currentDate}
         currentQuestionId={candidates.find((candidate) => candidate.selected)?.questionId}
         canSpendChange={canReload}
+        changeRequiresAd={shouldGateReloadQuestion}
         onClose={() => setPastSheetMode(null)}
         onSelect={handleSelectPastQuestion}
       />

@@ -30,6 +30,8 @@ type ReloadOptionSheetProps = {
   onRandomQuestion: () => void;
   onPastQuestion: () => void;
   randomRequiresAd?: boolean;
+  /** 과거 질문 중 변경 횟수가 차감되는 선택에 광고가 붙는지 (오늘 후보에 있는 질문은 광고 없음) */
+  pastRequiresAd?: boolean;
   candidates: QuestionCandidateDomain[];
   date: string;
   onSelectSuccess?: (likeCount?: number) => void;
@@ -41,6 +43,7 @@ export function ReloadOptionSheet({
   onRandomQuestion,
   onPastQuestion,
   randomRequiresAd = false,
+  pastRequiresAd = false,
   candidates,
   date,
   onSelectSuccess,
@@ -448,9 +451,12 @@ export function ReloadOptionSheet({
                   <PastQuestionIcon size={cs(22)} color={theme.colorMuted?.val} />
                 </View>
                 <YStack style={[styles.optionTextContainer, responsiveStyles.optionTextContainer]}>
-                  <Text style={[styles.optionTitle, responsiveStyles.optionTitle, { color: theme.color?.val }]}>
-                    {t('answer:reload.pastQuestion')}
-                  </Text>
+                  <View style={styles.optionTitleRow}>
+                    <Text style={[styles.optionTitle, responsiveStyles.optionTitle, { color: theme.color?.val }]}>
+                      {t('answer:reload.pastQuestion')}
+                    </Text>
+                    {pastRequiresAd && <AdBadge size="compact" />}
+                  </View>
                   <Text style={[styles.optionDescription, responsiveStyles.optionDescription, { color: theme.colorMuted?.val }]}>
                     {t('answer:reload.pastQuestionDesc')}
                   </Text>
