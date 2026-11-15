@@ -172,7 +172,7 @@ export function PastQuestionSheet({
                         {
                           backgroundColor: isCurrent
                             ? `${accent.primary}18`
-                            : theme.backgroundSoft?.val ?? '#262627',
+                            : theme.backgroundSoft?.val,
                         },
                         pressed && !isCurrent && { opacity: 0.7 },
                         disabled && { opacity: 0.45 },
