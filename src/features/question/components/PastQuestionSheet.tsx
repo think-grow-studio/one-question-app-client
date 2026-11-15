@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { useAccentColors, getFontStyle } from '@/shared/theme';
 import { fs, sp, radius, SHEET_HEIGHTS, SHEET_MAX_WIDTH } from '@/shared/utils/responsive';
 import { usePastQuestions } from '../hooks/queries/useQuestionQueries';
-import type { PastQuestionDto } from '../types/api';
+import type { PastQuestionDomain } from '../model/questionDomain';
 
 /**
  * - serve: 그날 질문이 아직 없음 → 고른 질문을 첫 질문으로 받음 (POST /past)
@@ -30,7 +30,7 @@ type PastQuestionSheetProps = {
   canSpendChange: boolean;
   onClose: () => void;
   /** 시트의 native dismiss 완료 후 호출 (광고 present 와 transition 충돌 방지) */
-  onSelect: (question: PastQuestionDto, mode: PastQuestionMode) => void;
+  onSelect: (question: PastQuestionDomain, mode: PastQuestionMode) => void;
 };
 
 export function PastQuestionSheet({
@@ -108,7 +108,7 @@ export function PastQuestionSheet({
 
   const isReload = mode === 'reload';
 
-  const handleSelect = (question: PastQuestionDto) => {
+  const handleSelect = (question: PastQuestionDomain) => {
     if (!mode) return;
     if (isReload && question.questionId === currentQuestionId) {
       closeSheet();

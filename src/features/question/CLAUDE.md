@@ -11,7 +11,7 @@
 | `daily(date)` | 단일 `DailyQuestionDomain` | 카드 뷰, 답변 화면 |
 | `calendar(월의 15일)` | `DailyQuestionDomain[]` 배열 | 달력 시트 |
 | `timeline` | InfiniteData (페이지 누적) | 홈 타임라인 뷰 |
-| `past(date)` | `GetPastQuestionsResponse` | 과거 질문 시트 |
+| `past(date)` | `PastQuestionsDomain` | 과거 질문 시트 |
 
 - **리스트와 단일 객체는 같은 키를 공유할 수 없다** — queryFn 반환값이 그대로 캐시 값이다. calendar가 `daily(baseDate)`를 안 쓰고 별도 키인 이유 (`useCalendarHistory` 주석).
 - **시딩 규약**: 히스토리성 조회(`useDailyHistory` / `useCalendarHistory` / timeline queryFn)는 응답의 **모든 날짜를 `daily(date)`에 setQueryData로 시딩**한다. 타임라인/달력에서 카드 탭 시 즉시 표시가 이 시딩에 의존 — 새 히스토리성 API를 추가하면 같은 시딩을 유지할 것.

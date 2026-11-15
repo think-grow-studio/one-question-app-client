@@ -1,5 +1,6 @@
 import type {
   CreateAnswerResponse,
+  GetPastQuestionsResponse,
   HistoryStatus,
   QuestionCandidateDto,
   QuestionHistoryItemDto,
@@ -39,6 +40,21 @@ export interface DailyQuestionDomain {
   status: HistoryStatus;
   question: QuestionDomain | null;
   answer: AnswerDomain | null;
+}
+
+// 과거 질문 — 이전 사이클들의 같은 날에 최종 확정됐던 질문.
+export interface PastQuestionDomain {
+  questionId: number;
+  content: string;
+  description: string | null;
+  assignedDates: string[]; // YYYY-MM-DD, 최신순
+  inCandidates: boolean; // 오늘 후보에 이미 있음 → 재할당 시 변경 횟수 차감 없음
+}
+
+export interface PastQuestionsDomain {
+  available: boolean;
+  message: string | null; // available=false 일 때 노출할 서버 안내 문구
+  questions: PastQuestionDomain[];
 }
 
 function toCandidateDomain(candidates: QuestionCandidateDto[] | null | undefined): QuestionCandidateDomain[] {
@@ -117,5 +133,19 @@ export function withAnswer(
       content: answer.content,
       answeredAt: answer.answeredAt,
     },
+  };
+}
+
+export function fromPastQuestionsResponse(response: GetPastQuestionsResponse): PastQuestionsDomain {
+  return {
+    available: response.available,
+    message: response.message,
+    questions: (response.questions ?? []).map((question) => ({
+      questionId: question.questionId,
+      content: question.content,
+      description: question.description,
+      assignedDates: question.assignedDates ?? [],
+      inCandidates: question.inCandidates,
+    })),
   };
 }

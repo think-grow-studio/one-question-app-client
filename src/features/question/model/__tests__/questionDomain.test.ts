@@ -1,5 +1,6 @@
 import {
   fromHistoryItem,
+  fromPastQuestionsResponse,
   withAnswer,
   type DailyQuestionDomain,
 } from '../questionDomain';
@@ -96,6 +97,53 @@ describe('questionDomain', () => {
       withAnswer(domain, answer);
       expect(domain.status).toBe('UNANSWERED');
       expect(domain.answer).toBeNull();
+    });
+  });
+
+  describe('fromPastQuestionsResponse', () => {
+    it('과거 질문 목록을 도메인으로 매핑한다', () => {
+      const result = fromPastQuestionsResponse({
+        available: true,
+        message: null,
+        questions: [
+          {
+            questionId: 7,
+            content: '오늘 하루에 제목을 붙인다면?',
+            description: 'ex) 폭풍 전야',
+            assignedDates: ['2025-11-15', '2023-11-15'],
+            inCandidates: false,
+          },
+        ],
+      });
+
+      expect(result).toEqual({
+        available: true,
+        message: null,
+        questions: [
+          {
+            questionId: 7,
+            content: '오늘 하루에 제목을 붙인다면?',
+            description: 'ex) 폭풍 전야',
+            assignedDates: ['2025-11-15', '2023-11-15'],
+            inCandidates: false,
+          },
+        ],
+      });
+    });
+
+    it('과거 질문이 없을 때 안내 문구를 유지하고 목록이 null 이어도 빈 배열로 만든다', () => {
+      const result = fromPastQuestionsResponse({
+        available: false,
+        message: '아직 돌아볼 과거 질문이 없어요.',
+        // 서버가 빈 목록을 null 로 내려주는 경우 방어
+        questions: null as unknown as [],
+      });
+
+      expect(result).toEqual({
+        available: false,
+        message: '아직 돌아볼 과거 질문이 없어요.',
+        questions: [],
+      });
     });
   });
 });

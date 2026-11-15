@@ -10,6 +10,7 @@ import { questionApi } from '../../api/questionApi';
 import type { HistoryDirection } from '../../types/api';
 import {
   fromHistoryItem,
+  fromPastQuestionsResponse,
   fromServeDailyQuestion,
   type DailyQuestionDomain,
 } from '../../model/questionDomain';
@@ -259,7 +260,8 @@ export function useCalendarHistory(
 // 과거 질문 목록 — inCandidates 가 리로드/선택마다 바뀌므로 열 때마다 새로 조회 (staleTime 0).
 const pastQuestionsQueryOptions = (date: string) => ({
   queryKey: questionQueryKeys.past(date),
-  queryFn: () => questionApi.getPastQuestions(date).then((res) => res.data),
+  queryFn: () =>
+    questionApi.getPastQuestions(date).then((res) => fromPastQuestionsResponse(res.data)),
   staleTime: 0,
 });
 

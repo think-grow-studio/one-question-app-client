@@ -45,7 +45,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { DatePickerSheet } from './DatePickerSheet';
 import { ReloadOptionSheet } from './ReloadOptionSheet';
 import { PastQuestionSheet, type PastQuestionMode } from './PastQuestionSheet';
-import type { PastQuestionDto } from '../types/api';
+import type { PastQuestionDomain } from '../model/questionDomain';
 import { getFontStyle } from '@/shared/theme/typography';
 import { useAccentColors, useScreenBackground } from '@/shared/theme';
 import { formatLocalDate } from '@/shared/utils/date';
@@ -508,7 +508,7 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
   // PastQuestionSheet 의 native dismiss 완료 후 호출 → 광고 present 와 충돌 없음.
   // 광고 규칙은 기존과 동일: 첫 질문 받기 = 랜덤 뽑기, 재할당 = 변경 횟수 차감될 때만 리로드 광고.
   const handleSelectPastQuestion = useCallback(
-    (question: PastQuestionDto, mode: PastQuestionMode) => {
+    (question: PastQuestionDomain, mode: PastQuestionMode) => {
       const variables = { date: currentDate, questionId: question.questionId };
       const onSuccess = (data: { likeCount?: number }) => triggerLikeAnimation(data.likeCount);
 
