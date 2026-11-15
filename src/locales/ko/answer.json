@@ -28,5 +28,14 @@
     "cycleCheckError": "질문 중복 여부를 확인하지 못했어요. 다시 시도해 주세요.",
     "cycleDuplicateTitle": "이미 받은 질문이에요",
     "cycleDuplicateMessage": "{{dates}}에 중복된 질문입니다. 선택할까요?"
+  },
+  "past": {
+    "title": "과거 질문",
+    "message": "예전 오늘 만났던 질문들이에요",
+    "metIn": "{{years}}년에 만났어요",
+    "metToday": "오늘 만난 질문",
+    "noChangesLeft": "질문 변경 횟수를 모두 사용했어요. 오늘 만난 질문만 고를 수 있어요.",
+    "empty": "아직 돌아볼 과거 질문이 없어요.",
+    "loading": "과거 질문을 불러오는 중이에요"
   }
 }

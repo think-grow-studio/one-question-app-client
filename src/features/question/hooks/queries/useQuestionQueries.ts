@@ -31,6 +31,7 @@ export const questionQueryKeys = {
   daily: (date: string) => [...questionQueryKeys.all, 'daily', date] as const,
   calendar: (baseDate: string) => ['calendar', 'month', baseDate] as const,
   timeline: ['question', 'timeline'] as const,
+  past: (date: string) => [...questionQueryKeys.all, 'past', date] as const,
 };
 
 /**
@@ -253,4 +254,32 @@ export function useCalendarHistory(
     refetchOnMount: 'always',   // 달력 열 때마다 항상 새로 조회
     enabled: options?.enabled ?? true,
   });
+}
+
+// 과거 질문 목록 — inCandidates 가 리로드/선택마다 바뀌므로 열 때마다 새로 조회 (staleTime 0).
+const pastQuestionsQueryOptions = (date: string) => ({
+  queryKey: questionQueryKeys.past(date),
+  queryFn: () => questionApi.getPastQuestions(date).then((res) => res.data),
+  staleTime: 0,
+});
+
+/**
+ * 과거 질문 목록 조회 함수 반환 — 버튼 탭 시점에 조회해 available 여부로
+ * 시트 열기/안내 dialog 를 분기해야 하므로 imperative fetch.
+ * 컴포넌트가 query key 를 모르도록 closure 로 캡슐화 (§15.2).
+ */
+export function useFetchPastQuestions() {
+  const queryClient = useQueryClient();
+  return useCallback(
+    (date: string) => queryClient.fetchQuery(pastQuestionsQueryOptions(date)),
+    [queryClient]
+  );
+}
+
+/**
+ * 과거 질문 시트용 — useFetchPastQuestions 로 방금 채운 캐시를 구독.
+ * 시트 mount 시 중복 요청이 나가지 않도록 refetchOnMount 끔.
+ */
+export function usePastQuestions(date: string) {
+  return useQuery({ ...pastQuestionsQueryOptions(date), refetchOnMount: false });
 }

@@ -20,6 +20,25 @@ export interface CheckCandidateCycleResponse {
   previouslyAssignedDates: string[];
 }
 
+// 과거 질문 — 이전 사이클들의 같은 날(작년 오늘, 재작년 오늘, ...)에 최종 확정됐던 질문.
+export interface PastQuestionDto {
+  questionId: number;
+  content: string;
+  description: string | null;
+  assignedDates: string[]; // YYYY-MM-DD, 최신순
+  inCandidates: boolean; // 오늘 후보에 이미 있음 → 재할당 시 변경 횟수 차감 없음
+}
+
+export interface GetPastQuestionsResponse {
+  available: boolean;
+  message: string | null; // available=false 일 때 노출할 안내 문구 (Accept-Language 기준)
+  questions: PastQuestionDto[];
+}
+
+export interface SelectPastQuestionRequest {
+  questionId: number;
+}
+
 export interface ServeDailyQuestionResponse {
   dailyQuestionId: number;
   questionId: number;

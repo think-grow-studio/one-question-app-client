@@ -10,7 +10,7 @@ import { YStack, XStack, Paragraph, useTheme } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/shared/ui/Button';
-import { AlertDialog } from '@/shared/ui/AlertDialog';
+import { AlertDialog, useAlertDialog } from '@/shared/ui/AlertDialog';
 import { MailIcon } from '@/shared/icons/MailIcon';
 import { CalendarIcon } from '@/shared/icons/CalendarIcon';
 import { EditIcon } from '@/shared/icons/EditIcon';
@@ -26,14 +26,26 @@ import { useSlideDirectionStore } from '../stores/useSlideDirectionStore';
 import { useHomeViewStore } from '../stores/useHomeViewStore';
 import { ViewToggle } from './ViewToggle';
 import { HomeTimelineView } from './HomeTimelineView';
-import { useDailyHistory, usePrefetchTimeline, questionQueryKeys } from '../hooks/queries/useQuestionQueries';
-import { useServeDailyQuestion, useReloadQuestion } from '../hooks/mutations/useQuestionMutations';
+import {
+  useDailyHistory,
+  useFetchPastQuestions,
+  usePrefetchTimeline,
+  questionQueryKeys,
+} from '../hooks/queries/useQuestionQueries';
+import {
+  useServeDailyQuestion,
+  useReloadQuestion,
+  useServePastQuestion,
+  useReloadPastQuestion,
+} from '../hooks/mutations/useQuestionMutations';
 import { useMemberMe, useIsAdFreeMember, MemberPermission } from '@/features/member/public';
 import { ApiErrorResponse } from '@/platform/http/types';
 import { useInterstitialAd } from '@/features/admob/public';
 import { useQueryClient } from '@tanstack/react-query';
 import { DatePickerSheet } from './DatePickerSheet';
 import { ReloadOptionSheet } from './ReloadOptionSheet';
+import { PastQuestionSheet, type PastQuestionMode } from './PastQuestionSheet';
+import type { PastQuestionDto } from '../types/api';
 import { getFontStyle } from '@/shared/theme/typography';
 import { useAccentColors, useScreenBackground } from '@/shared/theme';
 import { formatLocalDate } from '@/shared/utils/date';
@@ -69,8 +81,10 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
   // 타임라인 1페이지 백그라운드 선로딩 — 최초 토글도 스피너 없이 즉시 표시
   usePrefetchTimeline();
   const cardStyles = useQuestionCardStyles();
-  const [isAlertVisible, setIsAlertVisible] = useState(false);
+  const alert = useAlertDialog();
   const [isReloadSheetVisible, setIsReloadSheetVisible] = useState(false);
+  const [pastSheetMode, setPastSheetMode] = useState<PastQuestionMode | null>(null);
+  const [isPastListLoading, setIsPastListLoading] = useState(false);
   const [likeAnimTrigger, setLikeAnimTrigger] = useState(false);
 
   const triggerLikeAnimation = useCallback((likeCount?: number) => {
@@ -124,6 +138,9 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
   // Mutations
   const serveDailyQuestionMutation = useServeDailyQuestion();
   const reloadMutation = useReloadQuestion();
+  const fetchPastQuestions = useFetchPastQuestions();
+  const servePastMutation = useServePastQuestion();
+  const reloadPastMutation = useReloadPastQuestion();
 
   const handleRetry = useCallback(() => {
     // 1. 뮤테이션 에러 상태 초기화
@@ -455,9 +472,81 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
       });
   }, 500);
 
-  const handleDrawYearAgoQuestion = useCallback(() => {
-    setIsAlertVisible(true);
-  }, []);
+  // 과거 질문 목록을 조회해 있으면 시트, 없으면 서버 안내 문구를 dialog 로 표시.
+  // serve: 빈 카드(그날 질문 없음) / reload: 질문 다시 받기 시트에서 진입
+  const openPastQuestions = useCallback(
+    async (mode: PastQuestionMode) => {
+      logEvent(AnalyticsEvents.PAST_QUESTION_CLICK, {
+        date: currentDate,
+        mode,
+      });
+      setIsPastListLoading(true);
+      try {
+        const result = await fetchPastQuestions(currentDate);
+        if (!result.available || result.questions.length === 0) {
+          alert.show({
+            title: t('answer:past.title'),
+            message: result.message ?? t('answer:past.empty'),
+          });
+          return;
+        }
+        setPastSheetMode(mode);
+      } catch (error) {
+        // 안내는 글로벌 에러 dialog 가 담당
+        console.warn('[QuestionHistoryView] Failed to fetch past questions', error);
+      } finally {
+        setIsPastListLoading(false);
+      }
+    },
+    [alert.show, currentDate, fetchPastQuestions, t]
+  );
+
+  const handleDrawYearAgoQuestion = useThrottledCallback(() => {
+    void openPastQuestions('serve');
+  }, 500);
+
+  // PastQuestionSheet 의 native dismiss 완료 후 호출 → 광고 present 와 충돌 없음.
+  // 광고 규칙은 기존과 동일: 첫 질문 받기 = 랜덤 뽑기, 재할당 = 변경 횟수 차감될 때만 리로드 광고.
+  const handleSelectPastQuestion = useCallback(
+    (question: PastQuestionDto, mode: PastQuestionMode) => {
+      const variables = { date: currentDate, questionId: question.questionId };
+      const onSuccess = (data: { likeCount?: number }) => triggerLikeAnimation(data.likeCount);
+
+      if (mode === 'serve') {
+        runRewardedAction('random')
+          .then((allowed) => {
+            if (allowed) servePastMutation.mutate(variables, { onSuccess });
+          })
+          .catch((error) => {
+            console.warn('[QuestionHistoryView] Rewarded past question failed', error);
+          });
+        return;
+      }
+
+      // 오늘 후보에 이미 있는 질문은 차감 없이 선택만 됨 → 광고 없음
+      if (question.inCandidates) {
+        reloadPastMutation.mutate(variables, { onSuccess });
+        return;
+      }
+      if (!canReloadQuestion(reloadCount, memberPermission)) return;
+      runRewardedAction('reload')
+        .then((allowed) => {
+          if (allowed) reloadPastMutation.mutate(variables, { onSuccess });
+        })
+        .catch((error) => {
+          console.warn('[QuestionHistoryView] Rewarded past reload failed', error);
+        });
+    },
+    [
+      currentDate,
+      memberPermission,
+      reloadCount,
+      reloadPastMutation,
+      runRewardedAction,
+      servePastMutation,
+      triggerLikeAnimation,
+    ]
+  );
 
   // Reload 관련 핸들러
   const handleReloadPress = useCallback(() => {
@@ -498,13 +587,10 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
       });
   }, 500);
 
+  // ReloadOptionSheet 의 closeSheet(afterClose) → 시트 dismiss 완료 후 호출
   const handlePastQuestion = useCallback(() => {
-    // Analytics: 과거 질문 클릭 (준비 중)
-    logEvent(AnalyticsEvents.PAST_QUESTION_CLICK, {
-      date: currentDate,
-    });
-    setIsAlertVisible(true);
-  }, [currentDate]);
+    void openPastQuestions('reload');
+  }, [openPastQuestions]);
 
   // 답변 수정 화면으로 이동
   const handleEditAnswer = useCallback(() => {
@@ -762,17 +848,31 @@ export const QuestionHistoryView = memo(function QuestionHistoryView() {
         onSelectSuccess={triggerLikeAnimation}
       />
 
+      <PastQuestionSheet
+        mode={pastSheetMode}
+        date={currentDate}
+        currentQuestionId={candidates.find((candidate) => candidate.selected)?.questionId}
+        canSpendChange={canReload}
+        onClose={() => setPastSheetMode(null)}
+        onSelect={handleSelectPastQuestion}
+      />
+
       <AlertDialog
-        visible={isAlertVisible}
-        title={t('common:status.preparing')}
-        message={t('common:status.comingSoon')}
-        buttons={[{ label: t('common:buttons.confirm'), variant: 'primary' }]}
-        onClose={() => setIsAlertVisible(false)}
+        visible={alert.visible}
+        title={alert.config.title}
+        message={alert.config.message}
+        buttons={alert.config.buttons ?? [{ label: t('common:buttons.confirm'), variant: 'primary' }]}
+        onClose={alert.hide}
       />
 
       <LoadingOverlay
         visible={reloadMutation.isPending}
         message={t('answer:reload.randomQuestionLoading')}
+      />
+
+      <LoadingOverlay
+        visible={isPastListLoading || servePastMutation.isPending || reloadPastMutation.isPending}
+        message={t('answer:past.loading')}
       />
     </YStack>
   );

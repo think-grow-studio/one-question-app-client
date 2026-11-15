@@ -298,14 +298,6 @@ export function ReloadOptionSheet({
     optionDescription: {
       fontSize: fs(13),
     },
-    comingSoonBadge: {
-      paddingHorizontal: sp(10),
-      paddingVertical: sp(4),
-      borderRadius: radius(8),
-    },
-    comingSoonText: {
-      fontSize: fs(12),
-    },
     cancelButton: {
       marginTop: sp(12),
       paddingVertical: sp(16),
@@ -463,11 +455,6 @@ export function ReloadOptionSheet({
                     {t('answer:reload.pastQuestionDesc')}
                   </Text>
                 </YStack>
-                <View style={[styles.comingSoonBadge, responsiveStyles.comingSoonBadge, { backgroundColor: theme.backgroundSoft?.val }]}>
-                  <Text style={[styles.comingSoonText, responsiveStyles.comingSoonText, { color: theme.colorMuted?.val }]}>
-                    {t('common:status.comingSoon')}
-                  </Text>
-                </View>
               </Pressable>
             </YStack>
 
@@ -606,10 +593,6 @@ const styles = StyleSheet.create({
     gap: sp(6),
   },
   optionDescription: {},
-  comingSoonBadge: {},
-  comingSoonText: {
-    ...getFontStyle('500'),
-  },
   cancelButton: {
     borderWidth: 1,
     alignItems: 'center',

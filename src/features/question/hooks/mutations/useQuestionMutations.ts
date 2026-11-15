@@ -155,6 +155,64 @@ export function useSelectQuestion() {
   });
 }
 
+// 클라이언트가 보던 daily 상태가 stale 한 경우 (다른 질문 배정됨 / 질문 없음 / 이미 답변 / 횟수 소진).
+// 안내는 글로벌 dialog(서버 message)가 담당하고, 여기선 카드가 실제 상태를 다시 보도록 동기화만.
+const STALE_DAILY_ERROR_CODES = ['QUESTION-002', 'QUESTION-004', 'QUESTION-008', 'QUESTION-011'];
+
+/** 그날 질문이 아직 없을 때 과거 질문으로 첫 질문 받기 (POST /daily/{date}/past). */
+export function useServePastQuestion() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    ServeDailyQuestionResponse,
+    ApiErrorResponse,
+    { date: string; questionId: number }
+  >({
+    mutationFn: ({ date, questionId }) =>
+      questionApi.servePastQuestion(date, { questionId }).then((res) => res.data),
+    onSuccess: (data, { date }) => {
+      queryClient.setQueryData(questionQueryKeys.daily(date), fromServeDailyQuestion(date, data));
+
+      const calendarBaseDate = getCalendarBaseDate(date);
+      queryClient.invalidateQueries({ queryKey: questionQueryKeys.calendar(calendarBaseDate) });
+      // 새 기록이 생긴 날 → 타임라인 목록에 합류해야 함
+      queryClient.invalidateQueries({ queryKey: questionQueryKeys.timeline });
+    },
+    onError: (error, { date }) => {
+      if (STALE_DAILY_ERROR_CODES.includes(error?.code)) {
+        queryClient.invalidateQueries({ queryKey: questionQueryKeys.daily(date) });
+      }
+    },
+  });
+}
+
+/** 이미 질문이 있을 때 과거 질문으로 재할당 (POST /daily/{date}/past/reload). */
+export function useReloadPastQuestion() {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    ServeDailyQuestionResponse,
+    ApiErrorResponse,
+    { date: string; questionId: number }
+  >({
+    mutationFn: ({ date, questionId }) =>
+      questionApi.reloadPastQuestion(date, { questionId }).then((res) => res.data),
+    onSuccess: (data, { date }) => {
+      queryClient.setQueryData(questionQueryKeys.daily(date), fromServeDailyQuestion(date, data));
+
+      const calendarBaseDate = getCalendarBaseDate(date);
+      queryClient.invalidateQueries({ queryKey: questionQueryKeys.calendar(calendarBaseDate) });
+      // 질문 내용 변경 → 타임라인 행 갱신
+      queryClient.invalidateQueries({ queryKey: questionQueryKeys.timeline });
+    },
+    onError: (error, { date }) => {
+      if (STALE_DAILY_ERROR_CODES.includes(error?.code)) {
+        queryClient.invalidateQueries({ queryKey: questionQueryKeys.daily(date) });
+      }
+    },
+  });
+}
+
 export function useCheckCandidateCycle() {
   return useMutation<
     CheckCandidateCycleResponse,

@@ -4,8 +4,10 @@ import type {
   CheckCandidateCycleResponse,
   CreateAnswerRequest,
   CreateAnswerResponse,
+  GetPastQuestionsResponse,
   GetQuestionHistoryResponse,
   HistoryDirection,
+  SelectPastQuestionRequest,
   SelectQuestionRequest,
   ServeDailyQuestionResponse,
   UpdateAnswerRequest,
@@ -25,6 +27,20 @@ export const questionApi = {
   checkCandidateCycle: (date: string, data: CheckCandidateCycleRequest) =>
     apiClient.post<CheckCandidateCycleResponse>(
       `/api/v1/questions/daily/${date}/candidates/cycle-check`,
+      data
+    ),
+
+  getPastQuestions: (date: string) =>
+    apiClient.get<GetPastQuestionsResponse>(`/api/v1/questions/daily/${date}/past`),
+
+  /** 그날 질문이 아직 없을 때 과거 질문으로 첫 질문 받기 (변경 횟수 차감 없음). */
+  servePastQuestion: (date: string, data: SelectPastQuestionRequest) =>
+    apiClient.post<ServeDailyQuestionResponse>(`/api/v1/questions/daily/${date}/past`, data),
+
+  /** 이미 질문이 있을 때 과거 질문으로 재할당 (오늘 후보에 없던 질문이면 변경 횟수 1회 차감). */
+  reloadPastQuestion: (date: string, data: SelectPastQuestionRequest) =>
+    apiClient.post<ServeDailyQuestionResponse>(
+      `/api/v1/questions/daily/${date}/past/reload`,
       data
     ),
 

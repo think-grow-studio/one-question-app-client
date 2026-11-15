@@ -28,5 +28,14 @@
     "cycleCheckError": "Failed to check whether this question was already assigned. Please try again.",
     "cycleDuplicateTitle": "You've already received this question",
     "cycleDuplicateMessage": "This question already appeared on {{dates}}. Select it?"
+  },
+  "past": {
+    "title": "Past Questions",
+    "message": "Questions you met on this day in past years",
+    "metIn": "Met in {{years}}",
+    "metToday": "Met today",
+    "noChangesLeft": "You've used all your question changes. You can only pick questions you met today.",
+    "empty": "There are no past questions to look back on yet.",
+    "loading": "Loading past questions"
   }
 }

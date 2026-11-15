@@ -11,6 +11,7 @@
 | `daily(date)` | 단일 `DailyQuestionDomain` | 카드 뷰, 답변 화면 |
 | `calendar(월의 15일)` | `DailyQuestionDomain[]` 배열 | 달력 시트 |
 | `timeline` | InfiniteData (페이지 누적) | 홈 타임라인 뷰 |
+| `past(date)` | `GetPastQuestionsResponse` | 과거 질문 시트 |
 
 - **리스트와 단일 객체는 같은 키를 공유할 수 없다** — queryFn 반환값이 그대로 캐시 값이다. calendar가 `daily(baseDate)`를 안 쓰고 별도 키인 이유 (`useCalendarHistory` 주석).
 - **시딩 규약**: 히스토리성 조회(`useDailyHistory` / `useCalendarHistory` / timeline queryFn)는 응답의 **모든 날짜를 `daily(date)`에 setQueryData로 시딩**한다. 타임라인/달력에서 카드 탭 시 즉시 표시가 이 시딩에 의존 — 새 히스토리성 API를 추가하면 같은 시딩을 유지할 것.
@@ -26,6 +27,8 @@
 
 - **질문 변경**(뽑기/리로드/선택): `timeline` invalidate — 재진입 시 1회 refetch.
 - **답변 생성/수정**: `applyAnswerToTimeline`으로 timeline 페이지를 **수술적 패치** (해당 날짜가 미로드 범위면 invalidate 폴백) → 답변 후 재진입 refetch 0회. 이 보장을 invalidate로 "단순화"하지 말 것 — 설계 왕복 끝에 확정된 패턴.
+- **과거 질문**: 그날 질문이 없으면 `useServePastQuestion`(POST `/past`, 횟수 차감 없음), 있으면 `useReloadPastQuestion`(POST `/past/reload`, `inCandidates=false`일 때만 1회 차감). 응답은 serve/reload와 같은 `ServeDailyQuestionResponse` → `daily` setQueryData + calendar·timeline invalidate. stale 코드(`QUESTION-002/004/008/011`)는 글로벌 dialog를 유지하고 `daily`만 invalidate해 카드를 실제 상태로 맞춘다.
+- `past(date)`는 `inCandidates`가 리로드마다 바뀌므로 `useFetchPastQuestions`로 **열 때마다 새로 조회**하고, 시트는 `usePastQuestions`(refetchOnMount 끔)로 그 캐시만 구독한다.
 - `QUESTION-004`(중복 답변)는 silent 코드: `useCreateAnswer`가 `onDuplicateAnswer` callback으로 message + `syncQueries` closure를 넘기고, 컴포넌트가 로컬 AlertDialog 표시. 컴포넌트는 queryClient/쿼리 키를 직접 만지지 않는다.
 
 ## 날짜 처리
