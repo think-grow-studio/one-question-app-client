@@ -279,9 +279,11 @@ export function useFetchPastQuestions() {
 }
 
 /**
- * 과거 질문 시트용 — useFetchPastQuestions 로 방금 채운 캐시를 구독.
- * 시트 mount 시 중복 요청이 나가지 않도록 refetchOnMount 끔.
+ * 과거 질문 시트용 — useFetchPastQuestions 로 방금 채운 캐시를 구독만 한다.
+ * 시트는 닫혀 있어도 항상 mount 돼 있어서, 스스로 조회하면 홈 진입·날짜 스와이프·
+ * 앱 복귀마다 GET /past 가 나간다 (refetchOnMount: false 는 캐시가 비어 있으면 무시됨).
+ * 열 때 enabled 를 켜는 방식도 staleTime 0 이라 방금 받은 목록을 다시 조회하므로 항상 끈다.
  */
 export function usePastQuestions(date: string) {
-  return useQuery({ ...pastQuestionsQueryOptions(date), refetchOnMount: false });
+  return useQuery({ ...pastQuestionsQueryOptions(date), enabled: false });
 }

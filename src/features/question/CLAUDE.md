@@ -28,7 +28,7 @@
 - **질문 변경**(뽑기/리로드/선택): `timeline` invalidate — 재진입 시 1회 refetch.
 - **답변 생성/수정**: `applyAnswerToTimeline`으로 timeline 페이지를 **수술적 패치** (해당 날짜가 미로드 범위면 invalidate 폴백) → 답변 후 재진입 refetch 0회. 이 보장을 invalidate로 "단순화"하지 말 것 — 설계 왕복 끝에 확정된 패턴.
 - **과거 질문**: 그날 질문이 없으면 `useServePastQuestion`(POST `/past`, 횟수 차감 없음), 있으면 `useReloadPastQuestion`(POST `/past/reload`, `inCandidates=false`일 때만 1회 차감). 응답은 serve/reload와 같은 `ServeDailyQuestionResponse` → `daily` setQueryData + calendar·timeline invalidate. stale 코드(`QUESTION-002/004/008/011`)는 글로벌 dialog를 유지하고 `daily`만 invalidate해 카드를 실제 상태로 맞춘다.
-- `past(date)`는 `inCandidates`가 리로드마다 바뀌므로 `useFetchPastQuestions`로 **열 때마다 새로 조회**하고, 시트는 `usePastQuestions`(refetchOnMount 끔)로 그 캐시만 구독한다.
+- `past(date)`는 `inCandidates`가 리로드마다 바뀌므로 `useFetchPastQuestions`로 **열 때마다 새로 조회**하고, 시트는 `usePastQuestions`(`enabled: false`)로 그 캐시만 구독한다. 시트는 닫혀 있어도 mount 돼 있으므로 스스로 조회하게 두면 날짜 스와이프·앱 복귀마다 GET `/past`가 나간다 (`refetchOnMount: false`는 캐시가 비어 있으면 무시됨).
 - `QUESTION-004`(중복 답변)는 silent 코드: `useCreateAnswer`가 `onDuplicateAnswer` callback으로 message + `syncQueries` closure를 넘기고, 컴포넌트가 로컬 AlertDialog 표시. 컴포넌트는 queryClient/쿼리 키를 직접 만지지 않는다.
 
 ## 날짜 처리
